@@ -1,29 +1,8 @@
 # phew
 
-## Project setup
-```
-npm install
-```
+In order to serve distribution on own machine:
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
-
-### Compiles and minifies for production
-```
-npm run build
-```
-
-### Run your tests
-```
-npm run test
-```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+- Install nodejs (https://nodejs.org/en/)
+- Install npm (https://www.npmjs.com/get-npm)
+- Run `npm install .` in the phew/dist dir.
+- Run `node phewLocal.js` in the phew/dist dir.
