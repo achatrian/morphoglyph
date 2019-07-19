@@ -90,16 +90,15 @@ export default {
       } // get space for two more glyphs horizontally
       const xOffset = bounds.width / (numXGlyphs + 1.0) // offset should be more than half of desired glyph width
       const yOffset = bounds.height / (numYGlyphs + 1.0) // offset should be more than half of desired glyph height
-      const glyphWidth = xOffset * state.boundingRectSizeFactor
-      const glyphHeight = yOffset * state.boundingRectSizeFactor
+      const glyphSize = Math.min(xOffset, yOffset) * state.boundingRectSizeFactor // inscribe glyph in square in order to keep aspect ratio constant
       let numRects = 0
-      const gridId = `x-offset: ${xOffset.toFixed(2)}; y-offset: ${yOffset.toFixed(2)}; width: ${glyphWidth.toFixed(2)}; height: ${glyphHeight.toFixed(2)}`
+      const gridId = `x-offset: ${xOffset.toFixed(2)}; y-offset: ${yOffset.toFixed(2)}; width: ${glyphSize.toFixed(2)}; height: ${glyphSize.toFixed(2)}`
       for (let i = 0; i < numYGlyphs; i++) {
         for (let j = 0; j < numXGlyphs; j++) {
           if (numRects < state.numDisplayedGlyphs) {
             boundingRects.push({
-              width: glyphWidth,
-              height: glyphHeight,
+              width: glyphSize,
+              height: glyphSize,
               left: bounds.x + xOffset * (j + 0.5),
               top: bounds.y + yOffset * (i + 0.5),
               generator: {type: 'grid', id: gridId}

@@ -32,6 +32,7 @@ Vue.config.productionTip = false // change when ready for production
 window.arrayIter = Array.prototype[Symbol.iterator]
 
 
+
 /* eslint-disable no-new */
 new Vue({
   el: '#app',

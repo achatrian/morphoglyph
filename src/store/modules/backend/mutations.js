@@ -24,12 +24,16 @@ export default {
     state.fileName = name
   },
 
-  normalizeFeatures: (state) => {
+  normalizeFeatures: (state, coNormalizeGroups = [], normIntervalLength = 0.5) => {
     /* Compute normalized features used to plot glyphs
-    First, find data fields and compute ranges of features,
-    then normalize using field ranges.
+    First, find data fields and compute ranges of features, then normalize using field ranges.
+    coNormalizeGroups: [ [ fieldName1, fieldName2 ], [ fieldName5, fieldName7 ], ... ]
+    normIntervalLength: smallest spatial structure is 10*(1 - normIntervalLength) times smaller than biggest structure
     * */
     // update feature info
+    if (normIntervalLength < 0.0 || normIntervalLength > 1.0) {
+      throw Error(`Normalization scaling length must be within [0, 1] (value = ${normIntervalLength})`)
+    }
     state.dataFields = Object.keys(state.parsedData[0]) // assuming all data points have same fields
     let fieldTypes = {}
     let numericData = []
@@ -52,15 +56,32 @@ export default {
       state.fieldTypes = fieldTypes
       let featuresRanges = {}
       state.dataFields.forEach(name => {
-        featuresRanges[name] = [0.0, 0.0]
+        featuresRanges[name] = [1.0, 0.0]
       })
       for (let i = 0; i < numericData.length; i++) {
         for (let field of state.dataFields) {
           if (numericData[i][field] < featuresRanges[field][0]) {
-            featuresRanges[field][0] = numericData[i][field] // update with new minimum
-          } else if (numericData[i][field] > featuresRanges[field][1]) {
+            featuresRanges[field][0] = numericData[i][field] // update with new minimum (for -ve numbers in range)
+          }
+          if (numericData[i][field] > featuresRanges[field][1]) {
             featuresRanges[field][1] = numericData[i][field] // update with new maximum
           }
+        }
+      }
+      // if any features are to be conormalized, the union of their intervals is taken
+      for (let coNormalizeGroup of coNormalizeGroups) {
+        let groupMin = 1.0
+        let groupMax = 0.0
+        for (let field of coNormalizeGroup) {
+          if (featuresRanges[field][0] < groupMin) {
+            groupMin = featuresRanges[field][0]
+          }
+          if (featuresRanges[field][1] > groupMax) {
+            groupMax = featuresRanges[field][1]
+          }
+        }
+        for (let field of coNormalizeGroup) {
+          featuresRanges[field] = [groupMin, groupMax]
         }
       }
       state.featuresRanges = featuresRanges
@@ -70,9 +91,10 @@ export default {
         let normalizedPoint = {}
         for (let field of state.dataFields) {
           let value = numericData[i][field]
+          let rangeLength = state.featuresRanges[field][1] - state.featuresRanges[field][0]
           // numeric string test: String conversion to Number returns a NaN if string is not numeric
           if (typeof value === 'number') {
-            normalizedPoint[field] = numericData[i][field] / (state.featuresRanges[field][1] - state.featuresRanges[field][0])
+            normalizedPoint[field] = normIntervalLength*(numericData[i][field] - state.featuresRanges[field][0])/rangeLength + (1 - normIntervalLength)
           } else {
             normalizedPoint[field] = numericData[i][field]
           }
@@ -81,7 +103,7 @@ export default {
       }
       state.normalizedData = normalizedData
     } else {
-      throw new Error('No data available to parse')
+      throw new Error('Data has not been parsed yet - cannot normalize')
     }
   },
 

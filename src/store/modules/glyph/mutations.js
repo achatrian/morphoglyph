@@ -41,6 +41,7 @@ export default {
     state.glyphSettings = glyphClass.settings
     // update shapes names those of currently selected class
     state.glyphShapes = glyphClass.shapes
+    state.glyphShapes.all = [state.glyphShapes.main, ...state.glyphShapes.children]
     // update elements names with those from currently selected class
     glyphElements.push(...glyphClass.elements)
     state.glyphElements = glyphElements
@@ -108,11 +109,13 @@ export default {
       shapePositions: state.shapePositions,
       [state.glyphSettings.name]: state.selectedGlyphSetting
     }
-    // shapeType: shapeType || 'ellipse', // for Shape glyph
-    // drawNucleus: state.project.bindings.some(binding => binding.element.startsWith('nucleus')) // for Cell glyph
+    // Draw all glyph paths
     glyph.draw(drawOptions)
+    let targetGlyph
     for (let binding of state.project.bindings) {
-      let targetGlyph
+      if (binding.element === 'Height' || binding.element === 'Width') {
+        continue
+      }
       if (glyph.name === binding.shape) {
         targetGlyph = glyph
       } else {
@@ -121,24 +124,32 @@ export default {
       if (typeof targetGlyph === 'undefined') {
         throw Error(`Neither glyph ${glyphId} nor its children match shape '${binding.shape}' `)
       }
-      if (binding.element === 'Width') {
-        targetGlyph.scale(dataPoint[binding.field])
-      } else if (binding.element === 'Height') {
-        targetGlyph.scale(1, dataPoint[binding.field])
-      } else {
-        try {
-          targetGlyph['draw' + binding.element](dataPoint[binding.field]) // get draw method for element and call it
-        } catch (e) {
-          if (typeof targetGlyph['draw' + binding.element] === 'undefined') {
-            throw Error(`Handler for element ${binding.element} not defined on glyph type ${targetGlyph.name}`)
-          } else {
-            throw e
-          }
+      try {
+        targetGlyph['draw' + binding.element](dataPoint[binding.field]) // get draw method for element and call it
+      } catch (e) {
+        if (typeof targetGlyph['draw' + binding.element] === 'undefined') {
+          throw Error(`Handler for element ${binding.element} not defined on glyph type ${targetGlyph.name}`)
+        } else {
+          throw e
         }
       }
     }
     // Group all drawn paths to enable movements of individual shapes
     glyph.buildPathGroups()
+    // Handle scaling of glyph (relies on built groups !)
+    for (let shape of state.glyphShapes.all) {
+      const widthBinding = state.project.bindings.find(binding => binding.element === 'Width' && binding.shape === shape)
+      const heightBinding = state.project.bindings.find(binding => binding.element === 'Height' && binding.shape === shape)
+      if (glyph.name === shape) {
+        targetGlyph = glyph
+      } else {
+        targetGlyph = glyph.getChild(shape)
+      }
+      targetGlyph.scale(
+          widthBinding ? dataPoint[widthBinding.field] : 1,
+          heightBinding ? dataPoint[heightBinding.field] : 1
+      )
+    }
   },
 
   moveGlyph: (state, {boundingRect, glyphId, shapeSelector = 'layer'}) => {
@@ -207,11 +218,11 @@ export default {
   resetGlyph: (state, glyphIndex) => state.project.glyphs[glyphIndex].reset(),
 
   // *** other drawings ***
-  addCaption: (state, {glyphIndex, boundingRect, caption}) => {
+  addCaption: (state, {glyphIndex}) => { //boundingRect, caption}) => {
     state.activeLayer = glyphIndex
     // const {left, top, width, height} = boundingRect
     const {x, y, width, height} = state.project.glyphs[glyphIndex].mainPath.bounds
-    caption = new paper.PointText({
+    const caption = new paper.PointText({
       point: [
         x + width / 10, // starting point of text TODO move to middle
         y + height * 1.15 // slightly below glyph

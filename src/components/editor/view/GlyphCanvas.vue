@@ -119,8 +119,9 @@ export default {
   mounted () {
     // Setup the annotation canvas, this is a PaperJS instance targeting the
     // canvas DOM element: 'glyph-canvas'
-    //paper.install(window) // easier debugging - not actually used
-    // NB paper.Symbol overwrites Symbol object in native code and hinders use 'for .. of'
+    // NB paper.Symbol overwrites Symbol object in native code and hinders use 'for .. of', if install() is called on window
+    window.paper = {} // call on custom object attribute instead
+    paper.install(window.paper) // easier debugging - not actually used
     paper.setup('glyph-canvas')
     paper.activate()
     this.setLayersUp() // setting up all the needed layers

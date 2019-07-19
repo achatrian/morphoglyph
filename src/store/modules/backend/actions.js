@@ -27,7 +27,6 @@ export default {
       commit('updateFileName', file.name) // actions can commit multiple mutations
       commit('app/changeDisplayedGlyphMax', state.parsedData.length, {root: true}) // change glyph display max
       // process new data
-      dispatch('normalizeFeatures')
     } catch (e) {
       dispatch('app/activateSnackbar', {
         text: 'Reading of data file failed (possible wrong format)',
@@ -35,6 +34,7 @@ export default {
         timeout: 3000
       }, {root: true})
     }
+    dispatch('normalizeFeatures')
   },
 
   readBindingsFile: async ({dispatch, commit}, file) => {
@@ -54,7 +54,7 @@ export default {
     }
   },
 
-  normalizeFeatures: ({commit}) => commit('normalizeFeatures'),
+  normalizeFeatures: ({commit}, coNormalizeGroups) => commit('normalizeFeatures', coNormalizeGroups),
 
   setNamingField: ({commit}, namingField) => commit('setNamingField', namingField),
 

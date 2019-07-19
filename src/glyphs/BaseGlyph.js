@@ -158,7 +158,7 @@ class BaseGlyph {
     this.children.forEach(glyph => glyph.buildPathGroups()) // recursive call on children
   }
 
-  registerPath (path, pathName, selectable = true) {
+  registerPath (path, pathName) { //selectable = true) {
     // associate path unique id with a name that can be used to retrieve it
     // pathName should be lower case (as it's not used for display here)
     this.pathIds[pathName] = path.id
@@ -268,7 +268,12 @@ class BaseGlyph {
       factorY += 0.05 // cannot scale to 0
     }
     this.activateLayer()
-    paper.project.layers[this.layer].scale(factorX, factorY)
+    //paper.project.layers[this.layer].scale(factorX, factorY)
+    const group = this.group
+    if (group.children.length === 0) {
+      console.warn(`Scaling empty group for glyph ${this.id} - must call buildPathGroups first`)
+    }
+    group.scale(factorX, factorY)
   }
 
   reset () { // delete all paperjs paths associated with glyph
