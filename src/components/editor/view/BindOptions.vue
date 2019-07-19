@@ -186,7 +186,7 @@
                 setNamingField: 'backend/setNamingField',
                 normalizeFeatures: 'backend/normalizeFeatures'
             }),
-            bindFieldToElement () { // function to turns element and feature selections into a binding object
+            bindFieldToElement () { // function to turn element and feature selections into a binding object
                 console.log(`Binding ${this.selectedGlyphEl} to ${this.selectedField}`)
                 let previousBinding = -1
                 this.fieldBindings.forEach((binding, i) => {

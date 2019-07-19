@@ -16,7 +16,7 @@
     <div id="order-select">
       <v-select
         v-show="numDisplayedGlyphs"
-        :items="['file entry order'].concat(dataFields)"
+        :items="['file entries'].concat(dataFields)"
         dense
         v-model="selectedOrderField"
       />
@@ -36,7 +36,7 @@ export default {
   components: {
     'app-sheet': Sheet
   },
-  data () { return { page: 1, selectedOrderField: 'file entry order' } },
+  data () { return { page: 1, selectedOrderField: 'file entries' } },
   computed: {...mapState({
     numDisplayedGlyphs: state => state.app.numDisplayedGlyphs,
     glyphs: state => state.glyph.project.glyphs,

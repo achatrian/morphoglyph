@@ -114,7 +114,7 @@ export default {
     let targetGlyph
     for (let binding of state.project.bindings) {
       if (binding.element === 'Height' || binding.element === 'Width') {
-        continue
+        continue // skipping height and width -- TODO generalise to scale-type elements
       }
       if (glyph.name === binding.shape) {
         targetGlyph = glyph
@@ -135,8 +135,8 @@ export default {
       }
     }
     // Group all drawn paths to enable movements of individual shapes
-    glyph.buildPathGroups()
-    // Handle scaling of glyph (relies on built groups !)
+    glyph.buildGroups()
+    // Handle scaling of glyph (relies on built groups !) -- TODO generalise to scale-type elements other than Height and Width ?
     for (let shape of state.glyphShapes.all) {
       const widthBinding = state.project.bindings.find(binding => binding.element === 'Width' && binding.shape === shape)
       const heightBinding = state.project.bindings.find(binding => binding.element === 'Height' && binding.shape === shape)
@@ -244,7 +244,7 @@ export default {
         targetGlyph = glyph.getChild(shapeName)
       } // target is either main glyph or one of its children
       if (targetGlyph && targetGlyph.drawn) {
-        let paths = targetGlyph.getNamedPaths(true)
+        let paths = targetGlyph.getNamedItems(true)
         paths[elementName.toLowerCase()][parameter] = value
         let propString = elementName.toLowerCase() + parameter[0].toUpperCase() + parameter.slice(1)
         targetGlyph.parameters[propString] = value // .parameters must not store objects --> assemble specific string

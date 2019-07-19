@@ -24,7 +24,7 @@ export default {
     state.fileName = name
   },
 
-  normalizeFeatures: (state, coNormalizeGroups = [], normIntervalLength = 0.5) => {
+  normalizeFeatures: (state, coNormalizeGroups = [], normIntervalLength = 0.7) => {
     /* Compute normalized features used to plot glyphs
     First, find data fields and compute ranges of features, then normalize using field ranges.
     coNormalizeGroups: [ [ fieldName1, fieldName2 ], [ fieldName5, fieldName7 ], ... ]
@@ -113,7 +113,7 @@ export default {
   },
 
   orderDataByValue: (state, orderField) => {
-    if (orderField === 'file entry order') {
+    if (orderField === 'file entries') {
       state.dataDisplayOrder = state.normalizedData.map(dataPoint => dataPoint[state.namingField])
     } else {
       let indexedFieldValues = state.normalizedData.map((dataPoint, idx) => [dataPoint[orderField], idx])

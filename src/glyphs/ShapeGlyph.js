@@ -13,7 +13,9 @@ class ShapeGlyph extends BaseGlyph {
       numSides: 6, // for RegularPolygon: defaults to hexagon
       numPoints: 250, // for drawing Membrane and Spikes
       spikeHeight: 0.3,
-      meshType: 'grid'
+      meshType: 'grid',
+      patternSize: 1, // size of pattern elements in patterning
+      patternType: 'circle'
     }) {
     // constructor for standard PhenoPlot glyph
     super(layer, id, name, options)
@@ -166,14 +168,14 @@ class ShapeGlyph extends BaseGlyph {
     }
     membranePath.strokeColor = this.parameters.primaryColor
     membranePath.strokeWidth = this.parameters.thickPathSize
-    this.registerPath(membranePath, 'membrane')
+    this.registerItem(membranePath, 'membrane')
   }
 
   drawSpikes (spikeFraction, subElements) {
     let {spikeHeight, numPoints} = subElements
     if (typeof spikeHeight === 'undefined') { spikeHeight = this.parameters.spikeHeight }
     if (typeof numPoints === 'undefined') { numPoints = this.parameters.numPoints }
-    let pathClone = this.clonePath('main', numPoints)
+    let pathClone = this.cloneItem(this.constructor.shapes.main, numPoints)
     pathClone.visible = false
     let n = Math.floor(pathClone.segments.length * spikeFraction)
     let spikePath = new paper.Path()
@@ -193,22 +195,32 @@ class ShapeGlyph extends BaseGlyph {
     }
     spikePath.strokeColor = this.parameters.secondaryColor
     spikePath.strokeWidth = this.parameters.narrowPathSize
-    this.registerPath(spikePath, 'spikes')
+    this.registerItem(spikePath, 'spikes')
   }
 
   drawProtrusion (protrusionFraction, subElements) {
-    let protrusionPath = this.clonePath('main', this.parameters.numPoints)
+    let protrusionPath = this.cloneItem(this.constructor.shapes.main, this.parameters.numPoints)
+    const boundingClientRect = paper.view.element.getBoundingClientRect()
+    const upperDistanceMainBox = this.box.bounds.top - (this.mainPath.bounds.y + boundingClientRect.top)
+    // FIXME: value above is 0, as glyphs are as big as their bounding box when drawn
+    // TODO: could use shapePositions to change this in case there was a protrusion (making some space for it on top)
+    // TODO: in that case, glyph center could be shifted down in order to make best use of space
     for (let i = 0; i < protrusionPath.segments.length; i++) {
       if (protrusionPath.segments[i].point.y < this.mainPath.position.y) {
-        protrusionPath.segments[i].point.y = protrusionPath.segments[i].point.y * (1 - protrusionFraction)
+        // shift up points in upper half of main path's clone - NB (y increases going down in screen)
+        //protrusionPath.segments[i].point.y -= protrusionPath.segments[i].point.y * protrusionFraction
+        protrusionPath.segments[i].point.y -= upperDistanceMainBox * protrusionFraction
       }
     }
-    protrusionPath.strokeWidth = this.parameters.strokeWidth
-    protrusionPath.strokeColor = this.parameters.strokeColor
-    protrusionPath.fillColor = this.parameters.lightColor
-    protrusionPath.visible = true
-    protrusionPath.closed = true
+    Object.assign(protrusionPath, {
+      strokeWidth: this.parameters.strokeWidth,
+      strokeColor: this.parameters.strokeColor,
+      fillColor: this.parameters.lightColor,
+      visible: true,
+      closed: true
+    })
     protrusionPath.insertBelow(this.mainPath) // inserts in mainPath's background
+    this.registerItem(protrusionPath, 'protrusion')
   }
 
   drawMesh (density, subElements) {
@@ -254,7 +266,49 @@ class ShapeGlyph extends BaseGlyph {
     mesh.strokeColor = this.parameters.darkColor
     mesh.strokeWidth = this.parameters.strokeWidth
     mesh.bringToFront()
-    this.registerPath(mesh, 'mesh')
+    this.registerItem(mesh, 'mesh')
+  }
+
+  drawSymbolFilling (fillingFraction, subElements) {
+    // generate points where to draw pattern elements - use contains() to test whether point is inside the shape or not
+    let possiblePoints = []
+    for (let x = this.box.bounds.left; x < this.box.bounds.width; x += this.box.bounds.width/this.patternSize) {
+      for (let y = this.box.bounds.top; x < this.box.bounds.height; x += this.box.bounds.height/this.patternSize) {
+        const possiblePoint = new paper.Point(x, y)
+        if (this.mainPath.contains(possiblePoint)) {
+          possiblePoints.push(possiblePoint)
+        }
+      }
+    }
+    let pattern = []
+    let patternElement
+    for (let i = 0; i < Math.floor(possiblePoints.length * fillingFraction); i++) {
+      switch (this.patternType) {
+        case 'circle':
+           patternElement = new paper.Path.Circle(
+              possiblePoints[i],
+              0.8 * this.patternSize/2
+          )
+          break
+        case 'star':
+          patternElement = new paper.Path.Star(
+              possiblePoints[i],
+              5,
+              0.5 * this.patternSize/2,
+              0.8 * this.patternSize/2
+          )
+          break
+        case 'square':
+          patternElement = new paper.Path.Rectangle(
+              possiblePoints[i],
+              new paper.Size(0.8 * this.patternSize/2,0.8 * this.patternSize/2)
+          )
+          break
+      }
+      pattern.push(patternElement)
+    }
+    const patternGroup = new paper.Group(pattern)
+    this.registerItem(patternGroup)
   }
 }
 

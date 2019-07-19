@@ -15,7 +15,7 @@ const state = {
   namingField: '',
   loadedBindingData: {date: '', fileName: '', glyphType: '', namingField: '', bindings: []},
   dataDisplayOrder: [],
-  orderField: 'file entry order',
+  orderField: 'file entries',
   availableTemplates: [] // stores templates found in /data dir TODO integrate
 }
 

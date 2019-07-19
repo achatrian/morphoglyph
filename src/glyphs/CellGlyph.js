@@ -12,7 +12,8 @@ class CellGlyph extends ShapeGlyph {
       membraneSize: '',
       numPoints: 300,
       spikeHeight: 0.3,
-      meshType: 'grid'
+      meshType: 'grid',
+      patternSize: 1 // size of pattern elements in patterning
     }) {
     super(layer, id, name, options)
     this.glyphElements = CellGlyph.elements
@@ -71,7 +72,7 @@ class CellGlyph extends ShapeGlyph {
         primaryColor: '#AB47BC',
         secondaryColor: '#D4E157',
         lightColor: '#1E88E5',
-        darkColor: '#66BB6A',
+        darkColor: '#B71C1C',
         strokeWidth: 2,
         thickPathSize: 7,
         narrowPathSize: 4,
