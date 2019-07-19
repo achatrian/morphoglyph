@@ -2,19 +2,6 @@
 import paper from 'paper'
 import Vue from 'vue'
 
-function findInArrayOfObjects (key, array, keyName = 'id') {
-  let i = 0
-  for (let element of array) {
-    if (typeof element[keyName] === 'undefined') {
-      throw Error(`Element #${i}'s ${keyName} attribute is undefined`)
-    } else if (element[keyName] === key) {
-      return element
-    }
-    i++
-  }
-  throw Error(`Could not find element with ${keyName} '${key}'`)
-}
-
 export default {
   setLayersUp: (state, maxDisplayedGlyphs) => {
     for (let i = 0; i < maxDisplayedGlyphs; i++) {
@@ -101,7 +88,7 @@ export default {
           glyphIndex: Number
           boundingRect: {left: Number, top: Number, width: Number, height: Number}
     } */
-    let glyph = findInArrayOfObjects(glyphId, state.project.glyphs)
+    let glyph = state.project.glyphs.find(glyph => glyph.id === glyphId)
     state.activeLayer = glyph.layer // activate layer corresponding to glyph
     paper.project.layers[state.activeLayer].activate()
     let drawOptions = {
@@ -154,7 +141,7 @@ export default {
 
   moveGlyph: (state, {boundingRect, glyphId, shapeSelector = 'layer'}) => {
     // loop over paths in layer corresponding to dock
-    const glyph = findInArrayOfObjects(glyphId, state.project.glyphs)
+    const glyph = state.project.glyphs.find(glyph => glyph.id === glyphId)
     state.activeLayer = glyph.layer // activate layer corresponding to glyph
     paper.project.layers[state.activeLayer].activate()
     // Layer extends Group, so transformations can be applied to all the elements
@@ -275,7 +262,7 @@ export default {
     if (typeof glyphClass === 'undefined') {
       throw Error(`Unknown glyph type: ${state.glyphTypeName}`)
     }
-    const glyph = findInArrayOfObjects(glyphId, state.project.glyphs)
+    const glyph = state.project.glyphs.find(glyph => glyph.id === glyphId)
     // eslint-disable-next-line new-cap
     glyph.registerChild(new glyphClass(childName))
   }

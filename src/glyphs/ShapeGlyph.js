@@ -100,6 +100,16 @@ class ShapeGlyph extends BaseGlyph {
         },
         target: 'main',
         subElements: []
+      },
+      {
+        name: 'SymbolFilling',
+        type: 'path',
+        properties: {
+          color: {range: [], step: []},
+          size: {range: [0.3, 1.5], step: 0.3}
+        },
+        target: 'main',
+        subElements: []
       }
     ]
   }

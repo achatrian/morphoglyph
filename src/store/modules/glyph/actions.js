@@ -1,16 +1,3 @@
-function findInArrayOfObjects (key, array, keyName = 'id') {
-  let i = 0
-  for (let element of array) {
-    if (typeof element[keyName] === 'undefined') {
-      throw Error(`Element #${i}'s ${keyName} attribute is undefined`)
-    } else if (element[keyName] === key) {
-      return element
-    }
-    i++
-  }
-  throw Error(`Could not find element with ${keyName} '${key}'`)
-}
-
 export default {
   setLayersUp: ({rootState, commit}) => commit('setLayersUp', rootState.app.maxDisplayedGlyphs),
 
@@ -38,10 +25,8 @@ export default {
   drawGlyph: ({rootState, commit}, payload) => {
     // find dataPoint in backend
     payload.glyphId = rootState.backend.dataDisplayOrder[payload.glyphIndex]
-    payload.dataPoint = findInArrayOfObjects(
-      payload.glyphId,
-      rootState.backend.normalizedData,
-      rootState.backend.namingField
+    payload.dataPoint = rootState.backend.normalizedData.find(
+        dataPoint => dataPoint[rootState.backend.namingField] === payload.glyphId
     ) // data point corresponding to cluster in given dock
     commit('drawGlyph', payload)
   },
