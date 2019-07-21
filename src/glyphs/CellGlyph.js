@@ -13,12 +13,13 @@ class CellGlyph extends ShapeGlyph {
       numPoints: 300,
       spikeHeight: 0.3,
       meshType: 'grid',
-      patternSize: 1 // size of pattern elements in patterning
+      patternSize: 15, // size of pattern elements in patterning
+      patternType: 'circle'
     }) {
     super(layer, id, name, options)
     this.glyphElements = CellGlyph.elements
-    this.pathIds = {
-      ...this.pathIds,
+    this.itemIds = {
+      ...this.itemIds,
       membrane: null,
       spikes: null,
       protrusion: null,

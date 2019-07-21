@@ -30,8 +30,8 @@ class BaseGlyph {
     options = BaseGlyph.baseOptions(),
     parent = null) {
     // add options as object
-    for (let itemName in options) {
-      this.parameters[itemName] = options[itemName]
+    for (let option in options) {
+      this.parameters[option] = options[option]
     }
     this.layer = layer
     this.id = id
@@ -52,8 +52,8 @@ class BaseGlyph {
   }
   glyphElements = BaseGlyph.elements // names of available elements for this type of glyph
   drawn = false // flag to check if draw() has been called
-  pathIds = {}
-  drawnPaths = new Set()
+  itemIds = {}
+  drawnItems = new Set()
 
   // height and width don't have any visual properties that can be tweaked by the user
   children = [] // array storing children glyphs
@@ -85,9 +85,7 @@ class BaseGlyph {
 
   activateLayer () { paper.project.layers[this.layer].activate() }
 
-  getDrawingBox (options) { // compute box
-    const {boundingRect, shapePositions} = options
-    const canvasRect = paper.view.element.getBoundingClientRect()
+  getDrawingBox ({boundingRect, shapePositions}) { // compute box
     if (typeof shapePositions[this.name.toLowerCase()] !== 'undefined') {
       const {topShift, leftShift, widthProportion, heightProportion} = shapePositions[this.name.toLowerCase()]
       // topShift and leftShift are relative to boundingRect dimensions before scaling
@@ -97,13 +95,21 @@ class BaseGlyph {
       boundingRect.height *= heightProportion
     }
     return {
-      canvasRect: canvasRect,
       bounds: boundingRect,
       center: {
-        x: boundingRect.left - canvasRect.left + boundingRect.width / 2,
-        y: boundingRect.top - canvasRect.top + boundingRect.height / 2
+        x: boundingRect.left + boundingRect.width / 2,
+        y: boundingRect.top + boundingRect.height / 2
       },
-      shapePositions: shapePositions
+      shapePositions: shapePositions,
+      canvasRect: paper.view.element.getBoundingClientRect()
+    }
+  }
+
+  updateBox({boundingRect, shapePositions}) { // updates drawing box for glyph and children
+    const options = {boundingRect, shapePositions}
+    this.box = this.getDrawingBox(options)
+    for (let childGlyph of this.children) {
+      childGlyph.box = this.getDrawingBox(options) // TODO test
     }
   }
 
@@ -151,55 +157,55 @@ class BaseGlyph {
   }
 
   buildGroups () { // group drawn items for ease of translation
-    const namedPaths = this.getNamedItems(false)
+    const namedItems = this.getNamedItems(false)
     let items = []
-    Object.values(namedPaths).forEach(path => items.push(path))
+    Object.values(namedItems).forEach(path => items.push(path))
     this.group = new paper.Group(items)
     this.children.forEach(glyph => glyph.buildGroups()) // recursive call on children
   }
 
-  registerItem (path, itemName) { //selectable = true) {
-    // associate path unique id with a name that can be used to retrieve it
+  registerItem (item, itemName) { //selectable = true) {
+    // associate item unique id with a name that can be used to retrieve it
     // itemName should be lower case (as it's not used for display here)
-    this.pathIds[itemName] = path.id
-    this.drawnPaths.add(itemName)
-    path.name = itemName // assign name to path
+    this.itemIds[itemName] = item.id
+    this.drawnItems.add(itemName)
+    item.name = itemName // assign name to item
     // if (selectable) {
-    //   path.onClick = async function () {
+    //   item.onClick = async function () {
     //     await store.dispatch('glyph/selectGlyphEl', {
     //       layer: this.layer,
-    //       path: itemName
+    //       item: itemName
     //     })
-    //     console.log(`Selected path ${itemName} of glyph ${this.layer}`)
+    //     console.log(`Selected item ${itemName} of glyph ${this.layer}`)
     //   }.bind(this)
     // } // TODO use hitTest instead
   }
 
   getItem (itemName = this.constructor.shapes.main) {
-    const findItem = children => children.find(path => { return path.id === this.pathIds[itemName] && path.name === itemName })
+    const findItem = children => children.find(path => { return path.id === this.itemIds[itemName] && path.name === itemName })
     let children = this.group.children
-    let path = findItem(children)
-    if (typeof path === 'undefined') {
+    let item = findItem(children)
+    if (typeof item === 'undefined') {
       children = paper.project.layers[this.layer].children
-      path = findItem(children)
+      item = findItem(children)
     }
     // id matching should make layer search work, but in case glyph has children of same type there will be multiple
     // items with the same namae
-    if (typeof path === 'undefined') {
-      throw new Error(`Either id or name did not match the tracked id (${this.pathIds[itemName]}) / name (${itemName})`)
+    if (typeof item === 'undefined') {
+      throw new Error(`Either id or name did not match the tracked id (${this.itemIds[itemName]}) / name (${itemName})`)
     }
-    return path
+    return item
   }
 
   deleteItem (itemName = this.constructor.shapes.main) {
     // deleting path if it is drawn (and id was registered using registerItem)
     let found = false
-    const itemId = this.pathIds[itemName]
+    const itemId = this.itemIds[itemName]
     if (itemId !== null) {
       for (let path of paper.project.layers[this.layer].children) {
         if (path.id === itemId) {
           path.remove()
-          this.pathIds[itemName] = null
+          this.itemIds[itemName] = null
           found = true
           break
         }
@@ -207,7 +213,7 @@ class BaseGlyph {
     }
     if (itemId !== null && !found) {
       // shouldn't get here
-      throw new Error(`Either id or name did not match the tracked id (${this.pathIds[itemName]}) / name (${itemName})`)
+      throw new Error(`Either id or name did not match the tracked id (${this.itemIds[itemName]}) / name (${itemName})`)
     }
   }
 
@@ -224,33 +230,38 @@ class BaseGlyph {
     let items = {}
     items[this.constructor.shapes.main] = this.getItem(this.constructor.shapes.main)
     for (let element of this.glyphElements) {
+      if (element.type === 'scale') {
+        continue // no item to return for scale-type elements
+      }
       let targetGlyph
       if (element.target === this.constructor.shapes.main) {
         targetGlyph = this
       } else if (includeChildren) {
         targetGlyph = this.children.find(glyph => glyph.name === element.target)
       } else {
-        continue
+        continue // only get here if includeChildren is false
       }
       if (typeof targetGlyph === 'undefined') {
         throw Error(`Neither main glyph nor children names matched element's target '${element.target}' `)
       }
-      let name = element.name.toLowerCase()
-      if (element.type === 'path' && this.drawnPaths.has(name)) {
-        let itemName = element.name.toLowerCase()
+      let itemName = element.name.toLowerCase()
+      if (this.drawnItems.has(itemName)) {
         items[itemName] = this.getItem(itemName)
+        if (!(items[itemName] instanceof paper.Item)) {
+          console.warn(`Referenced object '${itemName}' is not a paper.Item instance`)
+        }
       }
     }
     return items
   }
 
   cloneItem (itemName = this.constructor.shapes.main, numPoints = 300) {
-    // clone glyph path with an arbitrary number of points
-    const path = this.getItem(itemName)
+    // clone glyph item with an arbitrary number of points
+    const item = this.getItem(itemName)
     let newPath = new paper.Path()
-    const theta = path.length / numPoints
+    const theta = item.length / numPoints
     for (let t = 0; t < numPoints; t++) {
-      newPath.add(path.getLocationAt(theta * t))
+      newPath.add(item.getLocationAt(theta * t))
     }
     return newPath
   }
@@ -279,11 +290,11 @@ class BaseGlyph {
     if (this.drawn) {
       if (this.parent === null) { // if this is root glyph, clear layer
         paper.project.layers[this.layer].removeChildren()
-        this.pathIds = {}
-        this.drawnPaths = new Set()
+        this.itemIds = {}
+        this.drawnItems = new Set()
       } else {
-        for (let itemName in this.pathIds) {
-          if (this.pathIds.hasOwnProperty(itemName)) {
+        for (let itemName in this.itemIds) {
+          if (this.itemIds.hasOwnProperty(itemName)) {
             this.deleteItem(itemName) // this should loop over children items as well
           }
         }
@@ -312,8 +323,8 @@ class BaseGlyph {
     }
     if (glyph.drawn) {
       // made child items accessible through parent
-      for (let itemName in glyph.pathIds) {
-        if (glyph.pathIds.hasOwnProperty(itemName)) { this.pathIds[glyph.name + '-' + itemName] = glyph.pathIds[itemName] }
+      for (let itemName in glyph.itemIds) {
+        if (glyph.itemIds.hasOwnProperty(itemName)) { this.itemIds[glyph.name + '-' + itemName] = glyph.itemIds[itemName] }
       }
     } else {
       console.warn(`Passed glyph '${glyph.name}' has not been drawn`)

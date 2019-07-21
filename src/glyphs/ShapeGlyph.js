@@ -14,14 +14,14 @@ class ShapeGlyph extends BaseGlyph {
       numPoints: 250, // for drawing Membrane and Spikes
       spikeHeight: 0.3,
       meshType: 'grid',
-      patternSize: 1, // size of pattern elements in patterning
+      patternSize: 15, // size of pattern elements in patterning
       patternType: 'circle'
     }) {
     // constructor for standard PhenoPlot glyph
     super(layer, id, name, options)
     this.glyphElements = ShapeGlyph.elements
-    this.pathIds = {
-      ...this.pathIds,
+    this.itemIds = {
+      ...this.itemIds,
       membrane: null,
       spikes: null,
       protrusion: null,
@@ -102,7 +102,7 @@ class ShapeGlyph extends BaseGlyph {
         subElements: []
       },
       {
-        name: 'SymbolFilling',
+        name: 'Decoration',
         type: 'path',
         properties: {
           color: {range: [], step: []},
@@ -164,7 +164,7 @@ class ShapeGlyph extends BaseGlyph {
     this.mainPath = path // uses setter that store id rather than storing a pointer to the path, which breaks vue reactivity
   }
 
-  drawMembrane (membraneFraction, subElements) {
+  drawMembrane (membraneFraction, subElements) { // eslint-disable-line no-unused-vars
     /* Draws a thicker membrane */
     if (!(membraneFraction >= 0.0 || membraneFraction <= 1.0)) {
       throw Error(`Invalid membrane fraction ${membraneFraction}, it must be in [0, 1] (`)
@@ -208,10 +208,9 @@ class ShapeGlyph extends BaseGlyph {
     this.registerItem(spikePath, 'spikes')
   }
 
-  drawProtrusion (protrusionFraction, subElements) {
+  drawProtrusion (protrusionFraction, subElements) { // eslint-disable-line no-unused-vars
     let protrusionPath = this.cloneItem(this.constructor.shapes.main, this.parameters.numPoints)
-    const boundingClientRect = paper.view.element.getBoundingClientRect()
-    const upperDistanceMainBox = this.box.bounds.top - (this.mainPath.bounds.y + boundingClientRect.top)
+    const upperDistanceMainBox = this.box.bounds.y - this.mainPath.bounds.y
     // FIXME: value above is 0, as glyphs are as big as their bounding box when drawn
     // TODO: could use shapePositions to change this in case there was a protrusion (making some space for it on top)
     // TODO: in that case, glyph center could be shifted down in order to make best use of space
@@ -233,7 +232,7 @@ class ShapeGlyph extends BaseGlyph {
     this.registerItem(protrusionPath, 'protrusion')
   }
 
-  drawMesh (density, subElements) {
+  drawMesh (density, subElements) { // eslint-disable-line no-unused-vars
     let numLines = Math.floor(2 * Math.exp(3 * density)) // density used to scale thickness of grid
     let lines = []
     let spacing
@@ -279,46 +278,56 @@ class ShapeGlyph extends BaseGlyph {
     this.registerItem(mesh, 'mesh')
   }
 
-  drawSymbolFilling (fillingFraction, subElements) {
+  drawDecoration (fillingFraction, subElements) { // eslint-disable-line no-unused-vars
     // generate points where to draw pattern elements - use contains() to test whether point is inside the shape or not
     let possiblePoints = []
-    for (let x = this.box.bounds.left; x < this.box.bounds.width; x += this.box.bounds.width/this.patternSize) {
-      for (let y = this.box.bounds.top; x < this.box.bounds.height; x += this.box.bounds.height/this.patternSize) {
-        const possiblePoint = new paper.Point(x, y)
-        if (this.mainPath.contains(possiblePoint)) {
+    let possiblePoint // define here for use in the arrow function below
+    const inMainOrProtrusion = glyph => {
+      let protrusionPath = glyph.getItem('protrusionPath')
+      let isInChild = glyph.mainPath.contains(possiblePoint) ||
+          (protrusionPath && protrusionPath.contains(possiblePoint))
+      return isInChild
+    }
+    for (let x = this.box.bounds.x; x < this.box.bounds.x + this.box.bounds.width; x += this.parameters.patternSize) {
+      for (let y = this.box.bounds.y; y < this.box.bounds.y + this.box.bounds.height; y += this.parameters.patternSize) {
+        possiblePoint = new paper.Point(x, y)
+        if (inMainOrProtrusion(this) && !this.children.some(inMainOrProtrusion)) {
           possiblePoints.push(possiblePoint)
         }
       }
     }
     let pattern = []
     let patternElement
-    for (let i = 0; i < Math.floor(possiblePoints.length * fillingFraction); i++) {
-      switch (this.patternType) {
+    for (let i = 0; i < Math.ceil(possiblePoints.length * fillingFraction); i++) {
+      switch (this.parameters.patternType) {
         case 'circle':
            patternElement = new paper.Path.Circle(
               possiblePoints[i],
-              0.8 * this.patternSize/2
+              0.8 * this.parameters.patternSize/2
           )
           break
         case 'star':
           patternElement = new paper.Path.Star(
               possiblePoints[i],
               5,
-              0.5 * this.patternSize/2,
-              0.8 * this.patternSize/2
+              0.5 * this.parameters.patternSize/2,
+              0.8 * this.parameters.patternSize/2
           )
           break
         case 'square':
           patternElement = new paper.Path.Rectangle(
               possiblePoints[i],
-              new paper.Size(0.8 * this.patternSize/2,0.8 * this.patternSize/2)
+              new paper.Size(0.8 * this.parameters.patternSize/2,0.8 * this.parameters.patternSize/2)
           )
           break
       }
+      patternElement.fillColor = this.parameters.secondaryColor
+      patternElement.visible = true
       pattern.push(patternElement)
     }
     const patternGroup = new paper.Group(pattern)
-    this.registerItem(patternGroup)
+    patternGroup.bringToFront()
+    this.registerItem(patternGroup, 'decoration')
   }
 }
 

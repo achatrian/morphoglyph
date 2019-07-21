@@ -146,14 +146,12 @@ export default {
     paper.project.layers[state.activeLayer].activate()
     // Layer extends Group, so transformations can be applied to all the elements
     // there is lag in reappearance - if timeout in reacting to resize event is 0 the layer resize breaks
-    const canvasRect = paper.view.element.getBoundingClientRect()
     // main path's position and size attributes are used as reference for translation and scaling
-    let group, refPath
+    let group, refPath, targetGlyph
     if (shapeSelector === 'layer') { // translate and scale the whole layer
       group = paper.project.layers[state.activeLayer] // layer is a special group
       refPath = glyph.mainPath
     } else { // translate and scale selected shape
-      let targetGlyph
       if (glyph.constructor.shapes.main === shapeSelector) {
         targetGlyph = glyph
       } else {
@@ -166,13 +164,17 @@ export default {
       refPath = targetGlyph.mainPath
     }
     group.translate(new paper.Point(
-      boundingRect.left - canvasRect.left + boundingRect.width / 2 - refPath.position.x,
-      boundingRect.top - canvasRect.top + boundingRect.height / 2 - refPath.position.y
+      boundingRect.left + boundingRect.width / 2 - refPath.position.x,
+      boundingRect.top + boundingRect.height / 2 - refPath.position.y
     ))
     const newWidth = (boundingRect.width + boundingRect.height) / 2
     const newHeight = newWidth * (refPath.size[1] / refPath.size[0])
     group.scale(newWidth / refPath.size[0], newHeight / refPath.size[1]) // NB mainPath.size[0] ≠ mainPath.bounds.width
     refPath.size = [newWidth, newHeight] // NB Size of main path would not change automatically after scaling layer !!!
+    glyph.updateBox({
+      boundingRect: boundingRect,
+      shapePositions: state.shapePositions
+    })
   },
 
   setRedrawing: (state, redrawing) => { state.redrawing = redrawing },
@@ -205,11 +207,11 @@ export default {
   resetGlyph: (state, glyphIndex) => state.project.glyphs[glyphIndex].reset(),
 
   // *** other drawings ***
-  addCaption: (state, {glyphIndex}) => { //boundingRect, caption}) => {
+  addCaption: (state, {glyphIndex, caption}) => { //boundingRect, }) => {
     state.activeLayer = glyphIndex
     // const {left, top, width, height} = boundingRect
     const {x, y, width, height} = state.project.glyphs[glyphIndex].mainPath.bounds
-    const caption = new paper.PointText({
+    const captionText = new paper.PointText({
       point: [
         x + width / 10, // starting point of text TODO move to middle
         y + height * 1.15 // slightly below glyph
@@ -218,7 +220,7 @@ export default {
       fillColor: 'gray',
       fontSize: 14
     })
-    // state.project.captions[glyphIndex] = caption // causes stack limit error, same as storing path in vuex
+    state.project.captions[glyphIndex] = captionText.id // causes stack limit error, same as storing path in vuex
   },
 
   // *** glyph property setter ***
