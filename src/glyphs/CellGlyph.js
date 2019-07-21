@@ -60,13 +60,6 @@ class CellGlyph extends ShapeGlyph {
     super.draw(options)
     this.activateLayer()
     if (options.drawNucleus.toLowerCase() === 'yes') {
-      // draw nucleus
-      // options.shapePositions.nucleus = {
-      //   topShift: 1 / 4, // upper left corner of child's bounding box is shifted down by one fourth of the box height
-      //   leftShift: 1 / 4, // upper left corner of child's bounding box is shifted right by one fourth of the box width
-      //   widthProportion: 1 / 2, // width of child's bounding box is half that of the full box
-      //   heightProportion: 1 / 2 // height of child's bounding box is half that of the full box
-      // }
       this.box = this.getDrawingBox(options) // update box info
       const nucleusOptions = {
         backend: 'paper',

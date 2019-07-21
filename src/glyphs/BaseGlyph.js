@@ -63,6 +63,7 @@ class BaseGlyph {
     center: { x: 0, y: 0 },
     shapePositions: {}
   }
+  drawOptions = {} // in BaseGlyph().draw() drawing options for glyphs are stored here
 
   static get type () {
     return 'BaseGlyph'
@@ -86,19 +87,28 @@ class BaseGlyph {
   activateLayer () { paper.project.layers[this.layer].activate() }
 
   getDrawingBox ({boundingRect, shapePositions}) { // compute box
-    if (typeof shapePositions[this.name.toLowerCase()] !== 'undefined') {
-      const {topShift, leftShift, widthProportion, heightProportion} = shapePositions[this.name.toLowerCase()]
+    let newBoundingRect = Object.assign({}, boundingRect)
+    if (typeof shapePositions[this.name] !== 'undefined') {
+      const {topShift, leftShift, widthProportion, heightProportion} = shapePositions[this.name]
       // topShift and leftShift are relative to boundingRect dimensions before scaling
-      boundingRect.top += topShift * boundingRect.height
-      boundingRect.left += leftShift * boundingRect.width
-      boundingRect.width *= widthProportion
-      boundingRect.height *= heightProportion
+      if (typeof topShift !== 'undefined') {
+        newBoundingRect.top += topShift * boundingRect.height
+      }
+      if (typeof leftShift !== 'undefined') {
+        newBoundingRect.left += leftShift * boundingRect.width
+      }
+      if (typeof widthProportion !== 'undefined') {
+        newBoundingRect.width *= widthProportion
+      }
+      if (typeof heightProportion !== 'undefined') {
+        newBoundingRect.height *= heightProportion
+      }
     }
     return {
-      bounds: boundingRect,
+      bounds: newBoundingRect,
       center: {
-        x: boundingRect.left + boundingRect.width / 2,
-        y: boundingRect.top + boundingRect.height / 2
+        x: newBoundingRect.left + newBoundingRect.width / 2,
+        y: newBoundingRect.top + newBoundingRect.height / 2
       },
       shapePositions: shapePositions,
       canvasRect: paper.view.element.getBoundingClientRect()
@@ -109,13 +119,14 @@ class BaseGlyph {
     const options = {boundingRect, shapePositions}
     this.box = this.getDrawingBox(options)
     for (let childGlyph of this.children) {
-      childGlyph.box = this.getDrawingBox(options) // TODO test
+      childGlyph.box = this.getDrawingBox(options)
     }
   }
 
   draw (options) {
     // method to draw myself -- must be called by subclasses before rest of drawing statements
-    this.box = this.getDrawingBox(options)
+    this.drawOptions = options
+    this.updateBox(this.drawOptions) // adapt box to shapePosition instructions for self and children
     if (this.layer === null) {
       throw Error(`Cannot draw glyph ${this.id} with null layer`)
     }
@@ -315,6 +326,7 @@ class BaseGlyph {
     }
     glyph.parent = this // storing reference
     this.children.push(glyph)
+    this.updateBox(this.drawOptions) // make sure box of child is updated with correct shape positions
     // register drawing methods
     for (let element of glyph.constructor.elements) {
       if (element.type !== 'scale') { // scale elements don't have draw function

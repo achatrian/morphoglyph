@@ -14,7 +14,7 @@ class ShapeGlyph extends BaseGlyph {
       numPoints: 250, // for drawing Membrane and Spikes
       spikeHeight: 0.3,
       meshType: 'grid',
-      patternSize: 15, // size of pattern elements in patterning
+      patternSize: 5, // size of pattern elements in patterning
       patternType: 'circle',
       protrusionPreScaling: 0.85
     }) {
@@ -116,10 +116,22 @@ class ShapeGlyph extends BaseGlyph {
   }
 
   draw (options) {
+    const widthScaleOrder = options.scaleOrders.find(
+        scaleOrder => scaleOrder.element === 'Width' && scaleOrder.shape === this.name
+    )
+    const heightScaleOrder = options.scaleOrders.find(
+        scaleOrder => scaleOrder.element === 'Height' && scaleOrder.shape === this.name
+    )
+    options.shapePositions[this.name] = {
+      widthProportion: widthScaleOrder ? widthScaleOrder.value : 1,
+      heightProportion: heightScaleOrder ? heightScaleOrder.value : 1,
+      leftShift: widthScaleOrder ? (1 - widthScaleOrder.value)/2 : 0,
+      topShift: heightScaleOrder ? (1 - heightScaleOrder.value)/2 : 0
+    }
     let {shapeType} = options
     if (typeof shapeType === 'undefined') { shapeType = 'ellipse' }
     this.activateLayer()
-    super.draw(options)
+    super.draw(options) // box is also updated here
     let path // declare here so that it can be initialized inside switch
     switch (shapeType) {
       case 'ellipse':
@@ -254,7 +266,7 @@ class ShapeGlyph extends BaseGlyph {
     mesh.bringToFront()
     this.registerItem(mesh, 'mesh')
   }
-
+  // FIXME need to adapt decoration to novel scaling system
   drawDecoration (fillingFraction, subElements) { // eslint-disable-line no-unused-vars
     // generate points where to draw pattern elements - use contains() to test whether point is inside the shape or not
     let possiblePoints = []
@@ -323,10 +335,8 @@ class ShapeGlyph extends BaseGlyph {
   }
 
   drawProtrusion (protrusionFraction, subElements) { // eslint-disable-line no-unused-vars
-    this.buildGroups() // must build group in order to be able to scale glyph
-    this.scale(this.parameters.protrusionPreScaling, this.parameters.protrusionPreScaling)
     let protrusionPath = this.cloneItem(this.constructor.shapes.main, this.parameters.numPoints)
-    const upperDistanceMainBox = this.box.bounds.y - this.mainPath.bounds.y
+    const upperDistanceMainBox = this.drawOptions.boundingRect.y - this.mainPath.bounds.y
     // FIXME: value above is 0, as glyphs are as big as their bounding box when drawn
     // TODO: could use shapePositions to change this in case there was a protrusion (making some space for it on top)
     // TODO: in that case, glyph center could be shifted down in order to make best use of space

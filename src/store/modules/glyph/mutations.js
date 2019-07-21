@@ -91,17 +91,43 @@ export default {
     let glyph = state.project.glyphs.find(glyph => glyph.id === glyphId)
     state.activeLayer = glyph.layer // activate layer corresponding to glyph
     paper.project.layers[state.activeLayer].activate()
+    // Handle scaling of glyph (relies on built groups !) -- TODO generalise to scale-type elements other than Height and Width ?
+    let scaleOrders = []
+    for (let binding of state.project.bindings) {
+      let glyphElement = state.glyphElements.find(element => element.name === binding.element)
+      if (glyphElement.type !== 'scale') {
+        continue // skipping bindings that are not scales
+      }
+      let scaleOrder = Object.assign({}, {
+        ...binding,
+        value: dataPoint[binding.field]
+      })
+      scaleOrders.push(scaleOrder)
+    }
+    // for (let shape of state.glyphShapes.all) {
+    //   const widthBinding = state.project.bindings.find(binding => binding.element === 'Width' && binding.shape === shape)
+    //   const heightBinding = state.project.bindings.find(binding => binding.element === 'Height' && binding.shape === shape)
+    //   state.shapePositions[shape] = {}
+    //   Object.assign(state.shapePositions[shape], {
+    //     widthProportion: widthBinding ? dataPoint[widthBinding.field] : 1,
+    //     heightProportion: heightBinding ? dataPoint[heightBinding.field] : 1,
+    //     topShift: widthBinding ? (1 - dataPoint[widthBinding.field])/2 : 0,
+    //     leftShift: heightBinding ? (1 - dataPoint[heightBinding.field])/2 : 0
+    //   })
+    // }
     let drawOptions = {
       boundingRect: Object.assign({}, boundingRect),
-      shapePositions: state.shapePositions,
+      scaleOrders: scaleOrders,
+      shapePositions: {},
       [state.glyphSettings.name]: state.selectedGlyphSetting
     }
     // Draw all glyph paths
     glyph.draw(drawOptions)
     let targetGlyph
     for (let binding of state.project.bindings) {
-      if (binding.element === 'Height' || binding.element === 'Width') {
-        continue // skipping height and width -- TODO generalise to scale-type elements
+      let glyphElement = state.glyphElements.find(element => element.name === binding.element)
+      if (glyphElement.type === 'scale') {
+        continue // skipping bindings to scale-type elements
       }
       if (glyph.name === binding.shape) {
         targetGlyph = glyph
@@ -123,23 +149,23 @@ export default {
     }
     // Group all drawn paths to enable movements of individual shapes
     glyph.buildGroups()
-    // Handle scaling of glyph (relies on built groups !) -- TODO generalise to scale-type elements other than Height and Width ?
-    for (let shape of state.glyphShapes.all) {
-      const widthBinding = state.project.bindings.find(binding => binding.element === 'Width' && binding.shape === shape)
-      const heightBinding = state.project.bindings.find(binding => binding.element === 'Height' && binding.shape === shape)
-      if (glyph.name === shape) {
-        targetGlyph = glyph
-      } else {
-        targetGlyph = glyph.getChild(shape)
-        if (typeof targetGlyph === 'undefined') {
-          continue // some children shapes might not be drawn, in which case .getChild() return undefined
-        }
-      }
-      targetGlyph.scale(
-          widthBinding ? dataPoint[widthBinding.field] : 1,
-          heightBinding ? dataPoint[heightBinding.field] : 1
-      )
-    }
+    // // Handle scaling of glyph (relies on built groups !) -- TODO generalise to scale-type elements other than Height and Width ?
+    // for (let shape of state.glyphShapes.all) {
+    //   const widthBinding = state.project.bindings.find(binding => binding.element === 'Width' && binding.shape === shape)
+    //   const heightBinding = state.project.bindings.find(binding => binding.element === 'Height' && binding.shape === shape)
+    //   if (glyph.name === shape) {
+    //     targetGlyph = glyph
+    //   } else {
+    //     targetGlyph = glyph.getChild(shape)
+    //     if (typeof targetGlyph === 'undefined') {
+    //       continue // some children shapes might not be drawn, in which case .getChild() return undefined
+    //     }
+    //   }
+    //   targetGlyph.scale(
+    //       widthBinding ? dataPoint[widthBinding.field] : 1,
+    //       heightBinding ? dataPoint[heightBinding.field] : 1
+    //   )
+    // }
   },
 
   moveGlyph: (state, {boundingRect, glyphId, shapeSelector = 'layer'}) => {
@@ -147,6 +173,11 @@ export default {
     const glyph = state.project.glyphs.find(glyph => glyph.id === glyphId)
     state.activeLayer = glyph.layer // activate layer corresponding to glyph
     paper.project.layers[state.activeLayer].activate()
+    glyph.updateBox({
+      boundingRect: Object.assign({}, boundingRect),
+      shapePositions: glyph.drawOptions.shapePositions
+    })
+    boundingRect = glyph.box.bounds
     // Layer extends Group, so transformations can be applied to all the elements
     // there is lag in reappearance - if timeout in reacting to resize event is 0 the layer resize breaks
     // main path's position and size attributes are used as reference for translation and scaling
@@ -170,14 +201,14 @@ export default {
       boundingRect.left + boundingRect.width / 2 - refPath.position.x,
       boundingRect.top + boundingRect.height / 2 - refPath.position.y
     ))
-    const newWidth = (boundingRect.width + boundingRect.height) / 2
-    const newHeight = newWidth * (refPath.size[1] / refPath.size[0])
-    group.scale(newWidth / refPath.size[0], newHeight / refPath.size[1]) // NB mainPath.size[0] ≠ mainPath.bounds.width
-    refPath.size = [newWidth, newHeight] // NB Size of main path would not change automatically after scaling layer !!!
-    glyph.updateBox({
-      boundingRect: boundingRect,
-      shapePositions: state.shapePositions
-    })
+    // const newWidth = (boundingRect.width + boundingRect.height) / 2
+    // const newHeight = newWidth * (refPath.size[1] / refPath.size[0])
+    // group.scale(newWidth / refPath.size[0], newHeight / refPath.size[1]) // NB mainPath.size[0] ≠ mainPath.bounds.width
+    // refPath.size = [newWidth, newHeight] // NB Size of main path would not change automatically after scaling layer !!!
+    // glyph.updateBox({
+    //   boundingRect: boundingRect,
+    //   shapePositions: state.shapePositions
+    // })
   },
 
   setRedrawing: (state, redrawing) => { state.redrawing = redrawing },
