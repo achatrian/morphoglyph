@@ -15,7 +15,8 @@ class ShapeGlyph extends BaseGlyph {
       spikeHeight: 0.3,
       meshType: 'grid',
       patternSize: 15, // size of pattern elements in patterning
-      patternType: 'circle'
+      patternType: 'circle',
+      protrusionPreScaling: 0.85
     }) {
     // constructor for standard PhenoPlot glyph
     super(layer, id, name, options)
@@ -208,30 +209,6 @@ class ShapeGlyph extends BaseGlyph {
     this.registerItem(spikePath, 'spikes')
   }
 
-  drawProtrusion (protrusionFraction, subElements) { // eslint-disable-line no-unused-vars
-    let protrusionPath = this.cloneItem(this.constructor.shapes.main, this.parameters.numPoints)
-    const upperDistanceMainBox = this.box.bounds.y - this.mainPath.bounds.y
-    // FIXME: value above is 0, as glyphs are as big as their bounding box when drawn
-    // TODO: could use shapePositions to change this in case there was a protrusion (making some space for it on top)
-    // TODO: in that case, glyph center could be shifted down in order to make best use of space
-    for (let i = 0; i < protrusionPath.segments.length; i++) {
-      if (protrusionPath.segments[i].point.y < this.mainPath.position.y) {
-        // shift up points in upper half of main path's clone - NB (y increases going down in screen)
-        //protrusionPath.segments[i].point.y -= protrusionPath.segments[i].point.y * protrusionFraction
-        protrusionPath.segments[i].point.y -= upperDistanceMainBox * protrusionFraction
-      }
-    }
-    Object.assign(protrusionPath, {
-      strokeWidth: this.parameters.strokeWidth,
-      strokeColor: this.parameters.strokeColor,
-      fillColor: this.parameters.lightColor,
-      visible: true,
-      closed: true
-    })
-    protrusionPath.insertBelow(this.mainPath) // inserts in mainPath's background
-    this.registerItem(protrusionPath, 'protrusion')
-  }
-
   drawMesh (density, subElements) { // eslint-disable-line no-unused-vars
     let numLines = Math.floor(2 * Math.exp(3 * density)) // density used to scale thickness of grid
     let lines = []
@@ -281,33 +258,47 @@ class ShapeGlyph extends BaseGlyph {
   drawDecoration (fillingFraction, subElements) { // eslint-disable-line no-unused-vars
     // generate points where to draw pattern elements - use contains() to test whether point is inside the shape or not
     let possiblePoints = []
-    let possiblePoint // define here for use in the arrow function below
-    const inMainOrProtrusion = glyph => {
-      let protrusionPath = glyph.getItem('protrusionPath')
-      let isInChild = glyph.mainPath.contains(possiblePoint) ||
-          (protrusionPath && protrusionPath.contains(possiblePoint))
-      return isInChild
+    const inMainOrProtrusion = (point, glyph) => {
+      try {
+        const protrusionPath = glyph.getItem('protrusion')
+        return glyph.mainPath.contains(point) || protrusionPath.contains(point)
+      } catch { // catching error in getItem if protrusion item is not defined
+        return glyph.mainPath.contains(point)
+      }
     }
     for (let x = this.box.bounds.x; x < this.box.bounds.x + this.box.bounds.width; x += this.parameters.patternSize) {
       for (let y = this.box.bounds.y; y < this.box.bounds.y + this.box.bounds.height; y += this.parameters.patternSize) {
-        possiblePoint = new paper.Point(x, y)
-        if (inMainOrProtrusion(this) && !this.children.some(inMainOrProtrusion)) {
-          possiblePoints.push(possiblePoint)
+        let possiblePoint = new paper.Point(x, y)
+        let horVect = new paper.Point(this.parameters.patternSize/2, 0)
+        let verVect = new paper.Point(0, this.parameters.patternSize/2)
+        let containsExtremes = [ // + and - overloading for paper.Point is not working?
+            inMainOrProtrusion(possiblePoint, this), // center
+            inMainOrProtrusion(possiblePoint.add(horVect), this), // E
+            !this.children.some(inMainOrProtrusion.bind(null, possiblePoint.add(horVect))), // E children
+            inMainOrProtrusion(possiblePoint.add(horVect.negate()), this), // W
+            !this.children.some(inMainOrProtrusion.bind(null, possiblePoint.add(horVect.negate()))), // W children
+            inMainOrProtrusion(possiblePoint.add(verVect), this), // S
+            !this.children.some(inMainOrProtrusion.bind(null, possiblePoint.add(verVect))), // S children
+            inMainOrProtrusion(possiblePoint.add(verVect.negate()), this), // N
+            !this.children.some(inMainOrProtrusion.bind(null, possiblePoint.add(verVect.negate()))) // N children
+        ]
+        if (containsExtremes.every(t => t)) {
+          possiblePoints.push(possiblePoint) // FIXME nucleus bounds are as big as Cell
         }
       }
     }
-    let pattern = []
-    let patternElement
+    let decoration = []
+    let decorationElement
     for (let i = 0; i < Math.ceil(possiblePoints.length * fillingFraction); i++) {
       switch (this.parameters.patternType) {
         case 'circle':
-           patternElement = new paper.Path.Circle(
+           decorationElement = new paper.Path.Circle(
               possiblePoints[i],
               0.8 * this.parameters.patternSize/2
           )
           break
         case 'star':
-          patternElement = new paper.Path.Star(
+          decorationElement = new paper.Path.Star(
               possiblePoints[i],
               5,
               0.5 * this.parameters.patternSize/2,
@@ -315,19 +306,46 @@ class ShapeGlyph extends BaseGlyph {
           )
           break
         case 'square':
-          patternElement = new paper.Path.Rectangle(
+          decorationElement = new paper.Path.Rectangle(
               possiblePoints[i],
               new paper.Size(0.8 * this.parameters.patternSize/2,0.8 * this.parameters.patternSize/2)
           )
           break
       }
-      patternElement.fillColor = this.parameters.secondaryColor
-      patternElement.visible = true
-      pattern.push(patternElement)
+      decorationElement.fillColor = this.parameters.secondaryColor
+      decorationElement.visible = true
+      decoration.push(decorationElement)
     }
-    const patternGroup = new paper.Group(pattern)
-    patternGroup.bringToFront()
-    this.registerItem(patternGroup, 'decoration')
+    const decorationGroup = new paper.Group(decoration)
+    decorationGroup.name = 'DecorationGroup'
+    decorationGroup.bringToFront()
+    this.registerItem(decorationGroup, 'decoration')
+  }
+
+  drawProtrusion (protrusionFraction, subElements) { // eslint-disable-line no-unused-vars
+    this.buildGroups() // must build group in order to be able to scale glyph
+    this.scale(this.parameters.protrusionPreScaling, this.parameters.protrusionPreScaling)
+    let protrusionPath = this.cloneItem(this.constructor.shapes.main, this.parameters.numPoints)
+    const upperDistanceMainBox = this.box.bounds.y - this.mainPath.bounds.y
+    // FIXME: value above is 0, as glyphs are as big as their bounding box when drawn
+    // TODO: could use shapePositions to change this in case there was a protrusion (making some space for it on top)
+    // TODO: in that case, glyph center could be shifted down in order to make best use of space
+    for (let i = 0; i < protrusionPath.segments.length; i++) {
+      if (protrusionPath.segments[i].point.y < this.mainPath.position.y) {
+        // shift up points in upper half of main path's clone - NB (y increases going down in screen)
+        //protrusionPath.segments[i].point.y -= protrusionPath.segments[i].point.y * protrusionFraction
+        protrusionPath.segments[i].point.y -= upperDistanceMainBox * protrusionFraction
+      }
+    }
+    Object.assign(protrusionPath, {
+      strokeWidth: this.parameters.strokeWidth,
+      strokeColor: this.parameters.strokeColor,
+      fillColor: this.parameters.lightColor,
+      visible: true,
+      closed: true
+    })
+    protrusionPath.insertBelow(this.mainPath) // inserts in mainPath's background
+    this.registerItem(protrusionPath, 'protrusion')
   }
 }
 

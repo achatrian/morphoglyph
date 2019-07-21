@@ -13,8 +13,9 @@ class CellGlyph extends ShapeGlyph {
       numPoints: 300,
       spikeHeight: 0.3,
       meshType: 'grid',
-      patternSize: 15, // size of pattern elements in patterning
-      patternType: 'circle'
+      patternSize: 5, // size of pattern elements in patterning
+      patternType: 'circle',
+      protrusionPreScaling: 0.85
     }) {
     super(layer, id, name, options)
     this.glyphElements = CellGlyph.elements
@@ -58,7 +59,7 @@ class CellGlyph extends ShapeGlyph {
     options.shapeType = 'ellipse' // Fixed elliptic shape for cell and nucleus glyphs
     super.draw(options)
     this.activateLayer()
-    if (options.drawNucleus) {
+    if (options.drawNucleus.toLowerCase() === 'yes') {
       // draw nucleus
       // options.shapePositions.nucleus = {
       //   topShift: 1 / 4, // upper left corner of child's bounding box is shifted down by one fourth of the box height

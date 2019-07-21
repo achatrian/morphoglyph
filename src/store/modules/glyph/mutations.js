@@ -131,6 +131,9 @@ export default {
         targetGlyph = glyph
       } else {
         targetGlyph = glyph.getChild(shape)
+        if (typeof targetGlyph === 'undefined') {
+          continue // some children shapes might not be drawn, in which case .getChild() return undefined
+        }
       }
       targetGlyph.scale(
           widthBinding ? dataPoint[widthBinding.field] : 1,
