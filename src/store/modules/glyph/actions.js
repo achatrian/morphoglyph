@@ -42,9 +42,7 @@ export default {
     setTimeout(function () { commit('setRedrawing', false) }, 300)
   },
 
-  toggleGlyph: ({commit}, payload) => commit('toggleGlyph', payload),
-
-  hideGlyphs: ({commit}) => commit('hideGlyphs'),
+  setGlyphVisibility: ({commit}, payload) => commit('setGlyphVisibility', payload),
 
   resetGlyph: ({commit}, glyphIndex) => commit('resetGlyph', glyphIndex),
 

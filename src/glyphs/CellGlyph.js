@@ -15,7 +15,9 @@ class CellGlyph extends ShapeGlyph {
       meshType: 'grid',
       patternSize: 5, // size of pattern elements in patterning
       patternType: 'circle',
-      protrusionPreScaling: 0.85
+      protrusionProportion: 0.85,
+      protrusionBackgroundColor: '#F5F5F5',
+      protrusionStrokeColor: '#212121'
     }) {
     super(layer, id, name, options)
     this.glyphElements = CellGlyph.elements
@@ -76,6 +78,22 @@ class CellGlyph extends ShapeGlyph {
         spikeHeight: 0.3,
         meshType: 'grid'
       }
+      const positions = {
+        widthProportion: 1,
+        heightProportion: 1,
+        leftShift: 0,
+        topShift: 0
+      } // Height and Width scaling is done inside ShapeGlyph
+      // const protrusionScaleOrder = options.scaleOrders.find(
+      //     scaleOrder => scaleOrder.element === 'Protrusion' && scaleOrder.shape === 'Cell'
+      // )
+      // if (protrusionScaleOrder) {
+      //   positions.topShift += 0 // total height of glyph (main shape + protrusion) remains unvaried //FIXME actually it's exceeding bounding box
+      //   positions.leftShift += 0
+      //   positions.widthProportion *= this.parameters.protrusionProportion
+      //   positions.heightProportion *= this.parameters.protrusionProportion
+      // }
+      options.shapePositions['Nucleus'] = positions
       const nucleus = new ShapeGlyph(this.layer, '0', 'Nucleus', nucleusOptions, this)
       nucleus.draw(options)
       this.registerChild(nucleus)

@@ -24,7 +24,7 @@ export default {
     state.fileName = name
   },
 
-  normalizeFeatures: (state, coNormalizeGroups = [], normIntervalLength = 0.7) => {
+  normalizeFeatures: (state, coNormalizeGroups = [], normIntervalLength = 0.8) => {
     /* Compute normalized features used to plot glyphs
     First, find data fields and compute ranges of features, then normalize using field ranges.
     coNormalizeGroups: [ [ fieldName1, fieldName2 ], [ fieldName5, fieldName7 ], ... ]

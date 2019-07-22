@@ -95,8 +95,8 @@ export default {
     let scaleOrders = []
     for (let binding of state.project.bindings) {
       let glyphElement = state.glyphElements.find(element => element.name === binding.element)
-      if (glyphElement.type !== 'scale') {
-        continue // skipping bindings that are not scales
+      if (glyphElement.type !== 'scale' && !glyphElement.properties.requiresTransform) {
+        continue // skipping bindings that are not scales and do not require a transform
       }
       let scaleOrder = Object.assign({}, {
         ...binding,
@@ -104,21 +104,17 @@ export default {
       })
       scaleOrders.push(scaleOrder)
     }
-    // for (let shape of state.glyphShapes.all) {
-    //   const widthBinding = state.project.bindings.find(binding => binding.element === 'Width' && binding.shape === shape)
-    //   const heightBinding = state.project.bindings.find(binding => binding.element === 'Height' && binding.shape === shape)
-    //   state.shapePositions[shape] = {}
-    //   Object.assign(state.shapePositions[shape], {
-    //     widthProportion: widthBinding ? dataPoint[widthBinding.field] : 1,
-    //     heightProportion: heightBinding ? dataPoint[heightBinding.field] : 1,
-    //     topShift: widthBinding ? (1 - dataPoint[widthBinding.field])/2 : 0,
-    //     leftShift: heightBinding ? (1 - dataPoint[heightBinding.field])/2 : 0
-    //   })
-    // }
     let drawOptions = {
       boundingRect: Object.assign({}, boundingRect),
       scaleOrders: scaleOrders,
-      shapePositions: {},
+      shapePositions: {
+        [glyph.name]: {
+          widthProportion: 1,
+          heightProportion: 1,
+          leftShift: 0,
+          topShift: 0
+        }
+      },
       [state.glyphSettings.name]: state.selectedGlyphSetting
     }
     // Draw all glyph paths
@@ -149,23 +145,6 @@ export default {
     }
     // Group all drawn paths to enable movements of individual shapes
     glyph.buildGroups()
-    // // Handle scaling of glyph (relies on built groups !) -- TODO generalise to scale-type elements other than Height and Width ?
-    // for (let shape of state.glyphShapes.all) {
-    //   const widthBinding = state.project.bindings.find(binding => binding.element === 'Width' && binding.shape === shape)
-    //   const heightBinding = state.project.bindings.find(binding => binding.element === 'Height' && binding.shape === shape)
-    //   if (glyph.name === shape) {
-    //     targetGlyph = glyph
-    //   } else {
-    //     targetGlyph = glyph.getChild(shape)
-    //     if (typeof targetGlyph === 'undefined') {
-    //       continue // some children shapes might not be drawn, in which case .getChild() return undefined
-    //     }
-    //   }
-    //   targetGlyph.scale(
-    //       widthBinding ? dataPoint[widthBinding.field] : 1,
-    //       heightBinding ? dataPoint[heightBinding.field] : 1
-    //   )
-    // }
   },
 
   moveGlyph: (state, {boundingRect, glyphId, shapeSelector = 'layer'}) => {
@@ -177,16 +156,17 @@ export default {
       boundingRect: Object.assign({}, boundingRect),
       shapePositions: glyph.drawOptions.shapePositions
     })
-    boundingRect = glyph.box.bounds
     // Layer extends Group, so transformations can be applied to all the elements
     // there is lag in reappearance - if timeout in reacting to resize event is 0 the layer resize breaks
     // main path's position and size attributes are used as reference for translation and scaling
-    let group, refPath, targetGlyph
+    let group, refPath, targetGlyph, newRect
     if (shapeSelector === 'layer') { // translate and scale the whole layer
       group = paper.project.layers[state.activeLayer] // layer is a special group
       refPath = glyph.mainPath
+      // FIXME drawing bounds is not working (drawing boxes overlap after moving)
+      newRect = glyph.box.drawingBounds // if we are shifting the whole layer, the drawing box bounds are the target position
     } else { // translate and scale selected shape
-      if (glyph.constructor.shapes.main === shapeSelector) {
+      if (glyph.name === shapeSelector) {
         targetGlyph = glyph
       } else {
         targetGlyph = glyph.getChild(shapeSelector)
@@ -196,45 +176,45 @@ export default {
       }
       group = targetGlyph.group
       refPath = targetGlyph.mainPath
+      newRect = targetGlyph.box.bounds // if we are only moving one glyph, its bounds are the target position
     }
     group.translate(new paper.Point(
-      boundingRect.left + boundingRect.width / 2 - refPath.position.x,
-      boundingRect.top + boundingRect.height / 2 - refPath.position.y
+      newRect.left + newRect.width / 2 - refPath.position.x,
+      newRect.top + newRect.height / 2 - refPath.position.y
     ))
-    // const newWidth = (boundingRect.width + boundingRect.height) / 2
-    // const newHeight = newWidth * (refPath.size[1] / refPath.size[0])
-    // group.scale(newWidth / refPath.size[0], newHeight / refPath.size[1]) // NB mainPath.size[0] ≠ mainPath.bounds.width
-    // refPath.size = [newWidth, newHeight] // NB Size of main path would not change automatically after scaling layer !!!
-    // glyph.updateBox({
-    //   boundingRect: boundingRect,
-    //   shapePositions: state.shapePositions
-    // })
   },
 
   setRedrawing: (state, redrawing) => { state.redrawing = redrawing },
 
-  toggleGlyph: (state, {glyphIndex, value}) => {
-    state.activeLayer = glyphIndex
-    let layer = paper.project.layers[state.activeLayer]
-    layer.activate()
-    layer.visible = value
-  },
-
-  hideGlyphs: state => {
-    for (let i = 0; i < state.numDisplayedGlyphs; i++) {
-      state.activeLayer = i
-      let layer = paper.project.layers[state.activeLayer]
-      layer.activate()
-      layer.visible = false
+  setGlyphVisibility: (state, {value, glyphSelector = 'all', shapeSelector = 'layer', itemSelector = 'group'}) => {
+    let glyphsToChange = []
+    if (glyphSelector === 'all') {
+      glyphsToChange = state.project.glyphs
+    } else {
+      glyphsToChange.push(state.project.glyphs.find(glyph => glyph.id === glyphSelector))
     }
-  },
-
-  showGlyphs: state => {
-    for (let i = 0; i < state.numDisplayedGlyphs; i++) {
-      state.activeLayer = i
+    for (let glyph of glyphsToChange) {
+      state.activeLayer = glyph.layer
       let layer = paper.project.layers[state.activeLayer]
       layer.activate()
-      layer.visible = true
+      if (shapeSelector === 'layer') {
+        layer.visible = value
+      } else {
+        let targetGlyph
+        if (glyph.name === shapeSelector || shapeSelector === 'main') {
+          targetGlyph = glyph
+        } else {
+          targetGlyph = glyph.getChild(shapeSelector)
+        }
+        if (typeof targetGlyph === 'undefined') {
+          throw Error(`Could not find shape '${shapeSelector}'`)
+        }
+        if (itemSelector === 'group') {
+          targetGlyph.group.visible = value
+        } else {
+          targetGlyph.getItem(itemSelector).visible = value
+        }
+      }
     }
   },
 

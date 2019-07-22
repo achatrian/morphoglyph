@@ -16,7 +16,9 @@ class ShapeGlyph extends BaseGlyph {
       meshType: 'grid',
       patternSize: 5, // size of pattern elements in patterning
       patternType: 'circle',
-      protrusionPreScaling: 0.85
+      protrusionProportion: 0.85,
+      protrusionBackgroundColor: '#F5F5F5',
+      protrusionStrokeColor: '#212121'
     }) {
     // constructor for standard PhenoPlot glyph
     super(layer, id, name, options)
@@ -83,16 +85,6 @@ class ShapeGlyph extends BaseGlyph {
         subElements: ['SpikeHeight', 'NumberOfPoints']
       },
       {
-        name: 'Protrusion',
-        type: 'path',
-        properties: {
-          color: {range: [], step: []},
-          size: {range: [1, 20], step: 1}
-        },
-        target: 'main',
-        subElements: []
-      },
-      {
         name: 'Mesh',
         type: 'path',
         properties: {
@@ -111,7 +103,18 @@ class ShapeGlyph extends BaseGlyph {
         },
         target: 'main',
         subElements: []
-      }
+      },
+      {
+        name: 'Protrusion',
+        type: 'path',
+        properties: {
+          requiresTransform: true,
+          color: {range: [], step: []},
+          size: {range: [1, 20], step: 1}
+        },
+        target: 'main',
+        subElements: []
+      },
     ]
   }
 
@@ -122,12 +125,25 @@ class ShapeGlyph extends BaseGlyph {
     const heightScaleOrder = options.scaleOrders.find(
         scaleOrder => scaleOrder.element === 'Height' && scaleOrder.shape === this.name
     )
-    options.shapePositions[this.name] = {
-      widthProportion: widthScaleOrder ? widthScaleOrder.value : 1,
-      heightProportion: heightScaleOrder ? heightScaleOrder.value : 1,
-      leftShift: widthScaleOrder ? (1 - widthScaleOrder.value)/2 : 0,
-      topShift: heightScaleOrder ? (1 - heightScaleOrder.value)/2 : 0
+    const positions = options.shapePositions[this.name]
+    if (widthScaleOrder) {
+      positions.leftShift += (1 - widthScaleOrder.value*positions.widthProportion)/2
+      positions.widthProportion *= widthScaleOrder.value
     }
+    if (heightScaleOrder) {
+      positions.topShift += (1 - heightScaleOrder.value*positions.heightProportion)/2
+      positions.heightProportion *= heightScaleOrder.value
+    }
+    const protrusionScaleOrder = options.scaleOrders.find(
+        scaleOrder => scaleOrder.element === 'Protrusion' && scaleOrder.shape === this.name
+    )
+    // if (protrusionScaleOrder) {
+    //   positions.topShift += 0 // total height of glyph (main shape + protrusion) remains unvaried //FIXME actually it's exceeding bounding box
+    //   positions.leftShift += (1 - this.parameters.protrusionProportion)/2 //FIXME should take width proportion into account?
+    //   positions.widthProportion *= this.parameters.protrusionProportion
+    //   positions.heightProportion *= this.parameters.protrusionProportion
+    // }
+    options.shapePositions[this.name] = positions
     let {shapeType} = options
     if (typeof shapeType === 'undefined') { shapeType = 'ellipse' }
     this.activateLayer()
@@ -266,7 +282,7 @@ class ShapeGlyph extends BaseGlyph {
     mesh.bringToFront()
     this.registerItem(mesh, 'mesh')
   }
-  // FIXME need to adapt decoration to novel scaling system
+
   drawDecoration (fillingFraction, subElements) { // eslint-disable-line no-unused-vars
     // generate points where to draw pattern elements - use contains() to test whether point is inside the shape or not
     let possiblePoints = []
@@ -336,25 +352,23 @@ class ShapeGlyph extends BaseGlyph {
 
   drawProtrusion (protrusionFraction, subElements) { // eslint-disable-line no-unused-vars
     let protrusionPath = this.cloneItem(this.constructor.shapes.main, this.parameters.numPoints)
-    const upperDistanceMainBox = this.drawOptions.boundingRect.y - this.mainPath.bounds.y
-    // FIXME: value above is 0, as glyphs are as big as their bounding box when drawn
-    // TODO: could use shapePositions to change this in case there was a protrusion (making some space for it on top)
-    // TODO: in that case, glyph center could be shifted down in order to make best use of space
+    const upperEmptySpace = this.mainPath.bounds.height / this.parameters.protrusionProportion * (1 - this.parameters.protrusionProportion)
     for (let i = 0; i < protrusionPath.segments.length; i++) {
       if (protrusionPath.segments[i].point.y < this.mainPath.position.y) {
         // shift up points in upper half of main path's clone - NB (y increases going down in screen)
         //protrusionPath.segments[i].point.y -= protrusionPath.segments[i].point.y * protrusionFraction
-        protrusionPath.segments[i].point.y -= upperDistanceMainBox * protrusionFraction
+        protrusionPath.segments[i].point.y -= upperEmptySpace * protrusionFraction
       }
     }
     Object.assign(protrusionPath, {
       strokeWidth: this.parameters.strokeWidth,
-      strokeColor: this.parameters.strokeColor,
-      fillColor: this.parameters.lightColor,
+      strokeColor: this.parameters.protrusionStrokeColor,
+      fillColor: this.parameters.protrusionBackgroundColor,
       visible: true,
       closed: true
     })
-    protrusionPath.insertBelow(this.mainPath) // inserts in mainPath's background
+    protrusionPath.sendToBack() // not maintained when building group
+    this.zOrder['protrusion'] = -1
     this.registerItem(protrusionPath, 'protrusion')
   }
 }

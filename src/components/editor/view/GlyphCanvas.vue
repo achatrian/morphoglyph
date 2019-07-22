@@ -93,6 +93,11 @@ export default {
         }
       })
       if (numRedrawn > 0) { console.log(`${numRedrawn} glyphs were redrawn`) }
+    },
+    toggleDrawingBoxes () {
+      for (let glyph of this.glyphs) {
+        glyph.getItem('drawingBox').visible = true
+      }
     }
   },
   watch: {

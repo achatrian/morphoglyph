@@ -54,6 +54,7 @@ class BaseGlyph {
   drawn = false // flag to check if draw() has been called
   itemIds = {}
   drawnItems = new Set()
+  zOrder = {} // used to specify z-stack position of paths (which is lost when building group)
 
   // height and width don't have any visual properties that can be tweaked by the user
   children = [] // array storing children glyphs
@@ -93,9 +94,11 @@ class BaseGlyph {
       // topShift and leftShift are relative to boundingRect dimensions before scaling
       if (typeof topShift !== 'undefined') {
         newBoundingRect.top += topShift * boundingRect.height
+        newBoundingRect.y += topShift * boundingRect.height
       }
       if (typeof leftShift !== 'undefined') {
         newBoundingRect.left += leftShift * boundingRect.width
+        newBoundingRect.x += leftShift * boundingRect.width
       }
       if (typeof widthProportion !== 'undefined') {
         newBoundingRect.width *= widthProportion
@@ -105,7 +108,12 @@ class BaseGlyph {
       }
     }
     return {
-      bounds: newBoundingRect,
+      drawingBounds: boundingRect, // bounds for whole glyph group (is the same in parent / children)
+      drawingCenter: {
+        x: boundingRect.left + boundingRect.width / 2,
+        y: boundingRect.top + boundingRect.height / 2
+      },
+      bounds: newBoundingRect, // bounds for this glyph
       center: {
         x: newBoundingRect.left + newBoundingRect.width / 2,
         y: newBoundingRect.top + newBoundingRect.height / 2
@@ -134,8 +142,8 @@ class BaseGlyph {
       throw Error(`Cannot set glyph: Active layer '${paper.project.activeLayer.name}' differs from glyph layer '${paper.project.layers[this.layer].name}'`)
     }
     const drawingBox = paper.Path.Rectangle({
-      center: [this.box.center.x, this.box.center.y],
-      size: [this.box.bounds.width, this.box.bounds.height],
+      center: [this.box.drawingCenter.x, this.box.drawingCenter.y],
+      size: [this.box.drawingBounds.width, this.box.drawingBounds.height],
       strokeColor: 'black',
       strokeWidth: 5,
       visible: false
@@ -172,6 +180,14 @@ class BaseGlyph {
     let items = []
     Object.values(namedItems).forEach(path => items.push(path))
     this.group = new paper.Group(items)
+    // NB when building group, z order of paths is not necessarily maintained
+    for (let itemName in this.zOrder) {
+      if (this.zOrder.hasOwnProperty(itemName)) {
+        if (this.zOrder[itemName] === -1) {
+          this.group.getItem(item => item.name === itemName).sendToBack()
+        }
+      }
+    }
     this.children.forEach(glyph => glyph.buildGroups()) // recursive call on children
   }
 
@@ -238,6 +254,7 @@ class BaseGlyph {
 
   getNamedItems (includeChildren = true) {
     // object with keys referencing path objects in layer
+    // does not return drawing box
     let items = {}
     items[this.constructor.shapes.main] = this.getItem(this.constructor.shapes.main)
     for (let element of this.glyphElements) {

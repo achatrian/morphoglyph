@@ -24,6 +24,7 @@
     </div>
     <!--because of flex, elements must be at either end or beginning, or they will change position if something is inserted on the right (e.g. the file name)-->
     <v-spacer/>
+    <app-box-toggler/>
     <app-zoomer/>
     <!--<v-divider vertical/>-->
     <app-view-manager/>
@@ -40,6 +41,7 @@ import {mapState, mapActions} from 'vuex'
 import LoadData from './buttons/LoadData'
 import ViewManager from './buttons/ViewManager'
 import Zoomer from './buttons/Zoomer'
+import BoxToggler from './buttons/BoxToggler'
 
 export default {
   name: 'Toolbar',
@@ -47,7 +49,8 @@ export default {
     //'app-settings': Settings,
     'app-load-data': LoadData,
     'app-view-manager': ViewManager,
-    'app-zoomer': Zoomer
+    'app-zoomer': Zoomer,
+    'app-box-toggler': BoxToggler
   },
   computed: {
     ...mapState({
@@ -60,14 +63,11 @@ export default {
       toggleToolsDrawer: 'app/toggleToolsDrawer',
       toggleStudioDrawer: 'app/toggleStudioDrawer',
       loadFeaturesFile: 'backend/loadFeaturesFile',
-      hideGlyphs: 'glyph/hideGlyphs'
     }),
     onToolsClick () {
-      // this.hideGlyphs()
       this.toggleToolsDrawer()
     },
     onStudioClick () {
-      // this.hideGlyphs()
       this.toggleStudioDrawer()
     }
   }
