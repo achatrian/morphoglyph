@@ -162,7 +162,7 @@ export default {
     let group, refPath, targetGlyph, newRect
     if (shapeSelector === 'layer') { // translate and scale the whole layer
       group = paper.project.layers[state.activeLayer] // layer is a special group
-      refPath = glyph.mainPath
+      refPath = glyph.getItem('drawingBox')
       // FIXME drawing bounds is not working (drawing boxes overlap after moving)
       newRect = glyph.box.drawingBounds // if we are shifting the whole layer, the drawing box bounds are the target position
     } else { // translate and scale selected shape
@@ -182,6 +182,10 @@ export default {
       newRect.left + newRect.width / 2 - refPath.position.x,
       newRect.top + newRect.height / 2 - refPath.position.y
     ))
+    const newWidth = (boundingRect.width + boundingRect.height) / 2
+    const newHeight = newWidth * (refPath.size[1] / refPath.size[0])
+    group.scale(newWidth / refPath.size[0], newHeight / refPath.size[1]) // NB mainPath.size[0] ≠ mainPath.bounds.width
+    refPath.size = [newWidth, newHeight] // NB Size of main path would not change automatically after scaling layer !!!
   },
 
   setRedrawing: (state, redrawing) => { state.redrawing = redrawing },

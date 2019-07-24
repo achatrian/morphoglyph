@@ -18,7 +18,9 @@ class ShapeGlyph extends BaseGlyph {
       patternType: 'circle',
       protrusionProportion: 0.85,
       protrusionBackgroundColor: '#F5F5F5',
-      protrusionStrokeColor: '#212121'
+      protrusionStrokeColor: '#212121',
+      borderSymbolType: 'circle',
+      borderSymbolSize: 5
     }) {
     // constructor for standard PhenoPlot glyph
     super(layer, id, name, options)
@@ -109,6 +111,16 @@ class ShapeGlyph extends BaseGlyph {
         type: 'path',
         properties: {
           requiresTransform: true,
+          color: {range: [], step: []},
+          size: {range: [1, 20], step: 1}
+        },
+        target: 'main',
+        subElements: []
+      },
+      {
+        name: 'BorderSymbol',
+        type: 'path',
+        properties: {
           color: {range: [], step: []},
           size: {range: [1, 20], step: 1}
         },
@@ -370,6 +382,34 @@ class ShapeGlyph extends BaseGlyph {
     protrusionPath.sendToBack() // not maintained when building group
     this.zOrder['protrusion'] = -1
     this.registerItem(protrusionPath, 'protrusion')
+  }
+
+  drawBorderSymbol (borderFraction, subElements) {// eslint-disable-line no-unused-vars
+    for (let i = 0; i < Math.floor(this.parameters.numPoints * borderFraction); i += 5) {
+      let symbolPosition = this.mainPath.getPointAt(this.mainPath.length * (1 - i / this.parameters.numPoints))
+      let borderSymbol
+      if (this.parameters.borderSymbolType === "circle") { // TODO must define borderSymbol in options
+        borderSymbol = new paper.Path.Circle(
+            symbolPosition,
+            0.8 * this.borderSymbolSize/2
+        )
+      } else if (this.parameters.borderSymbolType === "star") {
+        borderSymbol = new paper.Path.Star(
+            symbolPosition,
+            5,
+            0.5 * this.parameters.borderSymbolSize/2,
+            0.8 * this.parameters.borderSymbolSize/2
+        )
+      } else if (this.parameters.borderSymbolType === "square") {
+        borderSymbol = new paper.Path.Rectangle({
+          center: symbolPosition,
+          size: new paper.Size(0.8 * this.parameters.borderSymbolSize / 2,
+                              0.8 * this.parameters.borderSymbolSize / 2)
+        })
+      }
+      borderSymbol.fillColor = this.parameters.lightColor
+      borderSymbol.strokeColor = this.parameters.strokeColor
+    }
   }
 }
 
