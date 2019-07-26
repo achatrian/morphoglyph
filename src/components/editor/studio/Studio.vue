@@ -25,7 +25,7 @@
 import { mapState, mapActions } from 'vuex'
 //import Table from './Table'
 import VizProps from './VizProps'
-// import GlyphBind from './GlyphBind'
+//import GlyphBind from './GlyphBind'
 
 export default {
   name: 'Studio',

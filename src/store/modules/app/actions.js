@@ -25,6 +25,8 @@ export default {
 
   setGlyphBinderState: ({commit}, payload) => commit('setGlyphBinderState', payload),
 
+  setGlyphAdderState: ({commit}, payload) => commit('setGlyphAdderState', payload),
+
   setWelcomeCardState: ({commit}, payload) => commit('setWelcomeCardState', payload),
 
   dismissSnackbar: ({commit}) => commit('dismissSnackbar'),

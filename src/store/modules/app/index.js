@@ -14,6 +14,7 @@ const state = {
     timeout: 4000
   },
   glyphBinder: false,
+  glyphAdder: false,
   canvas: true,
   welcomeCard: true,
   dockedView: false,

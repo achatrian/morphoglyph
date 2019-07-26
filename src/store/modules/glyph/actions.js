@@ -46,9 +46,18 @@ export default {
 
   resetGlyph: ({commit}, glyphIndex) => commit('resetGlyph', glyphIndex),
 
+  discardGlyphs: ({commit}) => commit('discardGlyphs'),
+
   addCaption: ({rootState, commit}, payload) => {
     payload.caption = rootState.backend.dataDisplayOrder[payload.glyphIndex] // set caption
     commit('addCaption', payload)
+  },
+
+  setGlyphParameters: ({commit, dispatch}, payload) => {
+    commit('setGlyphParameters', payload)
+    if (payload.redraw) {
+      dispatch('activateRedrawing') // redraw glyphs after having changed the parameter value
+    }
   },
 
   setPathParameter: ({commit}, payload) => commit('setPathParameter', payload),

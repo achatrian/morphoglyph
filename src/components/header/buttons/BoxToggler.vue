@@ -1,7 +1,14 @@
 <template>
-    <v-btn @click="toggleBoxes" icon>
-        <v-icon color="primary">check_box_outline_blank</v-icon>
-    </v-btn>
+    <v-tooltip
+            id="tooltip"
+            open-delay="700"
+            bottom
+    >
+        <v-btn @click="toggleBoxes" icon slot="activator">
+            <v-icon color="primary">check_box_outline_blank</v-icon>
+        </v-btn>
+        <span>Toggle drawing boxes</span>
+    </v-tooltip>
 </template>
 
 <script>

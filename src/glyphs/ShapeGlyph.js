@@ -20,7 +20,8 @@ class ShapeGlyph extends BaseGlyph {
       protrusionBackgroundColor: '#F5F5F5',
       protrusionStrokeColor: '#212121',
       borderSymbolType: 'circle',
-      borderSymbolSize: 5
+      borderSymbolSize: 10,
+      maxNumBorderSymbols: 40
     }) {
     // constructor for standard PhenoPlot glyph
     super(layer, id, name, options)
@@ -385,27 +386,31 @@ class ShapeGlyph extends BaseGlyph {
   }
 
   drawBorderSymbol (borderFraction, subElements) {// eslint-disable-line no-unused-vars
-    for (let i = 0; i < Math.floor(this.parameters.numPoints * borderFraction); i += 5) {
-      let symbolPosition = this.mainPath.getPointAt(this.mainPath.length * (1 - i / this.parameters.numPoints))
+    for (let i = 0; i < Math.ceil(this.parameters.maxNumBorderSymbols * borderFraction); i++) {
+      let symbolPosition = this.mainPath.getPointAt(this.mainPath.length * (1 - i / this.parameters.maxNumBorderSymbols))
       let borderSymbol
-      if (this.parameters.borderSymbolType === "circle") { // TODO must define borderSymbol in options
-        borderSymbol = new paper.Path.Circle(
-            symbolPosition,
-            0.8 * this.borderSymbolSize/2
-        )
-      } else if (this.parameters.borderSymbolType === "star") {
-        borderSymbol = new paper.Path.Star(
-            symbolPosition,
-            5,
-            0.5 * this.parameters.borderSymbolSize/2,
-            0.8 * this.parameters.borderSymbolSize/2
-        )
-      } else if (this.parameters.borderSymbolType === "square") {
-        borderSymbol = new paper.Path.Rectangle({
-          center: symbolPosition,
-          size: new paper.Size(0.8 * this.parameters.borderSymbolSize / 2,
-                              0.8 * this.parameters.borderSymbolSize / 2)
-        })
+      switch (this.parameters.borderSymbolType) {
+        case 'circle':
+          borderSymbol = new paper.Path.Circle(
+              symbolPosition,
+              0.8 * this.parameters.borderSymbolSize/2
+          )
+          break
+        case 'star':
+          borderSymbol = new paper.Path.Star(
+              symbolPosition,
+              5,
+              0.5 * this.parameters.borderSymbolSize/2,
+              0.8 * this.parameters.borderSymbolSize/2
+          )
+          break
+        case 'square':
+          borderSymbol = new paper.Path.Rectangle(
+              symbolPosition,
+              new paper.Size(0.8 * this.parameters.borderSymbolSize/2,
+                  0.8 * this.parameters.borderSymbolSize/2)
+          )
+          break
       }
       borderSymbol.fillColor = this.parameters.lightColor
       borderSymbol.strokeColor = this.parameters.strokeColor

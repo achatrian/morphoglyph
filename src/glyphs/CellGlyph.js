@@ -19,7 +19,8 @@ class CellGlyph extends ShapeGlyph {
       protrusionBackgroundColor: '#F5F5F5',
       protrusionStrokeColor: '#212121',
       borderSymbolType: 'circle',
-      borderSymbolSize: 5
+      borderSymbolSize: 10,
+      maxNumBorderSymbols: 55
     }) {
     super(layer, id, name, options)
     this.glyphElements = CellGlyph.elements

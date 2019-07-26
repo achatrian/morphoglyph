@@ -1,10 +1,8 @@
 <template>
   <div id="view">
     <app-welcome-card id="welcome-card" v-if="welcomeCard" @configLoaded="applyBinding"/>
-    <app-bind-options id="element-binder" v-show="glyphBinder" ref="bonds"/>
-    <v-container v-show="!glyphBinder"
-      id="card-container" fluid grid-list-md>
-    </v-container>
+    <app-bind-options class="control-panel" v-show="glyphBinder" ref="bonds"/>
+    <app-glyph-adder class="control-panel" v-if="glyphAdder"/>
     <app-glyph-canvas v-resize.quiet="updateGrid"
                       v-show="canvas" ref="canvas"
     />
@@ -16,6 +14,7 @@
 import {mapState, mapActions} from 'vuex'
 import GlyphCanvas from './GlyphCanvas'
 import BindOptions from './BindOptions'
+import GlyphAdder from './GlyphAdder'
 import WelcomeCard from './WelcomeCard'
 
 export default {
@@ -29,12 +28,14 @@ export default {
   components: {
     'app-glyph-canvas': GlyphCanvas,
     'app-bind-options': BindOptions,
+    'app-glyph-adder': GlyphAdder,
     'app-welcome-card': WelcomeCard
   },
   computed: {
     ...mapState({
       welcomeCard: state => state.app.welcomeCard,
       glyphBinder: state => state.app.glyphBinder,
+      glyphAdder: state => state.app.glyphAdder,
       canvas: state => state.app.canvas
     })
   },
@@ -62,7 +63,7 @@ export default {
     margin: auto auto
   }
 
-  #element-binder{
+  .control-panel{
     display: flex;
     flex: 1 1 auto;
     z-index: 3;

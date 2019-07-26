@@ -1,23 +1,38 @@
 <template>
     <div>
-        <v-btn
-                icon
-                @click="zoomIn"
-                id="zoom-in"
+        <v-tooltip
+                open-delay="700"
+                bottom
         >
-            <v-icon color="primary">
-                zoom_in
-            </v-icon>
-        </v-btn>
-        <v-btn
-                icon
-                @click="zoomOut"
-                id="zoom-out"
+            <v-btn
+                    icon
+                    @click="zoomIn"
+                    id="zoom-in"
+                    slot="activator"
+            >
+                <v-icon color="primary">
+                    zoom_in
+                </v-icon>
+            </v-btn>
+            <span>Zoom in on glyphs</span>
+        </v-tooltip>
+        <v-tooltip
+                open-delay="700"
+                bottom
         >
-            <v-icon color="primary">
-                zoom_out
-            </v-icon>
-        </v-btn>
+            <v-btn
+                    icon
+                    @click="zoomOut"
+                    id="zoom-out"
+                    slot="activator"
+            >
+                <v-icon color="primary">
+                    zoom_out
+                </v-icon>
+            </v-btn>
+            <span>Zoom out from glyphs</span>
+        </v-tooltip>
+
     </div>
 </template>
 

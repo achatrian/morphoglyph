@@ -197,24 +197,19 @@ class BaseGlyph {
     this.itemIds[itemName] = item.id
     this.drawnItems.add(itemName)
     item.name = itemName // assign name to item
-    // if (selectable) {
-    //   item.onClick = async function () {
-    //     await store.dispatch('glyph/selectGlyphEl', {
-    //       layer: this.layer,
-    //       item: itemName
-    //     })
-    //     console.log(`Selected item ${itemName} of glyph ${this.layer}`)
-    //   }.bind(this)
-    // } // TODO use hitTest instead
+    // if (item instanceof paper.Path) {
+    //   item.simplify() // reduces memory usage and speeds up drawing
+    // } // does not work with protrusion path?
   }
 
+  findItem = (children, itemName) => children.find(item => { return item.id === this.itemIds[itemName] && item.name === itemName })
+
   getItem (itemName = this.constructor.shapes.main) {
-    const findItem = children => children.find(path => { return path.id === this.itemIds[itemName] && path.name === itemName })
     let children = this.group.children
-    let item = findItem(children)
+    let item = this.findItem(children, itemName)
     if (typeof item === 'undefined') {
       children = paper.project.layers[this.layer].children
-      item = findItem(children)
+      item = this.findItem(children, itemName)
     }
     // id matching should make layer search work, but in case glyph has children of same type there will be multiple
     // items with the same namae

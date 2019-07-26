@@ -51,6 +51,10 @@ export default {
                 glyphIndex: glyphIndex,
                 boundingRect: boundingRect
               })
+              this.addCaption({
+                glyphIndex: glyphIndex,
+                boundingRect: boundingRect
+              })
               numDrawn++
             }
           })
@@ -126,7 +130,7 @@ export default {
     // canvas DOM element: 'glyph-canvas'
     // NB paper.Symbol overwrites Symbol object in native code and hinders use 'for .. of', if install() is called on window
     window.paper = {} // call on custom object attribute instead
-    paper.install(window.paper) // easier debugging - not actually used
+    paper.install(window.paper) // easier debugging - not used in production TODO make this an if statement?
     paper.setup('glyph-canvas')
     paper.activate()
     this.setLayersUp() // setting up all the needed layers

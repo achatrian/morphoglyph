@@ -224,6 +224,8 @@ export default {
 
   resetGlyph: (state, glyphIndex) => state.project.glyphs[glyphIndex].reset(),
 
+  discardGlyphs: (state) => { state.project.glyphs = [] },
+
   // *** other drawings ***
   addCaption: (state, {glyphIndex, caption}) => { //boundingRect, }) => {
     state.activeLayer = glyphIndex
@@ -242,6 +244,18 @@ export default {
   },
 
   // *** glyph property setter ***
+  setGlyphParameters: (state, {parameters, shapeName}) => {
+    let targetGlyph
+    for (let glyph of state.project.glyphs) {
+      if (glyph.drawn && glyph.name === shapeName) {
+        targetGlyph = glyph
+      } else {
+        targetGlyph = glyph.getChild(shapeName)
+      } // target is either main glyph or one of its children
+      Object.assign(targetGlyph.parameters, parameters)
+    }
+  },
+
   setPathParameter: (state, {parameter, value, shapeName, elementName}) => {
     let targetGlyph
     for (let glyph of state.project.glyphs) {
@@ -265,11 +279,6 @@ export default {
     state.shapePositions = shapePositions // principle of rewriting object for vuex to react to it
   },
 
-  selectGlyphEl: (state, selection) => {
-    // selection: {layer, path} -- selection identifies a particular element in a particular glyph
-    state.selection = selection
-  },
-
   addChildGlyph (state, {glyphId, childName}) {
     // function to add arbitrary children to existing glyphs
     // TODO integrate and add new button
@@ -285,5 +294,10 @@ export default {
     const glyph = state.project.glyphs.find(glyph => glyph.id === glyphId)
     // eslint-disable-next-line new-cap
     glyph.registerChild(new glyphClass(childName))
-  }
+  },
+
+  selectGlyphEl: (state, selection) => { // for glyph selection tool
+    // selection: {layer, path} -- selection identifies a particular element in a particular glyph
+    state.selection = selection
+  },
 }

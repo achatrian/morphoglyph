@@ -93,6 +93,7 @@
         },
         computed: {
             ...mapState({
+                glyphs: state => state.glyph.project.glyphs,
                 glyphTypes: state => state.glyph.glyphTypes,
                 glyphSettings: state => state.glyph.glyphSettings,
                 glyphShapes: state => state.glyph.glyphShapes,
@@ -103,7 +104,6 @@
                 loadedBindingData: state => state.backend.loadedBindingData,
                 numDisplayedGlyphs: state => state.app.numDisplayedGlyphs,
                 maxDisplayedGlyphs: state => state.app.maxDisplayedGlyphs,
-                parsedData: state => state.backend.parsedData
             }),
             glyphNames () { // names of glyph types for selection
                 let glyphNames = []
@@ -182,6 +182,7 @@
                 setGlyphType: 'glyph/setGlyphType',
                 setBindings: 'glyph/setBindings',
                 addGlyphs: 'glyph/addGlyphs',
+                discardGlyphs: 'glyph/discardGlyphs',
                 changeDisplayedGlyphNum: 'app/changeDisplayedGlyphNum',
                 setNamingField: 'backend/setNamingField',
                 normalizeFeatures: 'backend/normalizeFeatures'
@@ -202,7 +203,7 @@
                 })
             },
             unbindFieldsToElements () {
-                this.bindingItems.forEach(item => {
+                for (let item of this.bindingItems) {
                     for (let i = 0; i < this.fieldBindings.length; i++) {
                         let itemShape, itemElement, itemField
                         if (item.value.split('.').length === 1) { // account for different string types depending on number of shapes
@@ -221,11 +222,14 @@
                             console.log(`Unbinding ${binding.element} and ${binding.field}`)
                         }
                     }
-                })
+                }
             },
             applyBinding () { // uses bindings to draw glyphs
                 this.setNamingField(this.selectedOrderField)
                 this.setBindings(this.fieldBindings)
+                if (this.glyphs.length > 0) {
+                    this.discardGlyphs()
+                }
                 this.addGlyphs() // uses store.glyph.glyphTypeName
                 this.setGlyphBinderState(false)
                 let coNormalizeGroups = []
