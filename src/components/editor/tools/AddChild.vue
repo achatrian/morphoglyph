@@ -28,7 +28,7 @@ export default {
   },
   computed: {
     ...mapState({
-      glyphBinderState: state => state.app.glyphBinder,
+      glyphBinder: state => state.app.glyphBinder,
       welcomeCard: state => state.app.welcomeCard
     })
   },
@@ -36,7 +36,8 @@ export default {
     ...mapActions({
       setGlyphAdderState: 'app/setGlyphAdderState',
       setGlyphBinderState: 'app/setGlyphBinderState',
-      setWelcomeCardState: 'app/setWelcomeCardState'
+      setWelcomeCardState: 'app/setWelcomeCardState',
+      setGlyphVisibility: 'glyph/setGlyphVisibility'
     }),
     activateGlyphAdder () {
       if (this.glyphBinder) {
@@ -45,6 +46,7 @@ export default {
       if (this.welcomeCard) {
         this.setWelcomeCardState(false)
       }
+      this.setGlyphVisibility({value: false})
       this.setGlyphAdderState(true)
     }
   }

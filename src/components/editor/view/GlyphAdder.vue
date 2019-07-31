@@ -1,22 +1,14 @@
 <template>
-    <v-card class="light elevation-5" style="overflow: auto">
-        <v-container fluid id="lists-container">
-            <v-layout column>
-                <v-flex>
-                    <v-card-title>
-                        Create a new glyph
-                    </v-card-title>
+    <v-card class="light elevation-5">
+        <!--<v-card-title>-->
+            <!--Create a new glyph-->
+        <!--</v-card-title>-->
+        <v-container fluid>
+            <v-layout align-start justify-space-around row fill-height>
+                <v-flex xs4 md2>
+                    <div id="glyph-box">
+                    </div>
                 </v-flex>
-                <v-layout row>
-                    <v-input>
-
-                    </v-input>
-                </v-layout>
-                <v-layout>
-                    <v-flex>
-                        <canvas id="new-glyph-canvas" v-if="drawingMode"></canvas>
-                    </v-flex>
-                </v-layout>
             </v-layout>
         </v-container>
     </v-card>
@@ -116,11 +108,11 @@
 </script>
 
 <style scoped>
-    #lists-container{
-        display: flex;
-        flex: 1 1 auto;
-        justify-content: center;
-        align-content: stretch;
-        height: 80%;
+    #glyph-box{
+        display: block;
+        background-color: white;
+        border-color: black;
+        flex: 1 0 auto;
+        height: 400px;
     }
 </style>

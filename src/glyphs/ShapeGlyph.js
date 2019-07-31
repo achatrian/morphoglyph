@@ -56,14 +56,14 @@ class ShapeGlyph extends BaseGlyph {
       {
         name: 'Height',
         type: 'scale',
-        properties: [],
+        properties: {},
         target: 'main',
         subElements: []
       },
       {
         name: 'Width',
         type: 'scale',
-        properties: [],
+        properties: {},
         target: 'main',
         subElements: []
       },
@@ -92,7 +92,8 @@ class ShapeGlyph extends BaseGlyph {
         type: 'path',
         properties: {
           color: {range: [], step: []},
-          size: {range: [0.3, 1.5], step: 0.3}
+          size: {range: [0.3, 1.5], step: 0.3},
+          mode: ['grid', 'vertical', 'horizontal', 'random']
         },
         target: 'main',
         subElements: []
@@ -102,7 +103,8 @@ class ShapeGlyph extends BaseGlyph {
         type: 'path',
         properties: {
           color: {range: [], step: []},
-          size: {range: [0.3, 1.5], step: 0.3}
+          size: {range: [0.3, 1.5], step: 0.3},
+          mode: ['circle', 'star', 'square']
         },
         target: 'main',
         subElements: []
@@ -123,7 +125,8 @@ class ShapeGlyph extends BaseGlyph {
         type: 'path',
         properties: {
           color: {range: [], step: []},
-          size: {range: [1, 20], step: 1}
+          size: {range: [1, 20], step: 1},
+          mode: ['circle', 'star', 'square']
         },
         target: 'main',
         subElements: []
@@ -147,9 +150,9 @@ class ShapeGlyph extends BaseGlyph {
       positions.topShift += (1 - heightScaleOrder.value*positions.heightProportion)/2
       positions.heightProportion *= heightScaleOrder.value
     }
-    const protrusionScaleOrder = options.scaleOrders.find(
-        scaleOrder => scaleOrder.element === 'Protrusion' && scaleOrder.shape === this.name
-    )
+    // const protrusionScaleOrder = options.scaleOrders.find(
+    //     scaleOrder => scaleOrder.element === 'Protrusion' && scaleOrder.shape === this.name
+    // )
     // if (protrusionScaleOrder) {
     //   positions.topShift += 0 // total height of glyph (main shape + protrusion) remains unvaried //FIXME actually it's exceeding bounding box
     //   positions.leftShift += (1 - this.parameters.protrusionProportion)/2 //FIXME should take width proportion into account?

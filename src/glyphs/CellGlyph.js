@@ -65,7 +65,7 @@ class CellGlyph extends ShapeGlyph {
     super.draw(options)
     this.activateLayer()
     if (options.drawNucleus.toLowerCase() === 'yes') {
-      this.box = this.getDrawingBox(options) // update box info
+      this.updateBox(options)
       const nucleusOptions = {
         backend: 'paper',
         strokeColor: '#283593',

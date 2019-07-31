@@ -231,6 +231,7 @@ export default {
     state.activeLayer = glyphIndex
     // const {left, top, width, height} = boundingRect
     const {x, y, width, height} = state.project.glyphs[glyphIndex].mainPath.bounds
+    // eslint-disable-next-line no-unused-vars
     const captionText = new paper.PointText({
       point: [
         x + width / 10, // starting point of text TODO move to middle
@@ -240,7 +241,6 @@ export default {
       fillColor: 'gray',
       fontSize: 14
     })
-    state.project.captions[glyphIndex] = captionText.id // causes stack limit error, same as storing path in vuex
   },
 
   // *** glyph property setter ***
@@ -299,5 +299,5 @@ export default {
   selectGlyphEl: (state, selection) => { // for glyph selection tool
     // selection: {layer, path} -- selection identifies a particular element in a particular glyph
     state.selection = selection
-  },
+  }
 }

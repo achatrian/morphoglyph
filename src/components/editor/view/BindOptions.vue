@@ -2,7 +2,12 @@
     <v-card class="light elevation-5" style="overflow: auto">
         <v-container fluid id="lists-container">
             <v-layout column>
-                <v-layout row style="position: relative; top: -60px">
+                <v-layout row justify-space-between style="position: relative; top: -60px">
+                    <v-flex xs4 sm3 d-flex>
+                        <v-card-text display-3>
+                            Select element - feature pairs
+                        </v-card-text>
+                    </v-flex>
                     <v-flex xs4 sm3 d-flex>
                         <v-select
                                 :items="glyphNames"
@@ -11,7 +16,7 @@
                                 v-model="selectedGlyphName"
                         />
                     </v-flex>
-                    <v-flex xs4 sm3 d-flex style="position: relative; left:10px">
+                    <v-flex xs4 sm3 d-flex>
                         <v-select
                                 :items="settingOptions"
                                 box
@@ -19,7 +24,7 @@
                                 v-model="selectedGlyphSetting"
                         />
                     </v-flex>
-                    <v-flex xs4 sm3 d-flex style="position: relative; left:20px">
+                    <v-flex xs4 sm3 d-flex>
                         <v-select
                                 :items="stringFields"
                                 box
@@ -27,18 +32,14 @@
                                 v-model="selectedOrderField"
                         />
                     </v-flex>
-                    <v-flex xs4 sm3 d-flex style="position: relative; left:20px">
-                        <v-card-text class="title">
-                            Select element - feature pairs
-                        </v-card-text>
-                    </v-flex>
                     <v-flex xs4 sm3 d-flex>
                         <v-spacer/>
                     </v-flex>
-                    <v-spacer/>
-                    <v-btn round flat @click="setGlyphBinderState(false)">
-                        <v-icon color="primary">close</v-icon>
-                    </v-btn>
+                    <v-flex>
+                        <v-btn round flat @click="setGlyphBinderState(false)">
+                            <v-icon color="primary">close</v-icon>
+                        </v-btn>
+                    </v-flex>
                 </v-layout>
                 <v-layout row style="position: relative; top: -75px">
                     <app-scroll-options title="Shape selection" v-if="glyphShapes.children.length > 0"

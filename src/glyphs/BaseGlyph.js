@@ -7,6 +7,8 @@ and references to parent / children glyphs.
 
 import paper from 'paper'
 // import store from '../store/index'
+import DrawingBox from './DrawingBox'
+
 
 class BaseGlyph {
   static baseOptions () {
@@ -58,12 +60,10 @@ class BaseGlyph {
 
   // height and width don't have any visual properties that can be tweaked by the user
   children = [] // array storing children glyphs
-  box = {
-    canvasRect: { top: 0, bottom: 0, left: 0, right: 0 },
-    bounds: { top: 0, bottom: 0, left: 0, right: 0 },
-    center: { x: 0, y: 0 },
+  box = new DrawingBox(this, {
+    boundingRect: { top: 0, bottom: 0, left: 0, right: 0 },
     shapePositions: {}
-  }
+  })
   drawOptions = {} // in BaseGlyph().draw() drawing options for glyphs are stored here
 
   static get type () {
@@ -80,54 +80,18 @@ class BaseGlyph {
 
   static get elements () {
     return [
-      {name: 'Height', type: 'scale', properties: [], target: 'main', subElements: []},
-      {name: 'Width', type: 'scale', properties: [], target: 'main', subElements: []}
+      {name: 'Height', type: 'scale', properties: {}, target: 'main', subElements: []},
+      {name: 'Width', type: 'scale', properties: {}, target: 'main', subElements: []}
     ] // not inherited by children
   }
 
   activateLayer () { paper.project.layers[this.layer].activate() }
 
-  getDrawingBox ({boundingRect, shapePositions}) { // compute box
-    let newBoundingRect = Object.assign({}, boundingRect)
-    if (typeof shapePositions[this.name] !== 'undefined') {
-      const {topShift, leftShift, widthProportion, heightProportion} = shapePositions[this.name]
-      // topShift and leftShift are relative to boundingRect dimensions before scaling
-      if (typeof topShift !== 'undefined') {
-        newBoundingRect.top += topShift * boundingRect.height
-        newBoundingRect.y += topShift * boundingRect.height
-      }
-      if (typeof leftShift !== 'undefined') {
-        newBoundingRect.left += leftShift * boundingRect.width
-        newBoundingRect.x += leftShift * boundingRect.width
-      }
-      if (typeof widthProportion !== 'undefined') {
-        newBoundingRect.width *= widthProportion
-      }
-      if (typeof heightProportion !== 'undefined') {
-        newBoundingRect.height *= heightProportion
-      }
-    }
-    return {
-      drawingBounds: boundingRect, // bounds for whole glyph group (is the same in parent / children)
-      drawingCenter: {
-        x: boundingRect.left + boundingRect.width / 2,
-        y: boundingRect.top + boundingRect.height / 2
-      },
-      bounds: newBoundingRect, // bounds for this glyph
-      center: {
-        x: newBoundingRect.left + newBoundingRect.width / 2,
-        y: newBoundingRect.top + newBoundingRect.height / 2
-      },
-      shapePositions: shapePositions,
-      canvasRect: paper.view.element.getBoundingClientRect()
-    }
-  }
-
   updateBox({boundingRect, shapePositions}) { // updates drawing box for glyph and children
     const options = {boundingRect, shapePositions}
-    this.box = this.getDrawingBox(options)
+    this.box = new DrawingBox(this, options)
     for (let childGlyph of this.children) {
-      childGlyph.box = this.getDrawingBox(options)
+      childGlyph.box = new DrawingBox(childGlyph, options)
     }
   }
 
@@ -371,6 +335,7 @@ class BaseGlyph {
     delete this.children[i]
     throw Error(`Glyph ${this.name} has no children named '${childName}'`)
   }
+
 }
 
 export default BaseGlyph

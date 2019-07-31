@@ -15,7 +15,6 @@ const state = {
     name: 'A new phew project',
     bindings: [], // stores features -> marker bindings
     glyphs: [], // stores the glyph objects
-    captions: [], // stores captions for glyphs -- same order as glyphs TODO not integrated
     template: {}
   },
   activeLayer: null,
