@@ -51,17 +51,12 @@ export default {
     z-index: 3;
   }
   .lists{
-    height: 100%;
+    height: 90%;
     width: 80%;
     margin: auto
   }
   .scroller {
     height: 100%;
-  }
-  .tile {
-    height: 32%;
-    display: flex;
-    align-items: center;
   }
   .tile-content {
     width: 100%;

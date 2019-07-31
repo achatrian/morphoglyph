@@ -81,7 +81,6 @@ export default {
   }
 
   #view{
-    position: relative;
     display: flex;
     flex: 1 1 auto;
     margin: 0px 5px 5px 5px;

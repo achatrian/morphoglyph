@@ -59,7 +59,7 @@
                                                 :items="bindingItems"/>
                         </v-flex>
                     </v-layout>
-                    <v-layout row align-end justify-space-around style="position: relative; bottom: -30px">
+                    <v-layout row wrap align-end justify-space-around>
                         <v-flex xs6 md3 d-flex>
                             <v-btn flat class="primary white--text" @click="bindFieldToElement">Bind</v-btn>
                         </v-flex>
