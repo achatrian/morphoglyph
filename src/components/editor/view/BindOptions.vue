@@ -1,72 +1,81 @@
 <template>
-    <v-card class="light elevation-5" style="overflow: auto">
-        <v-container fluid id="lists-container">
-            <v-layout column>
-                <v-layout row justify-space-between style="position: relative; top: -60px">
-                    <v-flex xs4 sm3 d-flex>
-                        <v-card-text display-3>
-                            Select element - feature pairs
-                        </v-card-text>
-                    </v-flex>
-                    <v-flex xs4 sm3 d-flex>
-                        <v-select
-                                :items="glyphNames"
-                                box
-                                label="Choose glyph type"
-                                v-model="selectedGlyphName"
-                        />
-                    </v-flex>
-                    <v-flex xs4 sm3 d-flex>
-                        <v-select
-                                :items="settingOptions"
-                                box
-                                :label="glyphSettings.message || 'Choose glyph-specific options'"
-                                v-model="selectedGlyphSetting"
-                        />
-                    </v-flex>
-                    <v-flex xs4 sm3 d-flex>
-                        <v-select
-                                :items="stringFields"
-                                box
-                                label="Choose cluster names"
-                                v-model="selectedOrderField"
-                        />
-                    </v-flex>
-                    <v-flex xs4 sm3 d-flex>
-                        <v-spacer/>
-                    </v-flex>
-                    <v-flex>
-                        <v-btn round flat @click="setGlyphBinderState(false)">
-                            <v-icon color="primary">close</v-icon>
-                        </v-btn>
-                    </v-flex>
+        <v-container fluid>
+            <v-card id='bind-card' class="light elevation-5">
+                <v-layout column justify-end>
+                    <v-layout row>
+                        <v-flex xs12>
+                            <v-card-text class="title">
+                                <span class="font-weight-bold">Bind Options: </span> Select element-feature pairs
+                            </v-card-text>
+                        </v-flex>
+                    </v-layout>
+                    <v-layout row justify-space-around wrap>
+                        <v-flex xs6 sm3>
+                            <v-select
+                                    :items="glyphNames"
+                                    box
+                                    label="Choose glyph type"
+                                    v-model="selectedGlyphName"
+                            />
+                        </v-flex>
+                        <v-flex xs6 sm3>
+                            <v-select
+                                    :items="settingOptions"
+                                    box
+                                    :label="glyphSettings.message || 'Choose glyph-specific options'"
+                                    v-model="selectedGlyphSetting"
+                            />
+                        </v-flex>
+                        <v-flex xs6 sm3>
+                            <v-select
+                                    :items="stringFields"
+                                    box
+                                    label="Choose cluster names"
+                                    v-model="selectedOrderField"
+                            />
+                        </v-flex>
+                        <v-flex xs6 sm3>
+                            <v-btn round flat @click="setGlyphBinderState(false)">
+                                <v-icon color="primary">close</v-icon>
+                            </v-btn>
+                        </v-flex>
+                    </v-layout>
+                    <v-layout row wrap>
+                        <v-flex xs6 md3>
+                            <app-scroll-options title="Shape selection" v-if="glyphShapes.children.length > 0"
+                                                :items="shapeItems" :select.sync="selectedShape"/>
+                        </v-flex>
+                        <v-flex xs6 md3>
+                            <app-scroll-options title="Element selection"
+                                                :items="elementItems" :select.sync="selectedGlyphEl"/>
+                        </v-flex>
+                        <v-flex xs6 md3>
+                            <app-scroll-options title="Feature selection"
+                                                    :items="fieldItems" :select.sync="selectedField"/>
+                        </v-flex>
+
+                        <v-flex xs6 md3>
+                            <app-scroll-options title="Binding selection"
+                                                :items="bindingItems"/>
+                        </v-flex>
+                    </v-layout>
+                    <v-layout row align-end justify-space-around style="position: relative; bottom: -30px">
+                        <v-flex xs6 md3 d-flex>
+                            <v-btn flat class="primary white--text" @click="bindFieldToElement">Bind</v-btn>
+                        </v-flex>
+                        <v-flex xs6 md3 d-flex>
+                            <v-btn flat class="secondary black--text" @click="unbindFieldsToElements">Unbind</v-btn>
+                        </v-flex>
+                        <v-flex xs6 md3 d-flex>
+                            <v-btn flat class="dark white--text" @click.native="applyBinding">OK</v-btn>
+                        </v-flex>
+                        <v-flex xs6 md3 d-flex>
+                            <app-load-config @configLoaded="applyConfig"/>
+                        </v-flex>
+                    </v-layout>
                 </v-layout>
-                <v-layout row style="position: relative; top: -75px">
-                    <app-scroll-options title="Shape selection" v-if="glyphShapes.children.length > 0"
-                                        :items="shapeItems" :select.sync="selectedShape"/>
-                    <app-scroll-options title="Element selection"
-                                        :items="elementItems" :select.sync="selectedGlyphEl"/>
-                    <app-scroll-options title="Feature selection"
-                                        :items="fieldItems" :select.sync="selectedField"/>
-                    <app-scroll-options title="Binding selection"
-                                        :items="bindingItems"/>
-                </v-layout>
-                <v-layout row align-start justify-start style="position: relative; top:-30px">
-                    <app-load-config style="position:relative; top:-5px; right:-10px"
-                                     @configLoaded="applyConfig"/>
-                    <v-btn flat class="primary white--text" @click="bindFieldToElement">Bind</v-btn>
-                    <v-btn flat class="secondary black--text" @click="unbindFieldsToElements">Unbind</v-btn>
-                    <v-btn flat class="dark white--text" @click.native="applyBinding">OK</v-btn>
-                    <div>
-                        <v-chip light>{{this.selectedGlyphEl}}</v-chip>
-                        <v-icon color="deep-purple"> arrow_forward </v-icon>
-                        <v-chip light>{{this.selectedField}}</v-chip>
-                    </div>
-                </v-layout>
-            </v-layout>
+            </v-card>
         </v-container>
-        <!--FIXME Buttons and bind chips out of card when screen is small-->
-    </v-card>
 </template>
 
 <script>
@@ -298,21 +307,8 @@
         }
     }
 </script>
-
 <style scoped>
-    #header-container{
-        display: flex;
-        flex: 1 1 auto;
-        justify-content: center;
-        align-content: stretch;
-        height: 80%;
-    }
-
-    #lists-container{
-        display: flex;
-        flex: 1 1 auto;
-        justify-content: center;
-        align-content: stretch;
-        height: 80%;
+    #bind-card{
+        width: 100%
     }
 </style>
