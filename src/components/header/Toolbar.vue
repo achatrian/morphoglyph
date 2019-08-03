@@ -47,7 +47,7 @@ export default {
   name: 'Toolbar',
   components: {
     //'app-settings': Settings,
-    'app-load-data': LoadData,
+    'app-load-data': LoadData, // TODO v-file-input not working in toolbar at time of writing? Wait until it is released in stable version?
     'app-view-manager': ViewManager,
     'app-zoomer': Zoomer,
     'app-box-toggler': BoxToggler
@@ -61,8 +61,8 @@ export default {
   methods: {
     ...mapActions({
       toggleToolsDrawer: 'app/toggleToolsDrawer',
-      toggleStudioDrawer: 'app/toggleStudioDrawer',
-      loadFeaturesFile: 'backend/loadFeaturesFile',
+      toggleStudioDrawer: 'app/toggleStudioDrawer'//,
+      //loadFeaturesFile: 'backend/loadFeaturesFile',
     }),
     onToolsClick () {
       this.toggleToolsDrawer()
@@ -86,17 +86,8 @@ export default {
     display: inline-block
   }
 
-  #dock-text {
-    color: #673AB7;
-    flex-basis: 7rem
-  }
-
   #toolbar-title {
     margin-left: -10px
-  }
-
-  #bindings-button {
-    margin-left: -40px
   }
 
   #toolbar-toggle {

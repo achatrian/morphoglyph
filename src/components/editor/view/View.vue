@@ -2,7 +2,7 @@
   <div id="view">
     <app-welcome-card id="welcome-card" v-if="welcomeCard" @configLoaded="applyBinding"/>
     <app-bind-options class="control-panel" v-show="glyphBinder" ref="bonds"/>
-    <app-glyph-adder class="control-panel" v-if="glyphAdder"/>
+    <app-glyph-adder v-if="glyphAdder"/>
     <app-glyph-canvas v-resize.quiet="updateGrid"
                       v-show="canvas" ref="canvas"
     />
@@ -68,16 +68,6 @@ export default {
     flex: 1 1 auto;
     z-index: 3;
     margin: 5px 5px 5px 5px;
-  }
-
-  #card-container{
-    display: flex;
-    align-items: stretch;
-    flex: 1 1 auto;
-    position: absolute;
-    height: 100%;
-    width: 100%;
-    z-index: 1
   }
 
   #view{

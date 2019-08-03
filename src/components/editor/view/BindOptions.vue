@@ -12,24 +12,27 @@
                     <v-layout row justify-space-around wrap>
                         <v-flex xs6 sm3>
                             <v-select
+                                    class="selector"
+                                    outlined
                                     :items="glyphNames"
-                                    box
                                     label="Choose glyph type"
                                     v-model="selectedGlyphName"
                             />
                         </v-flex>
                         <v-flex xs6 sm3>
                             <v-select
+                                    class="selector"
+                                    outlined
                                     :items="settingOptions"
-                                    box
                                     :label="glyphSettings.message || 'Choose glyph-specific options'"
                                     v-model="selectedGlyphSetting"
                             />
                         </v-flex>
                         <v-flex xs6 sm3>
                             <v-select
+                                    class="selector"
+                                    outlined
                                     :items="stringFields"
-                                    box
                                     label="Choose cluster names"
                                     v-model="selectedOrderField"
                             />
@@ -309,6 +312,12 @@
 </script>
 <style scoped>
     #bind-card{
-        width: 100%
+        width: 100%;
+        margin: auto
+    }
+
+    .selector{
+        max-width: 200px;
+        margin: auto
     }
 </style>
