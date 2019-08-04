@@ -161,7 +161,7 @@ class ShapeGlyph extends BaseGlyph {
     // }
     options.shapePositions[this.name] = positions
     let {shapeType} = options
-    if (typeof shapeType === 'undefined') { shapeType = 'ellipse' }
+    if (!shapeType) { shapeType = 'ellipse' }
     this.activateLayer()
     super.draw(options) // box is also updated here
     let path // declare here so that it can be initialized inside switch

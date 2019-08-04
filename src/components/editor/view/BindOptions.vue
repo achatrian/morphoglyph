@@ -44,33 +44,22 @@
                         </v-flex>
                     </v-layout>
                     <v-layout row wrap>
-                        <v-flex xs6 md3>
-                            <app-scroll-options title="Shape selection" v-if="glyphShapes.children.length > 0"
-                                                :items="shapeItems" :select.sync="selectedShape"/>
+                        <v-flex xs12 md4>
+                            <app-scroll-options title="Shape selection" :items="shapeItems"
+                                                v-if="glyphShapes.children.length > 0" :select.sync="selectedShape"/>
                         </v-flex>
-                        <v-flex xs6 md3>
-                            <app-scroll-options title="Element selection"
-                                                :items="elementItems" :select.sync="selectedGlyphEl"/>
+                        <v-flex xs6 md4>
+                            <app-scroll-options title="Element selection" :items="elementItems"
+                                                :select.sync="selectedGlyphEl" @buttonClick="unbindElement"/>
                         </v-flex>
-                        <v-flex xs6 md3>
-                            <app-scroll-options title="Feature selection"
-                                                    :items="fieldItems" :select.sync="selectedField"/>
-                        </v-flex>
-
-                        <v-flex xs6 md3>
-                            <app-scroll-options title="Binding selection"
-                                                :items="bindingItems"/>
+                        <v-flex xs6 md4>
+                            <app-scroll-options title="Feature selection" :items="fieldItems"
+                                                @change="bindFieldToElement" @buttonClick="unbindField"/>
                         </v-flex>
                     </v-layout>
                     <v-layout row wrap align-end justify-space-around>
                         <v-flex xs6 md3 d-flex>
-                            <v-btn flat class="primary white--text" @click="bindFieldToElement">Bind</v-btn>
-                        </v-flex>
-                        <v-flex xs6 md3 d-flex>
-                            <v-btn flat class="secondary black--text" @click="unbindFieldsToElements">Unbind</v-btn>
-                        </v-flex>
-                        <v-flex xs6 md3 d-flex>
-                            <v-btn flat class="dark white--text" @click.native="applyBinding">OK</v-btn>
+                            <v-btn flat class="primary white--text" @click="applyBinding">Bind</v-btn>
                         </v-flex>
                         <v-flex xs6 md3 d-flex>
                             <app-load-config @configLoaded="applyConfig"/>
@@ -96,11 +85,11 @@
             return {
                 selectedShape: '',
                 selectedGlyphEl: '',
-                selectedField: '',
                 fieldBindings: [],
                 selectedGlyphName: '',
                 selectedOrderField: '', // selected field of cluster names
-                selectedGlyphSetting: ''
+                selectedGlyphSetting: '',
+                lastUnboundField: '' // used to flag which field needs re-clicking to be bound again
 
             }
         },
@@ -132,47 +121,57 @@
                 allShapes.forEach((shapeName, id) => {
                     items.push({
                         id: id,
+                        key: shapeName,
                         value: shapeName,
-                        selected: false
+                        selected: false,
+                        button: false
                     })
                 })
                 return items
             },
             elementItems () { // items for list of elements
                 let items = []
-                this.glyphElements.forEach((element, id) => {
+                for (let [i, element] of this.glyphElements.entries()) {
                     if (element.target === this.selectedShape) { // only push elements targeting selected shape
+                        let elementBinding = this.fieldBindings.find(
+                            binding => binding.element === element.name && binding.shape === element.target
+                        )
                         items.push({
-                            id: id,
-                            value: element.name,
-                            selected: false
+                            id: i,
+                            key: element.name,
+                            value: element.name + (elementBinding ? ' ( bound feature: ' + elementBinding.field + ' )': ''),
+                            selected: this.selectedGlyphEl === element.name,
+                            button: Boolean(elementBinding)
                         })
                     }
-                })
+                }
                 return items
             },
             fieldItems () { // item for list of features
                 let items = []
-                this.dataFields.forEach((field, id) => {
-                    if (this.fieldTypes[field] === Number) {
-                        items.push({
-                            id: id,
-                            value: field,
-                            selected: false
-                        })
+                let i = 0
+                const value = (field, fieldBinding) => {
+                    if (fieldBinding) {
+                        return field + ' ( bound to ' + fieldBinding.shape + '\'s ' + fieldBinding.element + ' )'
+                    } else if (this.lastUnboundField === field) {
+                        return field + ' ( unbound )' // flag that field was just unbound
+                    } else {
+                        return field
                     }
-                })
-                return items
-            },
-            bindingItems () { // items for list of bindings
-                let items = []
-                this.fieldBindings.forEach(({shape, element, field}, id) => {
-                    items.push({
-                        id: id,
-                        value: (this.glyphShapes.length === 1) ? `${element} - ${field}` : `${shape}.${element} = ${field}`,
-                        selected: false
-                    })
-                })
+                }
+                for (let field of this.dataFields) {
+                    if (this.fieldTypes[field] === Number) { // TODO update this to work for categorical variables
+                        let fieldBinding = this.fieldBindings.find(binding => binding.field === field && binding.shape)
+                        items.push({
+                            id: i,
+                            key: field,
+                            value: value(field, fieldBinding),
+                            selected: Boolean(fieldBinding), // all bound features are highlighted
+                            button: Boolean(fieldBinding)
+                        })
+                        i++
+                    }
+                }
                 return items
             },
             stringFields () { // items for cluster name selector
@@ -200,44 +199,38 @@
                 setNamingField: 'backend/setNamingField',
                 normalizeFeatures: 'backend/normalizeFeatures'
             }),
-            bindFieldToElement () { // function to turn element and feature selections into a binding object
-                console.log(`Binding ${this.selectedGlyphEl} to ${this.selectedField}`)
-                let previousBinding = -1
-                this.fieldBindings.forEach((binding, i) => {
-                    if (binding.shape === this.selectedShape && binding.element === this.selectedGlyphEl) {
-                        previousBinding = i
-                    }
-                }) // remove all previous bindings of element
-                delete this.fieldBindings[previousBinding]
-                this.fieldBindings.push({
-                    shape: this.selectedShape,
-                    element: this.selectedGlyphEl,
-                    field: this.selectedField
-                })
-            },
-            unbindFieldsToElements () {
-                for (let item of this.bindingItems) {
-                    for (let i = 0; i < this.fieldBindings.length; i++) {
-                        let itemShape, itemElement, itemField
-                        if (item.value.split('.').length === 1) { // account for different string types depending on number of shapes
-                            itemShape = this.selectedShape
-                            itemElement = item.value.split('=')[0].slice(0, -1) // item.value = 'element = field'
-                            itemField = item.value.split('=')[1].slice(1)
-                        } else {
-                            itemShape = item.value.split('.')[0]
-                            itemElement = item.value.split('.')[1].split('=')[0].slice(0, -1) // item.value = 'shape.element = field'
-                            itemField = item.value.split('.')[1].split('=')[1].slice(1)
+            bindFieldToElement (selectedField) { // function to turn element and feature selections into a binding object
+                if (this.selectedGlyphEl) {
+                    let previousBinding = -1
+                    this.fieldBindings.forEach((binding, i) => {
+                        if (binding.shape === this.selectedShape && binding.element === this.selectedGlyphEl) {
+                            previousBinding = i
                         }
-                        let binding = this.fieldBindings[i]
-                        if (item.selected && binding.shape === itemShape &&
-                            binding.element === itemElement && binding.field === itemField) {
-                            this.fieldBindings.splice(i, 1)
-                            console.log(`Unbinding ${binding.element} and ${binding.field}`)
-                        }
+                    }) // remove all previous bindings of element
+                    if (previousBinding >= 0) {
+                        this.fieldBindings.splice(previousBinding)
                     }
+                    this.fieldBindings.push({
+                        shape: this.selectedShape,
+                        element: this.selectedGlyphEl,
+                        field: selectedField
+                    })
+                    console.log(`${this.selectedGlyphEl} was bound to ${selectedField}`)
                 }
             },
+            unbindField (field) {
+                console.log(`Unbinding ${field}`)
+                this.fieldBindings = this.fieldBindings.filter(binding => binding.field !== field)
+                this.lastUnboundField = field
+            },
+            unbindElement (element) {
+                console.log(`Unbinding ${this.selectedShape}'s ${element}`)
+                this.fieldBindings = this.fieldBindings.filter(
+                    binding => !(binding.element === element && this.selectedShape === binding.shape)
+                )
+            },
             applyBinding () { // uses bindings to draw glyphs
+                // FIXME default shape selection for ShapeGlyph is broken
                 this.setNamingField(this.selectedOrderField)
                 this.setBindings(this.fieldBindings)
                 if (this.glyphs.length > 0) {
@@ -256,7 +249,7 @@
                 if (scaleNormalizeGroup.length > 0) {
                     coNormalizeGroups.push(scaleNormalizeGroup)
                 }
-                this.normalizeFeatures(coNormalizeGroups) // renormalize features to fix spatial scale
+                this.normalizeFeatures(coNormalizeGroups) // re-normalize features to fix spatial scale
                 // when first called, num displayed glyph is 0
                 this.changeDisplayedGlyphNum(this.numDisplayedGlyphs || this.maxDisplayedGlyphs)
             },
