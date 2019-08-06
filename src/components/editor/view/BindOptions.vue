@@ -38,7 +38,7 @@
                             />
                         </v-flex>
                         <v-flex xs6 sm3>
-                            <v-btn round flat @click="setGlyphBinderState(false)">
+                            <v-btn round flat @click="setGlyphBinderState(false); setGlyphVisibility({value: true})">
                                 <v-icon color="primary">close</v-icon>
                             </v-btn>
                         </v-flex>
@@ -90,7 +90,6 @@
                 selectedOrderField: '', // selected field of cluster names
                 selectedGlyphSetting: '',
                 lastUnboundField: '' // used to flag which field needs re-clicking to be bound again
-
             }
         },
         computed: {
@@ -197,7 +196,8 @@
                 discardGlyphs: 'glyph/discardGlyphs',
                 changeDisplayedGlyphNum: 'app/changeDisplayedGlyphNum',
                 setNamingField: 'backend/setNamingField',
-                normalizeFeatures: 'backend/normalizeFeatures'
+                normalizeFeatures: 'backend/normalizeFeatures',
+                setGlyphVisibility: 'glyph/setGlyphVisibility'
             }),
             bindFieldToElement (selectedField) { // function to turn element and feature selections into a binding object
                 if (this.selectedGlyphEl) {
@@ -251,7 +251,7 @@
                 }
                 this.normalizeFeatures(coNormalizeGroups) // re-normalize features to fix spatial scale
                 // when first called, num displayed glyph is 0
-                this.changeDisplayedGlyphNum(this.numDisplayedGlyphs || this.maxDisplayedGlyphs)
+                this.changeDisplayedGlyphNum(this.numDisplayedGlyphs || this.maxDisplayedGlyphs) // FIXME first outcome is redundant
             },
             selectField (item) {
                 this.selectedField = item.value

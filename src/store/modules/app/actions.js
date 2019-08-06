@@ -1,11 +1,14 @@
 import './mutations'
 import {debounce} from 'debounce'
 
-let debouncedUpdateGrid
-
 export default {
-  changeDisplayedGlyphNum: ({commit, rootState}, numDisplayedGlyphs) => commit('changeDisplayedGlyphNum',
-    {numDisplayedGlyphs: numDisplayedGlyphs, glyphs: rootState.glyph.project.glyphs}),
+  changeDisplayedGlyphNum: ({commit, rootState}, numDisplayedGlyphs) => commit(
+      'changeDisplayedGlyphNum',
+      {
+        numDisplayedGlyphs: numDisplayedGlyphs,
+        glyphs: rootState.glyph.project.glyphs
+      }
+    ),
 
   changeCurrentPage: ({commit}, page) => commit('changeCurrentPage', page),
 
@@ -25,7 +28,18 @@ export default {
 
   setGlyphBinderState: ({commit}, payload) => commit('setGlyphBinderState', payload),
 
-  setGlyphAdderState: ({commit}, payload) => commit('setGlyphAdderState', payload),
+  setGlyphAdderState: ({commit, dispatch}, payload) => {
+    if (payload) {
+      dispatch('glyph/setGlyphVisibility', {value: false}, {root: true})
+      dispatch('setGlyphArrangement', 'editor') // swap to editor arrangement of glyphs
+      dispatch('glyph/makeTempLayer', null, {root: true}) // create a new temporary layer for GlyphAdder
+    } else {
+      dispatch('setGlyphArrangement', 'grid')
+      setTimeout(dispatch, 500, 'glyph/setGlyphVisibility', {value: true}, {root: true})
+      dispatch('glyph/removeTempLayer', null, {root: true}) // create a new temporary layer for GlyphAdder
+    }
+    commit('setGlyphAdderState', payload)
+  },
 
   setWelcomeCardState: ({commit}, payload) => commit('setWelcomeCardState', payload),
 
@@ -33,12 +47,14 @@ export default {
 
   activateSnackbar: ({commit}, payload) => commit('activateSnackbar', payload),
 
-  updateGrid: ({commit}, payload) => {
-    if (typeof debouncedUpdateGrid === 'undefined') {
-      debouncedUpdateGrid = debounce(function () { commit('updateGrid', payload) }, 200)
-    }
-    debouncedUpdateGrid()
+  setGlyphArrangement: ({commit, dispatch}, glyphArrangement) => {
+    commit('setGlyphArrangement', glyphArrangement)
+    dispatch('updateGlyphArrangement') // whenever the glyph arrangement is changed, a new configuration is computed
   },
+
+  updateGlyphArrangement: debounce(({commit}) => commit('updateGlyphArrangement'), 200),
+
+  setEditorBox: ({commit}, editorBox) => commit('setEditorBox', editorBox),
 
   setBoundingRectSizeFactor: ({commit}, sizeFactor) => commit('setBoundingRectSizeFactor', sizeFactor)
 }

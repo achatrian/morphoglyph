@@ -87,8 +87,8 @@ class BaseGlyph {
 
   activateLayer () { paper.project.layers[this.layer].activate() }
 
-  updateBox({boundingRect, shapePositions}) { // updates drawing box for glyph and children
-    const options = {boundingRect, shapePositions}
+  updateBox(options) { // updates drawing box for glyph and children
+    /* options = {boundingRect, shapePositions (optional)} */
     this.box = new DrawingBox(this, options)
     for (let childGlyph of this.children) {
       childGlyph.box = new DrawingBox(childGlyph, options)
@@ -102,6 +102,7 @@ class BaseGlyph {
     if (this.layer === null) {
       throw Error(`Cannot draw glyph ${this.id} with null layer`)
     }
+    this.activateLayer()
     if (!Object.is(paper.project.layers[this.layer], paper.project.activeLayer)) {
       throw Error(`Cannot set glyph: Active layer '${paper.project.activeLayer.name}' differs from glyph layer '${paper.project.layers[this.layer].name}'`)
     }
@@ -251,6 +252,18 @@ class BaseGlyph {
       newPath.add(item.getLocationAt(theta * t))
     }
     return newPath
+  }
+
+  changeLayer (layerId) { // layer ID can be its index or its name, as both are keys of project.layers
+    const targetLayer = paper.project.layers[layerId]
+    const addedGroup = this.group.addTo(targetLayer)
+    if (!addedGroup) {
+      throw Error(`Could not add glyph '${addedGroup.id}' to layer '${layerId}'`)
+    }
+    this.layer = targetLayer.index // index of layer in project array
+    for (let childGlyph of this.children) {
+      childGlyph.changeLayer(layerId) // apply to children as well
+    }
   }
 
   scale (factorX = 1, factorY = 1) {

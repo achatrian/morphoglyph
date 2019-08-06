@@ -13,18 +13,10 @@ export default {
   }, // used by readData in backend
 
   changeDisplayedGlyphNum: (state, {numDisplayedGlyphs, glyphs}) => {
-    if (state.dockedView) {
-      if (numDisplayedGlyphs <= state.numDisplayedGlyphs) {
-        for (let glyph of glyphs.slice(numDisplayedGlyphs, glyphs.length - 1)) {
-          if (glyph.drawn) { glyph.reset() }
-        } // reset extra glyphs (erase paths) given new number of docks
-      }
-    } else {
-      glyphs.forEach(glyph => {
-        // in fluid view, reset all glyphs, so that grid can be redrawn
-        if (glyph.drawn) { glyph.reset() }
-      })
-    }
+    glyphs.forEach(glyph => {
+      // in fluid view, reset all glyphs, so that grid can be redrawn
+      if (glyph.drawn) { glyph.reset() }
+    })
     state.numDisplayedGlyphs = Math.min(state.maxDisplayedGlyphs, numDisplayedGlyphs)
     // update number of pages needed to show all glyphs
     state.numPages = Math.ceil(glyphs.length / Math.max(state.numDisplayedGlyphs, 1))
@@ -54,50 +46,34 @@ export default {
     state.snackbar.timeout = timeout || 4000
   },
 
-  dismissSnackbar: state => {
-    state.snackbar.active = false
-  },
+  dismissSnackbar: state =>state.snackbar.active = false,
 
-  toolbarOff: state => {
-    state.toolbar = false
-  },
+  toolbarOff: state => state.toolbar = false,
 
-  toolbarOn: state => {
-    state.toolbar = true
-  },
+  toolbarOn: state => state.toolbar = true,
 
-  toggleToolsDrawer: state => {
-    state.toolsDrawer = !state.toolsDrawer
-  },
+  toggleToolsDrawer: state => state.toolsDrawer = !state.toolsDrawer,
 
-  toggleStudioDrawer: state => {
-    state.studioDrawer = !state.studioDrawer
-  },
+  toggleStudioDrawer: state => state.studioDrawer = !state.studioDrawer,
 
-  setToolsDrawerState: (state, payload) => {
-    state.toolsDrawer = payload
-  },
+  setToolsDrawerState: (state, payload) => state.toolsDrawer = payload,
 
-  setStudioDrawerState: (state, payload) => {
-    state.studioDrawer = payload
-  },
+  setStudioDrawerState: (state, payload) => state.studioDrawer = payload,
 
-  setGlyphBinderState: (state, payload) => {
-    state.glyphBinder = payload
-  },
+  setGlyphBinderState: (state, payload) => state.glyphBinder = payload,
 
-  setGlyphAdderState: (state, payload) => {
-    state.glyphAdder = payload
-  },
+  setGlyphAdderState: (state, payload) => state.glyphAdder = payload,
 
-  setWelcomeCardState: (state, payload) => {
-    state.welcomeCard = payload
-  },
+  setWelcomeCardState: (state, payload) => state.welcomeCard = payload,
 
-  updateGrid (state) { // function to create rects from a regular grid (not used in docked view)
-    // set up grid where to place glyphs
-    let boundingRects = []
-    if (state.numDisplayedGlyphs) {
+  setGlyphArrangement: (state, glyphArrangement) => state.glyphArrangement = glyphArrangement,
+
+  updateGlyphArrangement (state) {
+    /* arrange glyphs onto the canvas by defining bounding rectangles */
+    let boundingRects = state.boundingRects
+    if (state.glyphArrangement === 'grid' && state.numDisplayedGlyphs) {
+      // set up grid where to place glyphs
+      boundingRects = []
       // paper.view.bounds is in project coordinates, i.e. in canvas coordinates. Use client rect instead
       let numXGlyphs = Math.round(Math.sqrt(state.numDisplayedGlyphs * (paper.view.viewSize.width / paper.view.viewSize.height))) // rounds down
       const numYGlyphs = Math.round(state.numDisplayedGlyphs / numXGlyphs)
@@ -127,6 +103,18 @@ export default {
         }
       }
       console.log(`Updating grid for (${paper.view.viewSize.width}, ${paper.view.viewSize.height})-view --> ` + gridId)
+    } else if (state.glyphArrangement === 'editor') {
+      boundingRects = Array(state.numDisplayedGlyphs).fill({
+        top: 0,
+        left: 0,
+        width: 0,
+        height: 0,
+        generator: {type: 'editor', id: state.editorBox.index}
+      }, 0, state.numDisplayedGlyphs) // fill only modifies arrays (name is confusing)
+      let singleGlyphRect = state.editorBox.boundingRect
+      singleGlyphRect.generator = {type: 'editor', id: state.editorBox.index}
+      boundingRects[state.editorBox.index] = singleGlyphRect
+      console.log(`Visualising glyph #${state.editorBox.index}`)
     }
     state.boundingRects = boundingRects // assign bounding rects
     // check for overlap between bounding rects
@@ -158,5 +146,8 @@ export default {
     // }
   },
 
-  setBoundingRectSizeFactor (state, sizeFactor) { state.boundingRectSizeFactor = sizeFactor }
+  setEditorBox: (state, editorBox) => state.editorBox = editorBox,
+
+  // boundingRectSizeFactor is used to zoom in an out from glyphs
+  setBoundingRectSizeFactor: (state, sizeFactor) => { state.boundingRectSizeFactor = sizeFactor }
 }

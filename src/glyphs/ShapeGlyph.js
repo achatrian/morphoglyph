@@ -16,7 +16,7 @@ class ShapeGlyph extends BaseGlyph {
       meshType: 'grid',
       patternSize: 5, // size of pattern elements in patterning
       patternType: 'circle',
-      protrusionProportion: 0.85,
+      protrusionProportion: 0.1,
       protrusionBackgroundColor: '#F5F5F5',
       protrusionStrokeColor: '#212121',
       borderSymbolType: 'circle',
@@ -135,35 +135,28 @@ class ShapeGlyph extends BaseGlyph {
   }
 
   draw (options) {
+    super.draw(options) // box is also updated here
     const widthScaleOrder = options.scaleOrders.find(
         scaleOrder => scaleOrder.element === 'Width' && scaleOrder.shape === this.name
     )
     const heightScaleOrder = options.scaleOrders.find(
         scaleOrder => scaleOrder.element === 'Height' && scaleOrder.shape === this.name
     )
-    const positions = options.shapePositions[this.name]
     if (widthScaleOrder) {
-      positions.leftShift += (1 - widthScaleOrder.value*positions.widthProportion)/2
-      positions.widthProportion *= widthScaleOrder.value
+      this.box.resize(widthScaleOrder.value)
     }
     if (heightScaleOrder) {
-      positions.topShift += (1 - heightScaleOrder.value*positions.heightProportion)/2
-      positions.heightProportion *= heightScaleOrder.value
+      this.box.resize(1.0, heightScaleOrder.value)
     }
-    // const protrusionScaleOrder = options.scaleOrders.find(
-    //     scaleOrder => scaleOrder.element === 'Protrusion' && scaleOrder.shape === this.name
-    // )
-    // if (protrusionScaleOrder) {
-    //   positions.topShift += 0 // total height of glyph (main shape + protrusion) remains unvaried //FIXME actually it's exceeding bounding box
-    //   positions.leftShift += (1 - this.parameters.protrusionProportion)/2 //FIXME should take width proportion into account?
-    //   positions.widthProportion *= this.parameters.protrusionProportion
-    //   positions.heightProportion *= this.parameters.protrusionProportion
-    // }
-    options.shapePositions[this.name] = positions
+    const protrusionScaleOrder = options.scaleOrders.find(
+        scaleOrder => scaleOrder.element === 'Protrusion' && scaleOrder.shape === this.name
+    )
+    if (protrusionScaleOrder) {
+      this.box.shift(0, this.parameters.protrusionProportion, true)
+    }
     let {shapeType} = options
     if (!shapeType) { shapeType = 'ellipse' }
     this.activateLayer()
-    super.draw(options) // box is also updated here
     let path // declare here so that it can be initialized inside switch
     switch (shapeType) {
       case 'ellipse':
@@ -310,8 +303,8 @@ class ShapeGlyph extends BaseGlyph {
         return glyph.mainPath.contains(point)
       }
     }
-    for (let x = this.box.bounds.x; x < this.box.bounds.x + this.box.bounds.width; x += this.parameters.patternSize) {
-      for (let y = this.box.bounds.y; y < this.box.bounds.y + this.box.bounds.height; y += this.parameters.patternSize) {
+    for (let x = this.box.drawingBounds.x; x < this.box.drawingBounds.x + this.box.drawingBounds.width; x += this.parameters.patternSize) {
+      for (let y = this.box.drawingBounds.y; y < this.box.drawingBounds.y + this.box.drawingBounds.height; y += this.parameters.patternSize) {
         let possiblePoint = new paper.Point(x, y)
         let horVect = new paper.Point(this.parameters.patternSize/2, 0)
         let verVect = new paper.Point(0, this.parameters.patternSize/2)
@@ -368,7 +361,7 @@ class ShapeGlyph extends BaseGlyph {
 
   drawProtrusion (protrusionFraction, subElements) { // eslint-disable-line no-unused-vars
     let protrusionPath = this.cloneItem(this.constructor.shapes.main, this.parameters.numPoints)
-    const upperEmptySpace = this.mainPath.bounds.height / this.parameters.protrusionProportion * (1 - this.parameters.protrusionProportion)
+    const upperEmptySpace = this.box.bounds.top - this.box.drawingBounds.top
     for (let i = 0; i < protrusionPath.segments.length; i++) {
       if (protrusionPath.segments[i].point.y < this.mainPath.position.y) {
         // shift up points in upper half of main path's clone - NB (y increases going down in screen)

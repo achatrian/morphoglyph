@@ -46,7 +46,6 @@ export default {
       if (this.welcomeCard) {
         this.setWelcomeCardState(false)
       }
-      this.setGlyphVisibility({value: false})
       this.setGlyphAdderState(true)
     }
   }

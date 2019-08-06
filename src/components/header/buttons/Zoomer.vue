@@ -54,20 +54,20 @@ export default {
   methods: {
     ...mapActions({
       setBoundingRectSizeFactor: 'app/setBoundingRectSizeFactor',
-      updateGrid: 'app/updateGrid'
+      updateGlyphArrangement: 'app/updateGlyphArrangement'
     }),
     zoomIn () {
       const newFactor = this.boundingRectSizeFactor + this.step
       if (newFactor <= 1.0) {
         this.setBoundingRectSizeFactor(newFactor)
-        this.updateGrid()
+        this.updateGlyphArrangement()
       }
     },
     zoomOut () {
       const newFactor = this.boundingRectSizeFactor - this.step
       if (newFactor >= 0.0) {
         this.setBoundingRectSizeFactor(newFactor)
-        this.updateGrid()
+        this.updateGlyphArrangement()
       }
     }
   }

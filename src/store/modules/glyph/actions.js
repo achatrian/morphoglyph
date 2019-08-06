@@ -1,6 +1,10 @@
 export default {
   setLayersUp: ({rootState, commit}) => commit('setLayersUp', rootState.app.maxDisplayedGlyphs),
 
+  makeTempLayer: ({commit}) => commit('makeTempLayer'),
+
+  removeTempLayer: ({commit}) => commit('removeTempLayer'),
+
   resetLayers: ({rootState, commit}) => {
     commit('resetProject')
     commit('setLayersUp', rootState.app.maxDisplayedGlyphs)
@@ -16,11 +20,11 @@ export default {
       namingField: rootState.backend.namingField
     })
   },
-  reassignLayers: ({commit}, payload) => commit('reassignLayers', payload),
-
-  removeGlyphs: ({commit}) => commit('removeGlyphs'),
+  shiftLayersAssignment: ({commit}, payload) => commit('shiftLayersAssignment', payload),
 
   reassignGlyphIds: ({rootState, commit}) => commit('reassignGlyphIds', rootState.backend.dataDisplayOrder),
+
+  reassignGlyphLayer: ({commit}, payload) => commit('reassignGlyphLayer', payload),
 
   drawGlyph: ({rootState, commit}, payload) => {
     // find dataPoint in backend

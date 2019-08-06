@@ -8,6 +8,7 @@
             id="pagination"
             v-model="page"
             :length="numPages"
+            v-show="!(glyphBinder || glyphAdder)"
           ></v-pagination>
         </v-flex>
       </v-layout>
@@ -38,15 +39,17 @@ export default {
   },
   data () { return { page: 1, selectedOrderField: 'file entries' } },
   computed: {...mapState({
-    numDisplayedGlyphs: state => state.app.numDisplayedGlyphs,
-    glyphs: state => state.glyph.project.glyphs,
-    numPages: state => state.app.numPages,
-    dataFields: state => state.backend.dataFields,
-    fieldTypes: state => state.backend.fieldTypes
+      glyphBinder: state => state.app.glyphBinder,
+      glyphAdder: state => state.app.glyphAdder,
+      numDisplayedGlyphs: state => state.app.numDisplayedGlyphs,
+      glyphs: state => state.glyph.project.glyphs,
+      numPages: state => state.app.numPages,
+      dataFields: state => state.backend.dataFields,
+      fieldTypes: state => state.backend.fieldTypes
   })
   },
   methods: {...mapActions({
-    reassignLayers: 'glyph/reassignLayers',
+    shiftLayersAssignment: 'glyph/shiftLayersAssignment',
     changeCurrentPage: 'app/changeCurrentPage',
     orderDataByValue: 'backend/orderDataByValue'
   }),
@@ -56,7 +59,7 @@ export default {
   },
   watch: {
     page () {
-      this.reassignLayers({
+      this.shiftLayersAssignment({
         startIndex: (this.page - 1) * this.numDisplayedGlyphs, // page count starts at 1
         endIndex: this.page * this.numDisplayedGlyphs
       })

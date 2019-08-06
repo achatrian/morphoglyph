@@ -17,14 +17,15 @@ const state = {
   glyphAdder: false,
   canvas: true,
   welcomeCard: true,
-  dockedView: false,
   // view props
   maxDisplayedGlyphs: 20,
   numDisplayedGlyphs: 0,
   boundingRectSizeFactor: 1.0,
   boundingRects: [],
+  glyphArrangement: 'grid', // determines how glyphs are arranged spatially on the canvas
   numPages: 0,
-  currentPage: 1
+  currentPage: 1,
+  editorBox: {id: '', boundingRect: {top: 0, left: 0, width: 0, height: 0}}
 }
 
 export default {

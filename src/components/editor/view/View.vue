@@ -3,7 +3,7 @@
     <app-welcome-card id="welcome-card" v-if="welcomeCard" @configLoaded="applyBinding"/>
     <app-bind-options class="control-panel" v-show="glyphBinder" ref="bonds"/>
     <app-glyph-adder v-if="glyphAdder"/>
-    <app-glyph-canvas v-resize.quiet="updateGrid"
+    <app-glyph-canvas v-resize.quiet="updateGlyphArrangement"
                       v-show="canvas" ref="canvas"
     />
     <!--since canvas has z-index=1, it was on top of view card, which made clicking on buttons impossible-->
@@ -41,8 +41,7 @@ export default {
   },
   methods: {
     ...mapActions({
-      changeDisplayedGlyphNum: 'app/changeDisplayedGlyphNum',
-      updateGrid: 'app/updateGrid'
+      updateGlyphArrangement: 'app/updateGlyphArrangement'
     }),
     applyBinding () { // apply configuration in BindOptions, then load bindings onto store
       this.$refs.bonds.applyConfig()
@@ -50,7 +49,7 @@ export default {
     }
   },
   mounted () {
-    this.updateGrid()
+    this.updateGlyphArrangement()
   }
 }
 </script>

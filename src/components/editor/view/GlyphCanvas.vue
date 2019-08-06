@@ -22,7 +22,7 @@ export default {
   methods: {
     ...mapActions({
       setLayersUp: 'glyph/setLayersUp',
-      updateGrid: 'app/updateGrid',
+      updateGlyphArrangement: 'app/updateGlyphArrangement',
       drawGlyph: 'glyph/drawGlyph',
       moveGlyph: 'glyph/moveGlyph',
       resetGlyph: 'glyph/resetGlyph',
@@ -42,7 +42,8 @@ export default {
         let numDrawn = 0
         let numMoved = 0
         // either draw paths ...
-        if (!(this.glyphs.slice(0, this.numDisplayedGlyphs).every(glyph => glyph.drawn))) { // all available docks have drawn glyph
+        const numDrawnGlyphs = this.glyphs.reduce((drawnCount, nextGlyph) => drawnCount + Number(nextGlyph.drawn), 0)
+        if (numDrawnGlyphs < this.numDisplayedGlyphs) {
           this.boundingRects.forEach((boundingRect, idx) => {
             let glyphIndex = (this.currentPage - 1) * this.numDisplayedGlyphs + idx // idx is relative to glyph position in page
             if (glyphIndex < this.glyphs.length && boundingRect.width > 0 && boundingRect.height > 0 &&
@@ -62,7 +63,7 @@ export default {
         } else { // ... or move them if position of rectangles has changed
           this.boundingRects.forEach((boundingRect, idx) => {
             let glyphIndex = (this.currentPage - 1) * this.numDisplayedGlyphs + idx // idx is relative to glyph position in page
-            if (glyphIndex < this.glyphs.length) {
+            if (glyphIndex < this.glyphs.length  && boundingRect.width > 0 && boundingRect.height > 0 && this.glyphs[glyphIndex].drawn) {
               this.moveGlyph({
                 glyphIndex: glyphIndex,
                 boundingRect: boundingRect
@@ -107,7 +108,7 @@ export default {
   watch: {
     numDisplayedGlyphs () {
       // in fluid view, each time number of glyphs changes, whole grid is redrawn
-      this.updateGrid()
+      this.updateGlyphArrangement()
       this.redrawGlyphs()
     },
     boundingRects: {

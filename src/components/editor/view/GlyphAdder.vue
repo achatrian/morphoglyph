@@ -1,5 +1,5 @@
 <template>
-    <v-card id='content' class="light elevation-5" v-resize="updateDrawingBoxRect">
+    <v-card id='content' class="light elevation-5" v-resize="updateBoxRects">
         <v-card-text class="title">
             Add a new glyph
         </v-card-text>
@@ -22,13 +22,24 @@
             <v-icon color="primary">close</v-icon>
         </v-btn>
 
-        <div id="glyph-box" ref="glyphBox">
+        <div id="glyph-box" class="canvas-box" ref="glyphBox">
+            <v-select
+                    class="btn"
+                    :items="glyphs.map(glyph => glyph.id)"
+                    label="Select glyph to visualize"
+                    outlined
+                    v-model="selectedGlyphId"
+                    @change="viewGlyph"
+            />
+        </div>
+        <div id="drawing-box" class="canvas-box" ref="drawingBox">
             <v-btn class="btn white--text primary"
                    v-show="!drawingMode"
                    @click="toggleDrawing">
                 Draw
             </v-btn>
             <v-btn class="btn black--text secondary"
+                   v-show="drawingMode"
                    @click="savePath">
                 Save
             </v-btn>
@@ -49,21 +60,36 @@
     import paper from 'paper'
     import {mapState, mapActions} from 'vuex'
 
+    function rectInARect (sourceRect, resize) {
+        // create rectangle with the same center as sourceRect, but smaller by a factor of resize
+        const targetWidth = sourceRect.width * resize
+        const targetHeight = sourceRect.height * resize
+        return {
+            left: sourceRect.left + sourceRect.width/2 - targetWidth/2,
+            top: sourceRect.top + sourceRect.height/2 - targetHeight/2,
+            width: targetWidth,
+            height: targetHeight
+        }
+    }
+
     export default {
         name: "GlyphAdder",
         data () {
             return {
-                newGlyphName: 'NewGlyph',
+                newGlyphName: '',
                 drawingMode: false,
-                boxBoundingRect: {top: 0, bottom:0, left: 0, right: 0, width: 0, height: 0},
+                drawingBoundingRect: {top: 0, bottom:0, left: 0, right: 0, width: 0, height: 0},
                 drawGlyphTool: null,
                 path: null,
-                selectedGlyphName: ''
+                selectedGlyphName: '',
+                selectedGlyphId: '',
+                glyphBoundingRect: {top: 0, bottom:0, left: 0, right: 0, width: 0, height: 0}
             }
         },
         computed: {
             ...mapState({
-               glyphTypes: state => state.glyph.glyphTypes
+                glyphTypes: state => state.glyph.glyphTypes,
+                glyphs: state => state.glyph.project.glyphs
             }),
             glyphNames () { // names of glyph types for selection
                 let glyphNames = []
@@ -74,11 +100,17 @@
         methods: {
             ...mapActions({
                 setGlyphAdderState: 'app/setGlyphAdderState',
-                setGlyphType: 'glyph/setGlyphType'
+                setGlyphType: 'glyph/setGlyphType',
+                reassignGlyphLayer: 'glyph/reassignGlyphLayer',
+                setEditorBox: 'app/setEditorBox',
+                updateGlyphArrangement: 'app/updateGlyphArrangement',
+                activateRedrawing: 'glyph/activateRedrawing',
+                setGlyphVisibility: 'glyph/setGlyphVisibility'
             }),
             initialiseTool () {
                 const toolDown = event => {
                     // If there is no current active path then create one.
+                    paper.project.layers['temp'].activate()
                     if (!this.path && this.drawingMode) {
                         console.log("Tool activated")
                         this.path = new paper.Path({
@@ -91,10 +123,10 @@
                     }
                 }
                 const toolDrag = event => {
-                    const pointInBox = event.point.x > this.boxBoundingRect.left &&
-                        event.point.x < this.boxBoundingRect.left + this.boxBoundingRect.width &&
-                        event.point.y > this.boxBoundingRect.top &&
-                        event.point.y < this.boxBoundingRect.top + this.boxBoundingRect.height
+                    const pointInBox = event.point.x > this.drawingBoundingRect.left &&
+                        event.point.x < this.drawingBoundingRect.left + this.drawingBoundingRect.width &&
+                        event.point.y > this.drawingBoundingRect.top &&
+                        event.point.y < this.drawingBoundingRect.top + this.drawingBoundingRect.height
                     if (this.path && this.drawingMode && pointInBox) {
                         this.path.add(event.point)
                         // If the user if sufficiently clost to the intial point that the
@@ -103,7 +135,6 @@
                         let hitResult = this.path.hitTest(event.point, this.hitOptions)
                         if (hitResult && hitResult.segment === this.path.firstSegment) {
                             this.path.closed = true
-                            this.path.fillColor = new paper.Color(this.getColor().fill)
                         } else {
                             this.path.closed = false
                             if (this.path.fillColor) {
@@ -115,11 +146,9 @@
                 const toolUp = event => {
                     if (this.path && this.drawingMode) {
                         // If user releases mouse near the first segment then close path
-                        // and set fill.
                         let hitResult = this.path.hitTest(event.point, this.hitOptions)
                         if (hitResult && hitResult.segment === this.path.firstSegment) {
                             this.path.closed = true
-                            this.path.fillColor = new paper.Color(this.getColor().fill)
                         }
 
                         // Deselect path.
@@ -129,9 +158,17 @@
                         // optimal set of segments, reducing memory usage and speeding up
                         // drawing.
                         this.path.simplify()
+
+                        // Rescale path so that height and width are the same (TODO is this always desirable ?)
+                        const pathHeight = this.path.bounds.height
+                        const pathWidth = this.path.bounds.width
+                        if (pathHeight >= pathWidth) {
+                            this.path.scale(pathHeight/pathWidth, 1)
+                        } else {
+                            this.path.scale(1, pathWidth/pathHeight)
+                        }
                     }
                 }
-
                 this.drawGlyphTool = new paper.Tool()
                 Object.assign(this.drawGlyphTool, {
                     onMouseDown: toolDown,
@@ -149,16 +186,55 @@
                 // is dependent on the current zoom level
                 this.drawGlyphTool.minDistance = this.strokeWidth
             },
-            updateDrawingBoxRect () {
-                if (this.$refs.glyphBox) {
-                    const viewRect = document.getElementById('view').getBoundingClientRect()
-                    const boxRect = this.$refs.glyphBox.getBoundingClientRect()
-                    this.boxBoundingRect = {
-                        top: boxRect.top - viewRect.top,
-                        left: boxRect.left - viewRect.top,
-                        width: boxRect.width,
-                        height: boxRect.height
+            updateBoxRects () {
+                if (this.selectedGlyphId) {
+                    // toggle glyph and re-activate after timeout
+                    this.setGlyphVisibility({
+                        value: false,
+                        glyphSelector: this.selectedGlyphId
+                    })
+                    setTimeout(
+                        () => this.setGlyphVisibility({
+                            value: true,
+                            glyphSelector: this.selectedGlyphId
+                        }), // this in arrow function is the same as in surrounding function
+                        1000
+                    )
+                }
+                // update drawing boxes
+                const oldBox = this.drawingBoundingRect
+                if (this.$refs.drawingBox) {
+                    const canvasRect = document.getElementById('glyph-canvas').getBoundingClientRect()
+                    const drawingBoxRect = this.$refs.drawingBox.getBoundingClientRect()
+                    this.drawingBoundingRect = {
+                        top: drawingBoxRect.top - canvasRect.top,
+                        left: drawingBoxRect.left - canvasRect.left,
+                        width: drawingBoxRect.width,
+                        height: drawingBoxRect.height
                     }
+                    const glyphBoxRect = this.$refs.glyphBox.getBoundingClientRect()
+                    this.glyphBoundingRect = rectInARect({
+                        top: glyphBoxRect.top - canvasRect.top,
+                        left: glyphBoxRect.left - canvasRect.left,
+                        width: glyphBoxRect.width,
+                        height: glyphBoxRect.height
+                    }, 0.7)
+                }
+                // update box in state, so that glyph can be visualised inside its box
+                this.setEditorBox({
+                    index: this.glyphs.findIndex(glyph => glyph.id === this.selectedGlyphId),
+                    boundingRect: this.glyphBoundingRect
+                })
+                // transform path when box is moved / re-sized
+                if (this.path) {
+                    this.path.translate( new paper.Point(
+                        this.drawingBoundingRect.left - oldBox.left,
+                        this.drawingBoundingRect.top - oldBox.top
+                    ))
+                    this.path.scale(
+                        this.drawingBoundingRect.width / oldBox.width,
+                        this.drawingBoundingRect.height / oldBox.height
+                    )
                 }
             },
             toggleDrawing () {
@@ -170,11 +246,32 @@
                     this.drawingMode = false
                 }
             },
-            removePath () {
-                // TODO clear path and reactivate tool so that one can keep drawing
-            },
             savePath () {
                 // TODO save shape to be set it as a ShapeGlyph's main path when glyph is created
+            },
+            removePath () {
+                if (this.path) {
+                    this.path.remove()
+                    this.path = null
+                }
+            },
+            viewGlyph (glyphId) {
+                this.setGlyphVisibility({
+                    value: false,
+                    glyphSelector: 'all'
+                })
+                this.setEditorBox({
+                    index: this.glyphs.findIndex(glyph => glyph.id === glyphId),
+                    boundingRect: this.glyphBoundingRect
+                })
+                this.updateGlyphArrangement() // recompute bounding rects in editor mode
+                setTimeout(
+                    () => this.setGlyphVisibility({
+                        value: true,
+                        glyphSelector: this.selectedGlyphId
+                    }), // this in arrow function is the same as in surrounding function
+                    1000
+                )
             }
         },
         beforeDestroy () {
@@ -188,8 +285,8 @@
 <style scoped>
     /* can try to use grid area as well ? */
     #content{
-        width: 80%;
-        height: 80%;
+        width: 100%;
+        height: 100%;
         margin: auto;
         display: grid;
         grid-template-columns: repeat(4, 1fr);
@@ -197,12 +294,24 @@
         align-items: center;
     }
 
-    #glyph-box{
+    .canvas-box{ /* class to make divs into boxes where graphics are visualised */
         background-color: white;
         border: 1px solid black;
-        grid-column: 3 / 4;
-        grid-row: 2 / 4;
-        min-height: 250px
+        min-height: 250px;
+        min-width: 200px;
+        margin: auto
+    }
+
+    #drawing-box{
+        grid-column: 1 / 2;
+        grid-row: 3 / 5;
+    }
+
+    #glyph-box{
+        grid-column: 2 / 4;
+        grid-row: 2 / 5;
+        min-height: 400px;
+        min-width: 300px;
     }
 
     .btn{

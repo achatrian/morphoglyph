@@ -12,6 +12,21 @@ export default {
     paper.project.layers[state.activeLayer].activate()
   },
 
+  makeTempLayer: (state) => {
+    let tempLayer = new paper.Layer({name: 'temp'})
+    state.activeLayer = 'temp'
+    tempLayer.activate()
+  },
+
+  removeTempLayer: () => {
+    const tempLayer = paper.project.layers.find(layer => layer.name === 'temp')
+    if (typeof tempLayer !== 'undefined') {
+      tempLayer.remove()
+    } else {
+      console.warn('Attempted to remove non-existent temporary layer')
+    }
+  },
+
   setGlyphType: (state, {glyphTypeName, glyphSetting}) => {
     state.glyphTypeName = glyphTypeName
     let glyphElements = []
@@ -64,7 +79,7 @@ export default {
     state.project.glyphs = parsedData.map((dataPoint, i) => new glyphClass(i, dataPoint[namingField]))
   },
 
-  reassignLayers: (state, {startIndex, endIndex}) => {
+  shiftLayersAssignment: (state, {startIndex, endIndex}) => { // function used to change page
     // assume that glyphs have been reset
     let layerToAssign = 0
     state.project.glyphs = state.project.glyphs.map((glyph, idx) => {
@@ -79,9 +94,14 @@ export default {
     })
   },
 
-  reassignGlyphIds: (state, glyphIds) => state.project.glyphs.forEach((glyph, i) => {
+  reassignGlyphIds: (state, glyphIds) => state.project.glyphs.forEach((glyph, i) => { // function used to change page
     glyph.id = glyphIds[i]
   }),
+
+  reassignGlyphLayer: (state, {glyphId, layerId}) => {
+    const glyph = state.project.glyphs.find(glyph => glyph.id === glyphId)
+    glyph.changeLayer(layerId)
+  },
 
   drawGlyph: (state, {boundingRect, glyphId, dataPoint}) => {
     /* params {
@@ -107,14 +127,6 @@ export default {
     let drawOptions = {
       boundingRect: Object.assign({}, boundingRect),
       scaleOrders: scaleOrders,
-      shapePositions: {
-        [glyph.name]: {
-          widthProportion: 1,
-          heightProportion: 1,
-          leftShift: 0,
-          topShift: 0
-        }
-      },
       [state.glyphSettings.name]: state.selectedGlyphSetting
     }
     // Draw all glyph paths
@@ -188,13 +200,17 @@ export default {
     refPath.size = [newWidth, newHeight] // NB Size of main path would not change automatically after scaling layer !!!
   },
 
-  setRedrawing: (state, redrawing) => { state.redrawing = redrawing },
+  setRedrawing: (state, redrawing) => { state.redrawing = redrawing }, // used in activateRedrawing action
 
   setGlyphVisibility: (state, {value, glyphSelector = 'all', shapeSelector = 'layer', itemSelector = 'group'}) => {
     let glyphsToChange = []
     if (glyphSelector === 'all') {
       glyphsToChange = state.project.glyphs
     } else {
+      const selectedGlyph = state.project.glyphs.find(glyph => glyph.id === glyphSelector)
+      if (typeof selectedGlyph === 'undefined') {
+        throw Error(`No glyphs were found to match selector '${glyphSelector}'`)
+      }
       glyphsToChange.push(state.project.glyphs.find(glyph => glyph.id === glyphSelector))
     }
     for (let glyph of glyphsToChange) {
