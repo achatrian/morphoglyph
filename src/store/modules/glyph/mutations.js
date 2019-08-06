@@ -29,13 +29,7 @@ export default {
 
   setGlyphType: (state, {glyphTypeName, glyphSetting}) => {
     state.glyphTypeName = glyphTypeName
-    let glyphElements = []
-    let glyphClass
-    for (let glyphType of state.glyphTypes) {
-      if (glyphType.type.startsWith(glyphTypeName)) {
-        glyphClass = glyphType
-      }
-    }
+    const glyphClass = state.glyphTypes.find(glyphType => glyphType.type.startsWith(state.glyphTypeName))
     if (typeof glyphClass === 'undefined') {
       throw Error(`Unknown glyph type: ${glyphTypeName}`)
     }
@@ -45,8 +39,7 @@ export default {
     state.glyphShapes = glyphClass.shapes
     state.glyphShapes.all = [state.glyphShapes.main, ...state.glyphShapes.children]
     // update elements names with those from currently selected class
-    glyphElements.push(...glyphClass.elements)
-    state.glyphElements = glyphElements
+    state.glyphElements = [...glyphClass.elements]
     console.log(`Loaded settings and elements for glyph type: ${glyphClass.type}`)
     if (glyphSetting.length > 0) { state.selectedGlyphSetting = glyphSetting }
   },
@@ -62,13 +55,8 @@ export default {
 
   setBindings: (state, bindings) => { state.project.bindings = bindings },
 
-  addGlyphs: (state, {parsedData, namingField}) => { // payload is added in action
-    let glyphClass
-    for (let glyphType of state.glyphTypes) {
-      if (glyphType.type.startsWith(state.glyphTypeName)) {
-        glyphClass = glyphType
-      }
-    }
+  addDataBoundGlyphs: (state, {parsedData, namingField}) => { // payload is added in action
+    const glyphClass = state.glyphTypes.find(glyphType => glyphType.type.startsWith(state.glyphTypeName))
     if (typeof glyphClass === 'undefined') {
       throw Error(`Unknown glyph type: ${state.glyphTypeName}`)
     }
@@ -76,10 +64,18 @@ export default {
     state.glyphElements = glyphClass.elements // update glyph elements for feature binding
     // extract naming field from data-points and initialise glyphs in order of appearance in file
     // eslint-disable-next-line new-cap
-    state.project.glyphs = parsedData.map((dataPoint, i) => new glyphClass(i, dataPoint[namingField]))
+    state.project.glyphs = parsedData.map((dataPoint, layerIndex) => new glyphClass(layerIndex, dataPoint[namingField]))
   },
 
-  shiftLayersAssignment: (state, {startIndex, endIndex}) => { // function used to change page
+  addEmptyGlyphs: (state, glyphTypeName) => {
+    const glyphClass = state.glyphTypes.find(glyphType => glyphType.type.startsWith(glyphTypeName))
+    if (typeof glyphClass === 'undefined') {
+      throw Error(`Unknown glyph type: ${state.glyphTypeName}`)
+    }
+
+  },
+
+  shiftLayersAssignment: (state, {startIndex, endIndex}) => { // used to change page
     // assume that glyphs have been reset
     let layerToAssign = 0
     state.project.glyphs = state.project.glyphs.map((glyph, idx) => {
@@ -298,12 +294,7 @@ export default {
   addChildGlyph (state, {glyphId, childName}) {
     // function to add arbitrary children to existing glyphs
     // TODO integrate and add new button
-    let glyphClass
-    for (let glyphType of state.glyphTypes) {
-      if (glyphType.type.startsWith(state.glyphTypeName)) {
-        glyphClass = glyphType
-      }
-    }
+    const glyphClass = state.glyphTypes.find(glyphType => glyphType.type.startsWith(state.glyphTypeName))
     if (typeof glyphClass === 'undefined') {
       throw Error(`Unknown glyph type: ${state.glyphTypeName}`)
     }

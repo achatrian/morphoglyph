@@ -16,6 +16,7 @@
   <div class="pointers-please studioPanel elevation-1">
     <!--studio applets go in here-->
     <app-viz-props/>
+    <app-shape-canvas/>
   </div>
   </v-navigation-drawer>
   <!--v-if="['loading', 'landing', 'examples'].indexOf($route.name) === -1"-->
@@ -26,12 +27,14 @@ import { mapState, mapActions } from 'vuex'
 //import Table from './Table'
 import VizProps from './VizProps'
 //import GlyphBind from './GlyphBind'
+import ShapeCanvas from './ShapeCanvas'
 
 export default {
   name: 'Studio',
   components: {
     //'app-table': Table,
-    'app-viz-props': VizProps
+    'app-viz-props': VizProps,
+    'app-shape-canvas': ShapeCanvas
   },
   computed: {
     ...mapState({

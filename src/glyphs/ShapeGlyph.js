@@ -43,7 +43,7 @@ class ShapeGlyph extends BaseGlyph {
     return {
       name: 'shapeType', // NB case sensitive
       message: 'Select glyph shape',
-      options: ['ellipse', 'rectangle', 'circle', 'regularPolygon']
+      options: ['ellipse', 'rectangle', 'circle', 'regularPolygon', 'customShape']
     }
   }
 
@@ -195,6 +195,12 @@ class ShapeGlyph extends BaseGlyph {
           fillColor: this.parameters.lightColor,
           strokeWidth: this.parameters.strokeWidth
         })
+        break
+      case 'customShape':
+        if (typeof options.customShape === 'undefined') {
+          throw Error("Option 'customShape' is selected, but no customShape is available to draw")
+        }
+        path = options.customShape.clone() //
         break
       default:
         throw Error(`Unknown shape type '${shapeType}'`)

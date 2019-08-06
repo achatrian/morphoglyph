@@ -13,8 +13,8 @@ export default {
 
   setBindings: ({commit}, bindings) => commit('setBindings', bindings),
 
-  addGlyphs: ({rootState, commit}, glyphTypeName) => {
-    commit('addGlyphs', {
+  addDataBoundGlyphs: ({rootState, commit}, glyphTypeName) => {
+    commit('addDataBoundGlyphs', {
       glyphTypeName: glyphTypeName,
       parsedData: rootState.backend.parsedData,
       namingField: rootState.backend.namingField

@@ -201,7 +201,7 @@ export default {
       setBindings: 'glyph/setBindings',
       resetLayers: 'glyph/resetLayers',
       changeDisplayedGlyphNum: 'app/changeDisplayedGlyphNum',
-      addGlyphs: 'glyph/addGlyphs'
+      addDataBoundGlyphs: 'glyph/addDataBoundGlyphs'
     }),
     applyFeatureChange () { // handle change of field associated with element
       // Apply new field selection FIXME test this
@@ -224,7 +224,7 @@ export default {
         selectedField: this.selectedFieldName
       }) // reset all except element name
       this.setBindings(newBindings)
-      this.addGlyphs()
+      this.addDataBoundGlyphs()
       const numDisplayedGlyphs = this.numDisplayedGlyphs
       this.changeDisplayedGlyphNum(0)
       setTimeout(function (numDisplayedGlyphs) {
@@ -330,7 +330,6 @@ export default {
 
 .panel {
   margin-top: 20px;
-  background-color: #eeeeee;
 }
 
 .color-tile {

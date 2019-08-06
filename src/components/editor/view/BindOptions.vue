@@ -89,7 +89,8 @@
                 selectedGlyphName: '',
                 selectedOrderField: '', // selected field of cluster names
                 selectedGlyphSetting: '',
-                lastUnboundField: '' // used to flag which field needs re-clicking to be bound again
+                lastUnboundField: '', // used to flag which field needs re-clicking to be bound again
+                drawDialog: false
             }
         },
         computed: {
@@ -192,7 +193,7 @@
                 setGlyphBinderState: 'app/setGlyphBinderState',
                 setGlyphType: 'glyph/setGlyphType',
                 setBindings: 'glyph/setBindings',
-                addGlyphs: 'glyph/addGlyphs',
+                addDataBoundGlyphs: 'glyph/addDataBoundGlyphs',
                 discardGlyphs: 'glyph/discardGlyphs',
                 changeDisplayedGlyphNum: 'app/changeDisplayedGlyphNum',
                 setNamingField: 'backend/setNamingField',
@@ -236,7 +237,7 @@
                 if (this.glyphs.length > 0) {
                     this.discardGlyphs()
                 }
-                this.addGlyphs() // uses store.glyph.glyphTypeName
+                this.addDataBoundGlyphs() // uses store.glyph.glyphTypeName
                 this.setGlyphBinderState(false)
                 let coNormalizeGroups = []
                 let scaleNormalizeGroup = []
@@ -299,6 +300,10 @@
                 if (this.selectedGlyphName !== 'None') {
                     this.setGlyphType({glyphTypeName: this.selectedGlyphName, glyphSetting: this.selectedGlyphSetting})
                 }
+                // activate drawing dialog if option is
+                if (this.glyphSettings.name === 'shapeType' && this.selectedGlyphSetting === 'customShape') {
+                    this.drawDialog = true // need to stop event bubbling?
+                }
             }
         }
     }
@@ -313,4 +318,15 @@
         max-width: 200px;
         margin: auto
     }
+
+    #drawing-box{
+        background-color: white;
+        border: 1px solid black;
+        min-height: 250px;
+        min-width: 200px;
+        margin: auto;
+        grid-column: 1 / 2;
+        grid-row: 3 / 5
+    }
+
 </style>

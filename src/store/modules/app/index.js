@@ -16,6 +16,7 @@ const state = {
   glyphBinder: false,
   glyphAdder: false,
   canvas: true,
+  shapeCanvas: false,
   welcomeCard: true,
   // view props
   maxDisplayedGlyphs: 20,

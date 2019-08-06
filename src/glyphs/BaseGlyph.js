@@ -306,7 +306,7 @@ class BaseGlyph {
     }
   }
 
-  registerChild (glyph) { // function to register children, used mainly in constructor of complex glyphs
+  registerChild (glyph) { // function to register children, used mainly in constructor of complex glyphs or to add a new custom glyph
     if (!glyph.id) {
       glyph.id = `${this.children.length - 1}`
     }

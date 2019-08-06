@@ -21,7 +21,7 @@
         <v-btn class="btn close-button" round flat @click="setGlyphAdderState(false)">
             <v-icon color="primary">close</v-icon>
         </v-btn>
-
+        <!-- Box where glyph is displayed -->
         <div id="glyph-box" class="canvas-box" ref="glyphBox">
             <v-select
                     class="btn"
@@ -32,6 +32,7 @@
                     @change="viewGlyph"
             />
         </div>
+        <!-- Box where new shape can be drawn -->
         <div id="drawing-box" class="canvas-box" ref="drawingBox">
             <v-btn class="btn white--text primary"
                    v-show="!drawingMode"
