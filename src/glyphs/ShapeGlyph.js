@@ -113,7 +113,8 @@ class ShapeGlyph extends BaseGlyph {
         name: 'Protrusion',
         type: 'path',
         properties: {
-          requiresTransform: true,
+          requiresTransform: true, // used to send scale orders into glyph as drawing options
+          priority: 1, // elements are drawn according to their priority value in decreasing order (default is 0)
           color: {range: [], step: []},
           size: {range: [1, 20], step: 1}
         },
@@ -218,6 +219,16 @@ class ShapeGlyph extends BaseGlyph {
     this.mainPath = path // uses setter that store id rather than storing a pointer to the path, which breaks vue reactivity
   }
 
+  get outerPath () { // outer path where elements are drawn onto
+    let outerPath
+    try {
+      outerPath = this.getItem('protrusion')
+    } catch {
+      outerPath = this.mainPath
+    }
+    return outerPath
+  }
+
   drawMembrane (membraneFraction, subElements) { // eslint-disable-line no-unused-vars
     /* Draws a thicker membrane */
     if (!(membraneFraction >= 0.0 || membraneFraction <= 1.0)) {
@@ -227,7 +238,7 @@ class ShapeGlyph extends BaseGlyph {
     // create new open path
     let membranePath = new paper.Path()
     for (let i = 0; i < Math.floor(this.parameters.numPoints * membraneFraction); i++) {
-      membranePath.add(this.mainPath.getLocationAt(this.mainPath.length * (1 - i / this.parameters.numPoints)))
+      membranePath.add(this.outerPath.getLocationAt(this.outerPath.length * (1 - i / this.parameters.numPoints)))
     }
     membranePath.strokeColor = this.parameters.primaryColor
     membranePath.strokeWidth = this.parameters.thickPathSize
@@ -238,14 +249,14 @@ class ShapeGlyph extends BaseGlyph {
     let {spikeHeight, numPoints} = subElements
     if (typeof spikeHeight === 'undefined') { spikeHeight = this.parameters.spikeHeight }
     if (typeof numPoints === 'undefined') { numPoints = this.parameters.numPoints }
-    let pathClone = this.cloneItem(this.constructor.shapes.main, numPoints)
+    let pathClone = this.cloneItem('outer', numPoints)
     pathClone.visible = false
     let n = Math.floor(pathClone.segments.length * spikeFraction)
     let spikePath = new paper.Path()
     for (let i = 0; i < n; i++) {
       let offset = [0, 0]
-      let dirX = pathClone.segments[i].point.x - this.mainPath.position.x
-      let dirY = pathClone.segments[i].point.y - this.mainPath.position.y
+      let dirX = pathClone.segments[i].point.x - this.outerPath.position.x
+      let dirY = pathClone.segments[i].point.y - this.outerPath.position.y
       if (i % 2 === 1 && i !== (n - 1)) {
         offset[0] = dirX * spikeHeight
         offset[1] = dirY * spikeHeight
@@ -272,18 +283,18 @@ class ShapeGlyph extends BaseGlyph {
         case 'vertical':
           spacing = (this.mainPath.bounds.right - this.mainPath.bounds.left) / numLines
           lines.push(new paper.Path.Line(
-            new paper.Point(this.mainPath.bounds.left + (i + 0.5) * spacing, this.mainPath.bounds.top),
-            new paper.Point(this.mainPath.bounds.left + (i + 0.5) * spacing, this.mainPath.bounds.bottom)
+            new paper.Point(this.outerPath.bounds.left + (i + 0.5) * spacing, this.outerPath.bounds.top),
+            new paper.Point(this.outerPath.bounds.left + (i + 0.5) * spacing, this.outerPath.bounds.bottom)
           ))
           if (this.parameters.meshType !== 'grid') {
             break // otherwise do horizontal as well
           }
         // eslint-disable-line no-fallthrough
         case 'horizontal': // fallthrough when doing grid
-          spacing = (this.mainPath.bounds.bottom - this.mainPath.bounds.top) / numLines
+          spacing = (this.outerPath.bounds.bottom - this.outerPath.bounds.top) / numLines
           lines.push(new paper.Path.Line(
-            new paper.Point(this.mainPath.bounds.left, this.mainPath.bounds.top + (i + 0.5) * spacing),
-            new paper.Point(this.mainPath.bounds.right, this.mainPath.bounds.top + (i + 0.5) * spacing)
+            new paper.Point(this.outerPath.bounds.left, this.outerPath.bounds.top + (i + 0.5) * spacing),
+            new paper.Point(this.outerPath.bounds.right, this.outerPath.bounds.top + (i + 0.5) * spacing)
           ))
           break
         case 'random':
@@ -295,7 +306,7 @@ class ShapeGlyph extends BaseGlyph {
     }
     let mesh = new paper.Group([])
     for (let line of lines) {
-      let intersections = line.getIntersections(this.mainPath)
+      let intersections = line.getIntersections(this.outerPath)
       // debug - show intersections
       for (let i = 0; i + 1 < intersections.length; i = i + 2) {
         mesh.addChild(paper.Path.Line(intersections[i].point, intersections[i + 1].point))
@@ -310,14 +321,6 @@ class ShapeGlyph extends BaseGlyph {
   drawDecoration (fillingFraction, subElements) { // eslint-disable-line no-unused-vars
     // generate points where to draw pattern elements - use contains() to test whether point is inside the shape or not
     let possiblePoints = []
-    const inMainOrProtrusion = (point, glyph) => {
-      try {
-        const protrusionPath = glyph.getItem('protrusion')
-        return glyph.mainPath.contains(point) || protrusionPath.contains(point)
-      } catch { // catching error in getItem if protrusion item is not defined
-        return glyph.mainPath.contains(point)
-      }
-    }
     for (let x = this.box.drawingBounds.x; x < this.box.drawingBounds.x + this.box.drawingBounds.width; x += this.parameters.patternSize) {
       for (let y = this.box.drawingBounds.y; y < this.box.drawingBounds.y + this.box.drawingBounds.height; y += this.parameters.patternSize) {
         let possiblePoint = new paper.Point(x, y)
@@ -400,7 +403,7 @@ class ShapeGlyph extends BaseGlyph {
 
   drawBorderSymbol (borderFraction, subElements) {// eslint-disable-line no-unused-vars
     for (let i = 0; i < Math.ceil(this.parameters.maxNumBorderSymbols * borderFraction); i++) {
-      let symbolPosition = this.mainPath.getPointAt(this.mainPath.length * (1 - i / this.parameters.maxNumBorderSymbols))
+      let symbolPosition = this.outerPath.getPointAt(this.outerPath.length * (1 - i / this.parameters.maxNumBorderSymbols))
       let borderSymbol
       switch (this.parameters.borderSymbolType) {
         case 'circle':

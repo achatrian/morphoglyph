@@ -147,7 +147,17 @@ export default {
     // Draw all glyph paths
     glyph.draw(drawOptions)
     let targetGlyph
-    for (let binding of state.project.bindings) {
+    // elements are drawn according to their priority value in decreasing order (the default is 0)
+    // need to clone the binding array first as .sort() mutates its parent
+    const orderedBindings = [...state.project.bindings].sort(binding => {
+      let element = state.glyphElements.find(element => element.name === binding.element)
+      if (element.properties.priority) {
+        return  - element.properties.priority // negative sign needed as sorting order will be ascending
+      } else {
+        return 0
+      }
+    })
+    for (let binding of orderedBindings) {
       let glyphElement = state.glyphElements.find(element => element.name === binding.element)
       if (glyphElement.type === 'scale') {
         continue // skipping bindings to scale-type elements
@@ -191,7 +201,6 @@ export default {
     if (shapeSelector === 'layer') { // translate and scale the whole layer
       group = scope.project.layers[state.activeLayer] // layer is a special group
       refPath = glyph.getItem('drawingBox')
-      // FIXME drawing bounds is not working (drawing boxes overlap after moving)
       newRect = glyph.box.drawingBounds // if we are shifting the whole layer, the drawing box bounds are the target position
     } else { // translate and scale selected shape
       if (glyph.name === shapeSelector) {

@@ -92,6 +92,7 @@ class BaseGlyph {
   }
 
   static get elements () {
+    // Possible element properties include: color, size, requiresTransform, priority
     return [
       {name: 'Height', type: 'scale', properties: {}, target: 'main', subElements: []},
       {name: 'Width', type: 'scale', properties: {}, target: 'main', subElements: []}
@@ -221,12 +222,16 @@ class BaseGlyph {
     }
   }
 
-  set mainPath (path) {
+  set mainPath (path) { // this should be original path with fixed aspect ratio
     this.registerItem(path, this.constructor.shapes.main)
   }
 
   get mainPath () {
     return this.getItem(this.constructor.shapes.main)
+  }
+
+  get outerPath () { // path where elements are drawn onto. It can vary with the data-points' value (e.g. protrusion)
+    return this.mainPath
   }
 
   getNamedItems (includeChildren = true) {
@@ -260,9 +265,13 @@ class BaseGlyph {
     return items
   }
 
-  cloneItem (itemName = this.constructor.shapes.main, numPoints = 300) {
+  cloneItem (itemName = 'outer', numPoints = 100) {
     // clone glyph item with an arbitrary number of points
-    const item = this.getItem(itemName)
+    let item
+    if (itemName === 'outer') {
+      item = this.outerPath
+    }
+    item = this.getItem(itemName)
     let newPath = new paper.Path()
     const theta = item.length / numPoints
     for (let t = 0; t < numPoints; t++) {
