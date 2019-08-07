@@ -10,7 +10,7 @@
       slot="activator"
       flat
       block
-      @click="activateBindOptions">
+      @click="setGlyphBinderState(true)">
       <v-icon light :color="color">view_column</v-icon>
     </v-btn>
     <span> Open pane for feature binding</span>
@@ -25,15 +25,8 @@ export default {
   name: 'Bind',
   methods: {
     ...mapActions({
-      setGlyphAdderState: 'app/setGlyphAdderState',
-      setGlyphBinderState: 'app/setGlyphBinderState',
-      setGlyphVisibility: 'glyph/setGlyphVisibility',
-    }),
-    activateBindOptions () {
-      this.setGlyphAdderState(false)
-      this.setGlyphVisibility({value: false})
-      this.setGlyphBinderState(true)
-    }
+      setGlyphBinderState: 'app/setGlyphBinderState'
+    })
   },
   props: {
     color: {type: String, default: 'white'}

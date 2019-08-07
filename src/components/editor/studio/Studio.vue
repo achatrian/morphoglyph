@@ -56,6 +56,7 @@ export default {
 <style lang='css' scoped>
   .studioPanel {
     /*background: #EDE7F6;*/
+    height: 100%;
     overflow: auto;
   }
 </style>

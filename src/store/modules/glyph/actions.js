@@ -70,6 +70,8 @@ export default {
 
   selectGlyphEl: ({commit}, payload) => commit('selectGlyphEl', payload),
 
-  setBoundingRectSizeFactor: ({commit}, sizeFactor) => commit('setBoundingRectSizeFactor', sizeFactor)
+  setBoundingRectSizeFactor: ({commit}, sizeFactor) => commit('setBoundingRectSizeFactor', sizeFactor),
+
+  setShapeJSON: ({commit}, shapeJSON) => commit('setShapeJSON', shapeJSON)
 
 }

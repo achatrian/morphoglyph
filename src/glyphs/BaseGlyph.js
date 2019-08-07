@@ -11,6 +11,7 @@ import DrawingBox from './DrawingBox'
 
 
 class BaseGlyph {
+
   static baseOptions () {
     return {
       backend: 'paper',
@@ -24,7 +25,19 @@ class BaseGlyph {
       narrowPathSize: 3
     }
   }
+
+  static get glyphScope () {
+    for (let i = 0; i < 3; i++) {
+      let scope = paper.PaperScope.get(i)
+      if (scope.view.element.id === 'glyph-canvas') {
+        return scope
+      }
+    }
+    throw Error("No scope bound to element 'glyph-canvas'")
+  }
+
   parameters = {} // stores the drawing parameters for the glyph
+
   constructor (
     layer, // paperjs layer where glyph path will be drawn
     id,
@@ -49,7 +62,7 @@ class BaseGlyph {
     }
     this.parent = parent
     // create main group where to store shape items:
-    paper.project.layers[this.layer].activate()
+    this.activateLayer()
     this.group = new paper.Group([])
   }
   glyphElements = BaseGlyph.elements // names of available elements for this type of glyph
@@ -85,7 +98,10 @@ class BaseGlyph {
     ] // not inherited by children
   }
 
-  activateLayer () { paper.project.layers[this.layer].activate() }
+  activateLayer () {
+    BaseGlyph.glyphScope.activate()
+    BaseGlyph.glyphScope.project.layers[this.layer].activate()
+  }
 
   updateBox(options) { // updates drawing box for glyph and children
     /* options = {boundingRect, shapePositions (optional)} */
@@ -149,7 +165,7 @@ class BaseGlyph {
     for (let itemName in this.zOrder) {
       if (this.zOrder.hasOwnProperty(itemName)) {
         if (this.zOrder[itemName] === -1) {
-          this.group.getItem(item => item.name === itemName).sendToBack()
+          this.group.getItem(item => item.name === itemName).sendToBack() // TODO does this modify z position or project hierarchy only (or are they the same thing ?)
         }
       }
     }
@@ -162,9 +178,10 @@ class BaseGlyph {
     this.itemIds[itemName] = item.id
     this.drawnItems.add(itemName)
     item.name = itemName // assign name to item
-    // if (item instanceof paper.Path) {
+    // if (item instanceof paper.Path
+    //     && item.name !== 'protrusion') {
     //   item.simplify() // reduces memory usage and speeds up drawing
-    // } // does not work with protrusion path?
+    // } // protrusion path looks skewed if simplified
   }
 
   findItem = (children, itemName) => children.find(item => { return item.id === this.itemIds[itemName] && item.name === itemName })
@@ -348,7 +365,6 @@ class BaseGlyph {
     delete this.children[i]
     throw Error(`Glyph ${this.name} has no children named '${childName}'`)
   }
-
 }
 
 export default BaseGlyph

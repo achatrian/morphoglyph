@@ -26,11 +26,20 @@ export default {
 
   setStudioDrawerState: ({commit}, payload) => commit('setStudioDrawerState', payload),
 
-  setGlyphBinderState: ({commit}, payload) => commit('setGlyphBinderState', payload),
+  setGlyphBinderState: ({commit, dispatch}, payload) => {
+    if (payload) {
+      dispatch('glyph/setGlyphVisibility', {value: false}, {root: true})
+      commit('setGlyphAdderState', false) // commit and not dispatch, as some of the logic in adder's action conflicts with logic here
+    } else {
+      setTimeout(dispatch, 200, 'glyph/setGlyphVisibility', {value: true}, {root: true})
+    }
+    commit('setGlyphBinderState', payload)
+  },
 
   setGlyphAdderState: ({commit, dispatch}, payload) => {
     if (payload) {
       dispatch('glyph/setGlyphVisibility', {value: false}, {root: true})
+      commit('setGlyphBinderState', false)
       dispatch('setGlyphArrangement', 'editor') // swap to editor arrangement of glyphs
       dispatch('glyph/makeTempLayer', null, {root: true}) // create a new temporary layer for GlyphAdder
     } else {
@@ -40,6 +49,8 @@ export default {
     }
     commit('setGlyphAdderState', payload)
   },
+
+  setShapeCanvasState: ({commit}, payload) => commit('setShapeCanvasState', payload),
 
   setWelcomeCardState: ({commit}, payload) => commit('setWelcomeCardState', payload),
 

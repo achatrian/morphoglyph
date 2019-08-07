@@ -89,8 +89,7 @@
                 selectedGlyphName: '',
                 selectedOrderField: '', // selected field of cluster names
                 selectedGlyphSetting: '',
-                lastUnboundField: '', // used to flag which field needs re-clicking to be bound again
-                drawDialog: false
+                lastUnboundField: '' // used to flag which field needs re-clicking to be bound again
             }
         },
         computed: {
@@ -198,7 +197,9 @@
                 changeDisplayedGlyphNum: 'app/changeDisplayedGlyphNum',
                 setNamingField: 'backend/setNamingField',
                 normalizeFeatures: 'backend/normalizeFeatures',
-                setGlyphVisibility: 'glyph/setGlyphVisibility'
+                setGlyphVisibility: 'glyph/setGlyphVisibility',
+                setStudioDrawerState: 'app/setStudioDrawerState',
+                setShapeCanvasState: 'app/setShapeCanvasState'
             }),
             bindFieldToElement (selectedField) { // function to turn element and feature selections into a binding object
                 if (this.selectedGlyphEl) {
@@ -302,7 +303,8 @@
                 }
                 // activate drawing dialog if option is
                 if (this.glyphSettings.name === 'shapeType' && this.selectedGlyphSetting === 'customShape') {
-                    this.drawDialog = true // need to stop event bubbling?
+                    this.setStudioDrawerState(true)
+                    this.setShapeCanvasState(true)
                 }
             }
         }

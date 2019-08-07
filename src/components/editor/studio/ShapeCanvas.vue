@@ -1,26 +1,36 @@
+// FIXME imperfect resizing when drawer is already activated
 <template>
-    <v-card class="panel" v-if="shapeCanvas">
-        <v-btn class="btn white--text primary"
+    <v-card id="panel" v-show="shapeCanvas" v-resize.quiet="resizeCanvas">
+        <v-btn class="white--text primary"
+               small
                v-show="!drawingMode"
                @click="toggleDrawing">
             Draw
         </v-btn>
-        <v-btn class="btn black--text secondary"
+        <v-btn class="primary light--text"
+               small
                v-show="drawingMode"
                @click="savePath">
             Save
         </v-btn>
-        <v-btn class="btn black--text secondary"
+        <v-btn class="secondary dark--text"
+               small
+               v-show="drawingMode"
+               @click="clearPath">
+            Clear
+        </v-btn>
+        <v-btn small
+               icon
                v-show="drawingMode"
                @click="cancelDrawing">
-            Cancel
+            <v-icon>close</v-icon>
         </v-btn>
         <canvas id="shape-canvas"/>
     </v-card>
 </template>
 
 <script>
-    import {mapState} from 'vuex'
+    import {mapState, mapActions} from 'vuex'
     import paper from 'paper'
 
     export default {
@@ -28,23 +38,48 @@
         data () {
             return {
                 drawingMode: false,
-                scope: null
             }
         },
         computed: {
             ...mapState({
-                shapeCanvas: state => state.app.shapeCanvas
-            })
+                shapeCanvas: state => state.app.shapeCanvas,
+                glyphBinder: state => state.app.glyphBinder,
+                studioDrawer: state => state.app.studioDrawer
+            }),
+            glyphScope () {
+                for (let i = 0; i < 3; i++) {
+                    let scope = paper.PaperScope.get(i)
+                    if (scope.view.element.id === 'glyph-canvas') {
+                        return scope
+                    }
+                }
+                throw Error("No scope bound to element 'glyph-canvas'")
+            },
+            shapeScope () {
+                for (let i = 0; i < 3; i++) {
+                    let scope = paper.PaperScope.get(i)
+                    if (scope.view.element.id === 'shape-canvas') {
+                        return scope
+                    }
+                }
+                throw Error("No scope bound to element 'shape-canvas'")
+            }
         },
         methods: {
+            ...mapActions({
+                setShapeCanvasState: 'app/setShapeCanvasState',
+                setStudioDrawerState: 'app/setStudioDrawerState',
+                setShapeJSON: 'glyph/setShapeJSON',
+                activateSnackbar: 'app/activateSnackbar'
+            }),
             initialiseTool () {
-                this.scope.project.layers['draw'].activate()
+                this.shapeScope.project.layers['draw'].activate()
                 const toolDown = event => {
                     // If there is no current active path then create one.
-                    this.scope.project.layers['draw'].activate()
+                    this.shapeScope.project.layers['draw'].activate()
                     if (!this.path && this.drawingMode) {
                         console.log("Tool activated")
-                        this.path = new this.scope.Path({
+                        this.path = new this.shapeScope.Path({
                             segments: [event.point],
                             closed: true,
                             strokeColor: 'black', // Select the path, so we can see its segment points
@@ -70,13 +105,11 @@
                         }
                     }
                 }
-                const toolUp = event => {
+                const toolUp = event => { // eslint-disable-line no-unused-vars
                     if (this.path && this.drawingMode) {
                         // If user releases mouse near the first segment then close path
-                        let hitResult = this.path.hitTest(event.point, this.hitOptions)
-                        if (hitResult && hitResult.segment === this.path.firstSegment) {
-                            this.path.closed = true
-                        }
+                        // let hitResult = this.path.hitTest(event.point, this.hitOptions)
+                        this.path.closed = true
 
                         // Deselect path.
                         this.path.selected = false
@@ -94,15 +127,22 @@
                         } else {
                             this.path.scale(1, pathWidth/pathHeight)
                         }
+                        // Shift the path to the canvas' center
+                        this.path.translate(new this.shapeScope.Point(
+                            this.shapeScope.view.center.x - this.path.bounds.center.x,
+                            this.shapeScope.view.center.y - this.path.bounds.center.y
+                        ))
+                        console.log('Path was drawn')
                     }
                 }
-                this.drawGlyphTool = new this.scope.Tool()
+                this.drawGlyphTool = new this.shapeScope.Tool()
                 Object.assign(this.drawGlyphTool, {
                     onMouseDown: toolDown,
                     onMouseDrag: toolDrag,
                     onMouseUp: toolUp
                 })
                 this.drawGlyphTool.activate() // Activate the paperJS tool.
+                console.log('Tool activated')
                 // Set tool stroke width and hitOptions settings.
                 this.strokeWidth = 10
                 this.hitOptions = {
@@ -115,31 +155,73 @@
             },
             toggleDrawing () {
                 if (!this.drawingMode) {
+                    this.resizeCanvas()
+                    this.shapeScope.activate() // activate shape canvas
                     this.initialiseTool()
                     this.drawingMode = true
-                    this.scope.activate()
                 } else {
+                    this.glyphScope.activate() // reactivate glyph canvas
                     this.drawGlyphTool.remove()
                     this.drawingMode = false
                 }
             },
             savePath () {
+                this.toggleDrawing()
+                if (this.path) {
+                    this.setShapeJSON(this.path.exportJSON())
+                    if (this.glyphBinder) {
+                        // if canvas was called by BindOptions, toggle it after saving the path
+                        this.setShapeCanvasState(false)
+                        this.setStudioDrawerState(false)
+                    }
+                    this.glyphScope.activate()
+                } else {
+                    this.activateSnackbar({
+                        text: 'No path to save - please draw a path',
+                        color: 'warning',
+                        timeout: 2000
+                    })
+                }
 
             },
-            cancelDrawing () {
+            clearPath () {
                 if (this.path) {
                     this.path.remove()
                     this.path = null
                 }
-                this.scope.PaperScope.get(0).activate() // reactivate glyph canvas
-                this.drawGlyphTool.remove()
-                this.drawingMode = false
+            },
+            cancelDrawing () {
+                this.clearPath()
+                this.toggleDrawing()
+            },
+            resizeCanvas () {
+                const panel = document.getElementById('panel')
+                if (this.shapeCanvas) {
+                    this.shapeScope.view.viewSize.width = panel.offsetWidth
+                    this.shapeScope.view.viewSize.height = panel.offsetHeight
+                }
             }
         },
         mounted() {
-            this.scope = new paper.PaperScope()
-            this.scope.setup('shape-canvas')
-            new this.scope.Layer({name: 'draw'})
+            const shapeScope = new paper.PaperScope()
+            shapeScope.setup('shape-canvas')
+            new shapeScope.Layer({name: 'draw'})
+             // makes controls robust to adding new canvas
+            // HACKY - but I cannot get canvas size fitting to work with css only ...
+            this.resizeCanvas()
+        },
+        watch: {
+            studioDrawer () {
+                this.resizeCanvas()
+            },
+            shapeCanvas () {
+                if (this.shapeCanvas) {
+                    this.shapeScope.activate()
+                } else {
+                    this.glyphScope.activate()
+                }
+                this.resizeCanvas()
+            }
         }
     }
 </script>
@@ -148,12 +230,13 @@
     #shape-canvas{
         background-color: white;
         border: 1px solid black;
-        min-height: 250px;
-        min-width: 200px;
+        width: 100%; /* using fix width or height was distorting canvas scale and thus the drawn path */
+        height: 100%;
         margin: auto
     }
 
-    .panel {
+    #panel {
         margin-top: 20px;
+        height: 300px
     }
 </style>

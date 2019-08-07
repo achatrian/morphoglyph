@@ -1,3 +1,4 @@
+// INTRO CARD, temporary ?
 <template>
   <v-card class="light elevation-5">
     <v-layout v-if="!(!!fileName)" id="welcome-message">
@@ -37,6 +38,7 @@ export default {
     ...mapState({
       welcomeCard: state => state.app.welcomeCard,
       glyphBinder: state => state.app.glyphBinder,
+      glyphAdder: state => state.app.glyphAdder,
       numDisplayedGlyphs: state => state.app.numDisplayedGlyphs,
       fileName: state => state.backend.fileName
     })
@@ -58,8 +60,14 @@ export default {
         this.setWelcomeCardState(false) // don't dispatch if unneeded
       }
     },
+    // this component will be removed and is shown only at beginning so toggling logic is kept here
     glyphBinder () {
       if (this.glyphBinder) {
+        this.setWelcomeCardState(false)
+      }
+    },
+    glyphAdder () {
+      if (this.glyphAdder) {
         this.setWelcomeCardState(false)
       }
     }

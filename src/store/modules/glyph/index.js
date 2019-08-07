@@ -25,7 +25,8 @@ const state = {
   selectedGlyphSetting: '',
   redrawing: false, // flag used to signal glyph canvas to redraw glyphs (canvas has access to bounding boxes)
   // Shape appearance parameters
-  shapePositions: {}
+  shapePositions: {},
+  shapeJSON: ''
 }
 
 export default {

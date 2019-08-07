@@ -24,7 +24,7 @@ Vue.use(Vuetify, {
     secondary: '#D1C4E9',
     accent: '#651FFF'
   }
-}) // FIXME theme not working on toolbar / footer / nav-drawer
+})
 Vue.use(VueVirtualScroller)
 Vue.config.productionTip = false // change when ready for production
 

@@ -64,6 +64,8 @@ export default {
 
   setGlyphAdderState: (state, payload) => state.glyphAdder = payload,
 
+  setShapeCanvasState: (state, payload) => state.shapeCanvas = payload,
+
   setWelcomeCardState: (state, payload) => state.welcomeCard = payload,
 
   setGlyphArrangement: (state, glyphArrangement) => state.glyphArrangement = glyphArrangement,

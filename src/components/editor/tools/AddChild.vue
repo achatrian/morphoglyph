@@ -10,7 +10,7 @@
         slot="activator"
         flat
         block
-        @click="activateGlyphAdder">
+        @click="setGlyphAdderState(true)">
         <v-icon light :color="color">add</v-icon>
       </v-btn>
       <span> Add glyph to existing drawing </span>
@@ -34,20 +34,8 @@ export default {
   },
   methods: {
     ...mapActions({
-      setGlyphAdderState: 'app/setGlyphAdderState',
-      setGlyphBinderState: 'app/setGlyphBinderState',
-      setWelcomeCardState: 'app/setWelcomeCardState',
-      setGlyphVisibility: 'glyph/setGlyphVisibility'
-    }),
-    activateGlyphAdder () {
-      if (this.glyphBinder) {
-        this.setGlyphBinderState(false)
-      }
-      if (this.welcomeCard) {
-        this.setWelcomeCardState(false)
-      }
-      this.setGlyphAdderState(true)
-    }
+      setGlyphAdderState: 'app/setGlyphAdderState'
+    })
   }
 }
 </script>

@@ -16,7 +16,7 @@ class ShapeGlyph extends BaseGlyph {
       meshType: 'grid',
       patternSize: 5, // size of pattern elements in patterning
       patternType: 'circle',
-      protrusionProportion: 0.1,
+      protrusionProportion: 0.15,
       protrusionBackgroundColor: '#F5F5F5',
       protrusionStrokeColor: '#212121',
       borderSymbolType: 'circle',
@@ -197,10 +197,20 @@ class ShapeGlyph extends BaseGlyph {
         })
         break
       case 'customShape':
-        if (typeof options.customShape === 'undefined') {
-          throw Error("Option 'customShape' is selected, but no customShape is available to draw")
+        if (!options.shapeJSON) {
+          throw Error("Option 'customShape' is selected, but shape JSON is empty")
         }
-        path = options.customShape.clone() //
+        // create empty path and import JSON into it, then
+        path = new paper.Path()
+        path.importJSON(options.shapeJSON)
+        path.translate(new paper.Point(
+            this.box.center.x - path.bounds.center.x,
+            this.box.center.y - path.bounds.center.y
+        ))
+        path.scale(
+            this.box.bounds.width / path.bounds.width,
+            this.box.bounds.height / path.bounds.height
+        )
         break
       default:
         throw Error(`Unknown shape type '${shapeType}'`)
@@ -214,7 +224,6 @@ class ShapeGlyph extends BaseGlyph {
       throw Error(`Invalid membrane fraction ${membraneFraction}, it must be in [0, 1] (`)
     }
     this.activateLayer()
-    // TODO delete previous membrane path and update reference index
     // create new open path
     let membranePath = new paper.Path()
     for (let i = 0; i < Math.floor(this.parameters.numPoints * membraneFraction); i++) {
@@ -367,7 +376,9 @@ class ShapeGlyph extends BaseGlyph {
 
   drawProtrusion (protrusionFraction, subElements) { // eslint-disable-line no-unused-vars
     let protrusionPath = this.cloneItem(this.constructor.shapes.main, this.parameters.numPoints)
-    const upperEmptySpace = this.box.bounds.top - this.box.drawingBounds.top
+    // compute min space available to draw protrusion. This corresponds to glyph with the same height as the box's height
+    // this glyph will touch the lower boundary of the drawing box after being shifted and scaled.
+    const upperEmptySpace = this.box.drawingBounds.height * this.parameters.protrusionProportion
     for (let i = 0; i < protrusionPath.segments.length; i++) {
       if (protrusionPath.segments[i].point.y < this.mainPath.position.y) {
         // shift up points in upper half of main path's clone - NB (y increases going down in screen)

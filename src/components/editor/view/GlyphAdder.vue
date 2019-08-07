@@ -109,6 +109,7 @@
                 setGlyphVisibility: 'glyph/setGlyphVisibility'
             }),
             initialiseTool () {
+                paper.PaperScope.get(0).activate()
                 const toolDown = event => {
                     // If there is no current active path then create one.
                     paper.project.layers['temp'].activate()
@@ -177,6 +178,7 @@
                     onMouseUp: toolUp
                 })
                 this.drawGlyphTool.activate() // Activate the paperJS tool.
+                console.log('Drawing tool activated')
                 // Set tool stroke width and hitOptions settings.
                 this.strokeWidth = 10
                 this.hitOptions = {

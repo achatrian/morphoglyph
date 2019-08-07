@@ -2,6 +2,16 @@
 import paper from 'paper'
 import Vue from 'vue'
 
+function glyphScope() {
+  for (let i = 0; i < 3; i++) {
+    let scope = paper.PaperScope.get(i)
+    if (scope.view.element.id === 'glyph-canvas') {
+      return scope
+    }
+  }
+  throw Error("No scope bound to element 'glyph-canvas'")
+}
+
 export default {
   setLayersUp: (state, maxDisplayedGlyphs) => {
     for (let i = 0; i < maxDisplayedGlyphs; i++) {
@@ -13,13 +23,17 @@ export default {
   },
 
   makeTempLayer: (state) => {
-    let tempLayer = new paper.Layer({name: 'temp'})
+    const scope = glyphScope()
+    scope.activate()
+    let tempLayer = new scope.Layer({name: 'temp'}) // using glyphScope().Layer breaks initialization
     state.activeLayer = 'temp'
     tempLayer.activate()
   },
 
   removeTempLayer: () => {
-    const tempLayer = paper.project.layers.find(layer => layer.name === 'temp')
+    const scope = glyphScope()
+    scope.activate()
+    const tempLayer = scope.project.layers.find(layer => layer.name === 'temp')
     if (typeof tempLayer !== 'undefined') {
       tempLayer.remove()
     } else {
@@ -41,11 +55,13 @@ export default {
     // update elements names with those from currently selected class
     state.glyphElements = [...glyphClass.elements]
     console.log(`Loaded settings and elements for glyph type: ${glyphClass.type}`)
-    if (glyphSetting.length > 0) { state.selectedGlyphSetting = glyphSetting }
+    if (glyphSetting.length > 0) {
+      state.selectedGlyphSetting = glyphSetting
+    }
   },
 
   resetProject: (state) => {
-    paper.project.clear()
+    glyphScope().project.clear()
     Vue.set(state, 'project', {
       name: 'A Phew project',
       glyphs: [],
@@ -53,7 +69,9 @@ export default {
     })
   },
 
-  setBindings: (state, bindings) => { state.project.bindings = bindings },
+  setBindings: (state, bindings) => {
+    state.project.bindings = bindings
+  },
 
   addDataBoundGlyphs: (state, {parsedData, namingField}) => { // payload is added in action
     const glyphClass = state.glyphTypes.find(glyphType => glyphType.type.startsWith(state.glyphTypeName))
@@ -106,7 +124,7 @@ export default {
     } */
     let glyph = state.project.glyphs.find(glyph => glyph.id === glyphId)
     state.activeLayer = glyph.layer // activate layer corresponding to glyph
-    paper.project.layers[state.activeLayer].activate()
+    glyph.activateLayer()
     // Handle scaling of glyph (relies on built groups !) -- TODO generalise to scale-type elements other than Height and Width ?
     let scaleOrders = []
     for (let binding of state.project.bindings) {
@@ -123,7 +141,8 @@ export default {
     let drawOptions = {
       boundingRect: Object.assign({}, boundingRect),
       scaleOrders: scaleOrders,
-      [state.glyphSettings.name]: state.selectedGlyphSetting
+      [state.glyphSettings.name]: state.selectedGlyphSetting,
+      shapeJSON: state.shapeJSON // used by glyphs to draw custom main paths
     }
     // Draw all glyph paths
     glyph.draw(drawOptions)
@@ -159,7 +178,7 @@ export default {
     // loop over paths in layer corresponding to dock
     const glyph = state.project.glyphs.find(glyph => glyph.id === glyphId)
     state.activeLayer = glyph.layer // activate layer corresponding to glyph
-    paper.project.layers[state.activeLayer].activate()
+    glyph.activateLayer()
     glyph.updateBox({
       boundingRect: Object.assign({}, boundingRect),
       shapePositions: glyph.drawOptions.shapePositions
@@ -168,8 +187,9 @@ export default {
     // there is lag in reappearance - if timeout in reacting to resize event is 0 the layer resize breaks
     // main path's position and size attributes are used as reference for translation and scaling
     let group, refPath, targetGlyph, newRect
+    const scope = glyphScope()
     if (shapeSelector === 'layer') { // translate and scale the whole layer
-      group = paper.project.layers[state.activeLayer] // layer is a special group
+      group = scope.project.layers[state.activeLayer] // layer is a special group
       refPath = glyph.getItem('drawingBox')
       // FIXME drawing bounds is not working (drawing boxes overlap after moving)
       newRect = glyph.box.drawingBounds // if we are shifting the whole layer, the drawing box bounds are the target position
@@ -186,9 +206,9 @@ export default {
       refPath = targetGlyph.mainPath
       newRect = targetGlyph.box.bounds // if we are only moving one glyph, its bounds are the target position
     }
-    group.translate(new paper.Point(
-      newRect.left + newRect.width / 2 - refPath.position.x,
-      newRect.top + newRect.height / 2 - refPath.position.y
+    group.translate(new scope.Point(
+        newRect.left + newRect.width / 2 - refPath.position.x,
+        newRect.top + newRect.height / 2 - refPath.position.y
     ))
     const newWidth = (boundingRect.width + boundingRect.height) / 2
     const newHeight = newWidth * (refPath.size[1] / refPath.size[0])
@@ -196,7 +216,9 @@ export default {
     refPath.size = [newWidth, newHeight] // NB Size of main path would not change automatically after scaling layer !!!
   },
 
-  setRedrawing: (state, redrawing) => { state.redrawing = redrawing }, // used in activateRedrawing action
+  setRedrawing: (state, redrawing) => {
+    state.redrawing = redrawing
+  }, // used in activateRedrawing action
 
   setGlyphVisibility: (state, {value, glyphSelector = 'all', shapeSelector = 'layer', itemSelector = 'group'}) => {
     let glyphsToChange = []
@@ -211,7 +233,7 @@ export default {
     }
     for (let glyph of glyphsToChange) {
       state.activeLayer = glyph.layer
-      let layer = paper.project.layers[state.activeLayer]
+      let layer = glyphScope().project.layers[state.activeLayer]
       layer.activate()
       if (shapeSelector === 'layer') {
         layer.visible = value
@@ -236,7 +258,9 @@ export default {
 
   resetGlyph: (state, glyphIndex) => state.project.glyphs[glyphIndex].reset(),
 
-  discardGlyphs: (state) => { state.project.glyphs = [] },
+  discardGlyphs: (state) => {
+    state.project.glyphs = []
+  },
 
   // *** other drawings ***
   addCaption: (state, {glyphIndex, caption}) => { //boundingRect, }) => {
@@ -244,7 +268,9 @@ export default {
     // const {left, top, width, height} = boundingRect
     const {x, y, width, height} = state.project.glyphs[glyphIndex].mainPath.bounds
     // eslint-disable-next-line no-unused-vars
-    const captionText = new paper.PointText({
+    const scope = glyphScope()
+    scope.activate()
+    new scope.PointText({
       point: [
         x + width / 10, // starting point of text TODO move to middle
         y + height * 1.15 // slightly below glyph
@@ -291,7 +317,7 @@ export default {
     state.shapePositions = shapePositions // principle of rewriting object for vuex to react to it
   },
 
-  addChildGlyph (state, {glyphId, childName}) {
+  addChildGlyph(state, {glyphId, childName}) {
     // function to add arbitrary children to existing glyphs
     // TODO integrate and add new button
     const glyphClass = state.glyphTypes.find(glyphType => glyphType.type.startsWith(state.glyphTypeName))
@@ -306,5 +332,7 @@ export default {
   selectGlyphEl: (state, selection) => { // for glyph selection tool
     // selection: {layer, path} -- selection identifies a particular element in a particular glyph
     state.selection = selection
-  }
+  },
+
+  setShapeJSON: (state, shapeJSON) => state.shapeJSON = shapeJSON // save path in json format to move it across canvases
 }

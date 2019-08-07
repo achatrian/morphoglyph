@@ -17,7 +17,16 @@ export default {
       glyphs: state => state.glyph.project.glyphs,
       currentPage: state => state.app.currentPage,
       redrawing: state => state.glyph.redrawing
-    })
+    }),
+    glyphScope () {
+      for (let i = 0; i < 3; i++) {
+        let scope = paper.PaperScope.get(i)
+        if (scope.view.element.id === 'glyph-canvas') {
+          return scope
+        }
+      }
+      throw Error("No scope bound to element 'glyph-canvas'")
+    }
   },
   methods: {
     ...mapActions({
@@ -36,14 +45,15 @@ export default {
         console.log('Canvas resized')
       }
     },
+    // automatically called function that keeps the view populated with glyphs when bounding rectangles change
     placeGlyphs: debounce.call(
       this, // VueComponent context is bound to anonymous function inside debounce
       function () {
         let numDrawn = 0
         let numMoved = 0
-        // either draw paths ...
         const numDrawnGlyphs = this.glyphs.reduce((drawnCount, nextGlyph) => drawnCount + Number(nextGlyph.drawn), 0)
         if (numDrawnGlyphs < this.numDisplayedGlyphs) {
+          // it either draws glyphs out ...
           this.boundingRects.forEach((boundingRect, idx) => {
             let glyphIndex = (this.currentPage - 1) * this.numDisplayedGlyphs + idx // idx is relative to glyph position in page
             if (glyphIndex < this.glyphs.length && boundingRect.width > 0 && boundingRect.height > 0 &&
@@ -60,10 +70,15 @@ export default {
             }
           })
           if (numDrawn > 0) { console.log(`${numDrawn} glyphs were drawn`) }
-        } else { // ... or move them if position of rectangles has changed
+        } else {
+          // ... or moves them the rectangles' position has changed
           this.boundingRects.forEach((boundingRect, idx) => {
             let glyphIndex = (this.currentPage - 1) * this.numDisplayedGlyphs + idx // idx is relative to glyph position in page
-            if (glyphIndex < this.glyphs.length  && boundingRect.width > 0 && boundingRect.height > 0 && this.glyphs[glyphIndex].drawn) {
+            if (glyphIndex < this.glyphs.length
+                    && boundingRect.width > 0
+                    && boundingRect.height > 0
+                    && this.glyphs[glyphIndex].drawn
+                    && this.glyphs[glyphIndex].mainPath.visible) {
               this.moveGlyph({
                 glyphIndex: glyphIndex,
                 boundingRect: boundingRect
@@ -76,7 +91,8 @@ export default {
       },
       450
     ), // debouncing to speed up application -- don't need to move glyphs at every resize event
-    redrawGlyphs () { // reset and draw all glyphs
+    // function to forcefully redraw glyphs on command
+    redrawGlyphs () {
       let rectGenIds = []
       this.boundingRects.forEach(({generator}) => rectGenIds.push(generator.id))
       const allEqual = arr => arr.every(v => v === arr[0])
@@ -132,6 +148,7 @@ export default {
     // NB paper.Symbol overwrites Symbol object in native code and hinders use 'for .. of', if install() is called on window
     window.paper = {} // call on custom object attribute instead
     paper.install(window.paper) // easier debugging - not used in production TODO make this an if statement?
+    // NB paper object above refers always to the same scope, unlike paper object used in drawing
     paper.setup('glyph-canvas')
     paper.activate()
     this.setLayersUp() // setting up all the needed layers
