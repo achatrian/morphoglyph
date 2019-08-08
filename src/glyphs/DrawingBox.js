@@ -4,9 +4,13 @@ import paper from 'paper'
 * If glyph has any children */
 class DrawingBox {
 
+    history = []
+
     constructor (glyph, {
-        boundingRect,
-        shapePositions = {leftShift: 0, topShift: 0, widthProportion: 1, heightProportion: 1}}
+                    boundingRect,
+                    shapePositions = {leftShift: 0, topShift: 0, widthProportion: 1, heightProportion: 1},
+                    history = []
+                 },
     ) {
         this.glyph = glyph
         this.drawingBounds = boundingRect // bounding rectangle of drawing box
@@ -15,10 +19,11 @@ class DrawingBox {
             y: boundingRect.top + boundingRect.height / 2
         }
         this.applyPositioning(shapePositions)
+        if (history.length > 0) { // FIXME test, not used?
+            this.applyTransforms(history)
+        }
         this.canvasRect = paper.view.element.getBoundingClientRect()
     }
-
-    history = []
 
     copyTo (glyph) {
         glyph.box = new DrawingBox(glyph, {

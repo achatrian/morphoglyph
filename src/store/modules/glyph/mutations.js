@@ -184,45 +184,14 @@ export default {
     glyph.buildGroups()
   },
 
-  moveGlyph: (state, {boundingRect, glyphId, shapeSelector = 'layer'}) => {
-    // loop over paths in layer corresponding to dock
+  moveGlyph: (state, {boundingRect, glyphId}) => {
+    // function to change drawing bounds of a glyph
+    // Warning: this function's purpose isn't to change relative position of glyphs in the drawing box
     const glyph = state.project.glyphs.find(glyph => glyph.id === glyphId)
     state.activeLayer = glyph.layer // activate layer corresponding to glyph
     glyph.activateLayer()
-    glyph.updateBox({
-      boundingRect: Object.assign({}, boundingRect),
-      shapePositions: glyph.drawOptions.shapePositions
-    })
-    // Layer extends Group, so transformations can be applied to all the elements
-    // there is lag in reappearance - if timeout in reacting to resize event is 0 the layer resize breaks
-    // main path's position and size attributes are used as reference for translation and scaling
-    let group, refPath, targetGlyph, newRect
-    const scope = glyphScope()
-    if (shapeSelector === 'layer') { // translate and scale the whole layer
-      group = scope.project.layers[state.activeLayer] // layer is a special group
-      refPath = glyph.getItem('drawingBox')
-      newRect = glyph.box.drawingBounds // if we are shifting the whole layer, the drawing box bounds are the target position
-    } else { // translate and scale selected shape
-      if (glyph.name === shapeSelector) {
-        targetGlyph = glyph
-      } else {
-        targetGlyph = glyph.getChild(shapeSelector)
-      }
-      if (typeof targetGlyph === 'undefined') {
-        throw Error(`Could not find shape '${shapeSelector}'`)
-      }
-      group = targetGlyph.group
-      refPath = targetGlyph.mainPath
-      newRect = targetGlyph.box.bounds // if we are only moving one glyph, its bounds are the target position
-    }
-    group.translate(new scope.Point(
-        newRect.left + newRect.width / 2 - refPath.position.x,
-        newRect.top + newRect.height / 2 - refPath.position.y
-    ))
-    const newWidth = (boundingRect.width + boundingRect.height) / 2
-    const newHeight = newWidth * (refPath.size[1] / refPath.size[0])
-    group.scale(newWidth / refPath.size[0], newHeight / refPath.size[1]) // NB mainPath.size[0] ≠ mainPath.bounds.width
-    refPath.size = [newWidth, newHeight] // NB Size of main path would not change automatically after scaling layer !!!
+    glyph.updateDrawingBounds(boundingRect, true)
+    glyph.fitToBox(true)
   },
 
   setRedrawing: (state, redrawing) => {

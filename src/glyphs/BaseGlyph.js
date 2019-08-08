@@ -289,8 +289,29 @@ class BaseGlyph {
     }
   }
 
-  fitToBox () {
-    let group = this.group
+  updateDrawingBounds(drawingBounds, children = false) { // updates drawing box for glyph and children
+    this.box = new DrawingBox(this, {
+        boundingRect: drawingBounds,
+        shapePositions: this.box.shapePositions
+    })
+    if (children) {
+      for (let childGlyph of this.children) {
+        childGlyph.box = new DrawingBox(childGlyph, {
+          boundingRect: drawingBounds,
+          shapePositions: childGlyph.box.shapePositions
+        })
+      }
+    }
+  }
+
+  fitToBox (children = false) {
+    let group
+    if (children) {
+      group = paper.project.layers[this.layer]
+    } else {
+      group = this.group
+    }
+    // for transforms applied before element drawing: if group is empty target the main path
     if (group.children.length === 0) {
       group = this.mainPath
     }
