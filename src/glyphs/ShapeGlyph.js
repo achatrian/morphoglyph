@@ -41,7 +41,7 @@ class ShapeGlyph extends BaseGlyph {
 
   static get settings () {
     return {
-      name: 'shapeType', // NB case sensitive
+      // name: 'shapeType', // NB case sensitive
       message: 'Select glyph shape',
       options: ['ellipse', 'rectangle', 'circle', 'regularPolygon', 'customShape']
     }
@@ -144,17 +144,19 @@ class ShapeGlyph extends BaseGlyph {
         scaleOrder => scaleOrder.element === 'Height' && scaleOrder.shape === this.name
     )
     if (widthScaleOrder) {
-      this.box.resize(widthScaleOrder.value)
+      this.box.shift()
+      this.box.resize(widthScaleOrder.value, 1.0, {center: true, children: true})
     }
     if (heightScaleOrder) {
-      this.box.resize(1.0, heightScaleOrder.value)
+      this.box.resize(1.0, heightScaleOrder.value, {center: true, children: true})
     }
     const protrusionScaleOrder = options.scaleOrders.find(
         scaleOrder => scaleOrder.element === 'Protrusion' && scaleOrder.shape === this.name
     )
     if (protrusionScaleOrder) {
-      this.box.shift(0, this.parameters.protrusionProportion, true)
+      this.box.shift(0, this.parameters.protrusionProportion, {scale: true, children: true})
     }
+    this.drawOptions = options // update drawOptions !
     let {shapeType} = options
     if (!shapeType) { shapeType = 'ellipse' }
     this.activateLayer()
@@ -237,8 +239,9 @@ class ShapeGlyph extends BaseGlyph {
     this.activateLayer()
     // create new open path
     let membranePath = new paper.Path()
+    const outerPath = this.outerPath
     for (let i = 0; i < Math.floor(this.parameters.numPoints * membraneFraction); i++) {
-      membranePath.add(this.outerPath.getLocationAt(this.outerPath.length * (1 - i / this.parameters.numPoints)))
+      membranePath.add(outerPath.getLocationAt(outerPath.length * (1 - i / this.parameters.numPoints)))
     }
     membranePath.strokeColor = this.parameters.primaryColor
     membranePath.strokeWidth = this.parameters.thickPathSize
@@ -321,21 +324,22 @@ class ShapeGlyph extends BaseGlyph {
   drawDecoration (fillingFraction, subElements) { // eslint-disable-line no-unused-vars
     // generate points where to draw pattern elements - use contains() to test whether point is inside the shape or not
     let possiblePoints = []
+    const outerPath = this.outerPath
     for (let x = this.box.drawingBounds.x; x < this.box.drawingBounds.x + this.box.drawingBounds.width; x += this.parameters.patternSize) {
       for (let y = this.box.drawingBounds.y; y < this.box.drawingBounds.y + this.box.drawingBounds.height; y += this.parameters.patternSize) {
         let possiblePoint = new paper.Point(x, y)
         let horVect = new paper.Point(this.parameters.patternSize/2, 0)
         let verVect = new paper.Point(0, this.parameters.patternSize/2)
         let containsExtremes = [ // + and - overloading for paper.Point is not working?
-            inMainOrProtrusion(possiblePoint, this), // center
-            inMainOrProtrusion(possiblePoint.add(horVect), this), // E
-            !this.children.some(inMainOrProtrusion.bind(null, possiblePoint.add(horVect))), // E children
-            inMainOrProtrusion(possiblePoint.add(horVect.negate()), this), // W
-            !this.children.some(inMainOrProtrusion.bind(null, possiblePoint.add(horVect.negate()))), // W children
-            inMainOrProtrusion(possiblePoint.add(verVect), this), // S
-            !this.children.some(inMainOrProtrusion.bind(null, possiblePoint.add(verVect))), // S children
-            inMainOrProtrusion(possiblePoint.add(verVect.negate()), this), // N
-            !this.children.some(inMainOrProtrusion.bind(null, possiblePoint.add(verVect.negate()))) // N children
+            outerPath.contains(possiblePoint), // center
+            outerPath.contains(possiblePoint.add(horVect)), // E
+            !this.children.some(outerPath.contains.bind(outerPath, possiblePoint.add(horVect))), // E children
+            outerPath.contains(possiblePoint.add(horVect.negate())), // W
+            !this.children.some(outerPath.contains.bind(outerPath, possiblePoint.add(horVect.negate()))), // W children
+            outerPath.contains(possiblePoint.add(verVect)), // S
+            !this.children.some(outerPath.contains.bind(outerPath, possiblePoint.add(verVect))), // S children
+            outerPath.contains(possiblePoint.add(verVect.negate())), // N
+            !this.children.some(outerPath.contains.bind(outerPath, possiblePoint.add(verVect.negate()))) // N children
         ]
         if (containsExtremes.every(t => t)) {
           possiblePoints.push(possiblePoint) // FIXME nucleus bounds are as big as Cell
@@ -378,7 +382,7 @@ class ShapeGlyph extends BaseGlyph {
   }
 
   drawProtrusion (protrusionFraction, subElements) { // eslint-disable-line no-unused-vars
-    let protrusionPath = this.cloneItem(this.constructor.shapes.main, this.parameters.numPoints)
+    let protrusionPath = this.cloneItem(this.name, this.parameters.numPoints)
     // compute min space available to draw protrusion. This corresponds to glyph with the same height as the box's height
     // this glyph will touch the lower boundary of the drawing box after being shifted and scaled.
     const upperEmptySpace = this.box.drawingBounds.height * this.parameters.protrusionProportion

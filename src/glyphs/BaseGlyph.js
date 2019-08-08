@@ -73,10 +73,7 @@ class BaseGlyph {
 
   // height and width don't have any visual properties that can be tweaked by the user
   children = [] // array storing children glyphs
-  box = new DrawingBox(this, {
-    boundingRect: { top: 0, bottom: 0, left: 0, right: 0 },
-    shapePositions: {}
-  })
+  box = null
   drawOptions = {} // in BaseGlyph().draw() drawing options for glyphs are stored here
 
   static get type () {
@@ -104,18 +101,10 @@ class BaseGlyph {
     BaseGlyph.glyphScope.project.layers[this.layer].activate()
   }
 
-  updateBox(options) { // updates drawing box for glyph and children
-    /* options = {boundingRect, shapePositions (optional)} */
-    this.box = new DrawingBox(this, options)
-    for (let childGlyph of this.children) {
-      childGlyph.box = new DrawingBox(childGlyph, options)
-    }
-  }
-
   draw (options) {
     // method to draw myself -- must be called by subclasses before rest of drawing statements
     this.drawOptions = options
-    this.updateBox(this.drawOptions) // adapt box to shapePosition instructions for self and children
+    this.box = new DrawingBox(this, options) // adapt box to shapePosition instructions for self and children
     if (this.layer === null) {
       throw Error(`Cannot draw glyph ${this.id} with null layer`)
     }
@@ -123,14 +112,16 @@ class BaseGlyph {
     if (!Object.is(paper.project.layers[this.layer], paper.project.activeLayer)) {
       throw Error(`Cannot set glyph: Active layer '${paper.project.activeLayer.name}' differs from glyph layer '${paper.project.layers[this.layer].name}'`)
     }
-    const drawingBox = paper.Path.Rectangle({
-      center: [this.box.drawingCenter.x, this.box.drawingCenter.y],
-      size: [this.box.drawingBounds.width, this.box.drawingBounds.height],
-      strokeColor: 'black',
-      strokeWidth: 5,
-      visible: false
-    })
-    this.registerItem(drawingBox, 'drawingBox')
+    if (!this.parent) {
+      const drawingBox = paper.Path.Rectangle({
+        center: [this.box.drawingCenter.x, this.box.drawingCenter.y],
+        size: [this.box.drawingBounds.width, this.box.drawingBounds.height],
+        strokeColor: 'black',
+        strokeWidth: 5,
+        visible: false
+      })
+      this.registerItem(drawingBox, 'drawingBox')
+    }
     this.drawn = true
   }
 
@@ -179,6 +170,9 @@ class BaseGlyph {
     this.itemIds[itemName] = item.id
     this.drawnItems.add(itemName)
     item.name = itemName // assign name to item
+    if (this.parent) {
+      this.parent.itemIds[this.name + '-' + itemName] = item.id // makes paths accessible from parent
+    }
     // if (item instanceof paper.Path
     //     && item.name !== 'protrusion') {
     //   item.simplify() // reduces memory usage and speeds up drawing
@@ -187,7 +181,7 @@ class BaseGlyph {
 
   findItem = (children, itemName) => children.find(item => { return item.id === this.itemIds[itemName] && item.name === itemName })
 
-  getItem (itemName = this.constructor.shapes.main) {
+  getItem (itemName = this.name) {
     let children = this.group.children
     let item = this.findItem(children, itemName)
     if (typeof item === 'undefined') {
@@ -202,7 +196,7 @@ class BaseGlyph {
     return item
   }
 
-  deleteItem (itemName = this.constructor.shapes.main) {
+  deleteItem (itemName = this.name) {
     // deleting path if it is drawn (and id was registered using registerItem)
     let found = false
     const itemId = this.itemIds[itemName]
@@ -223,11 +217,14 @@ class BaseGlyph {
   }
 
   set mainPath (path) { // this should be original path with fixed aspect ratio
-    this.registerItem(path, this.constructor.shapes.main)
+    if (this.itemIds[this.name]) {
+      throw Error(`Cannot register main path - path with name ${this.name} already exists`)
+    }
+    this.registerItem(path, this.name)
   }
 
   get mainPath () {
-    return this.getItem(this.constructor.shapes.main)
+    return this.getItem(this.name)
   }
 
   get outerPath () { // path where elements are drawn onto. It can vary with the data-points' value (e.g. protrusion)
@@ -238,13 +235,13 @@ class BaseGlyph {
     // object with keys referencing path objects in layer
     // does not return drawing box
     let items = {}
-    items[this.constructor.shapes.main] = this.getItem(this.constructor.shapes.main)
+    items[this.name] = this.getItem(this.name)
     for (let element of this.glyphElements) {
       if (element.type === 'scale') {
         continue // no item to return for scale-type elements
       }
       let targetGlyph
-      if (element.target === this.constructor.shapes.main) {
+      if (element.target === this.name) {
         targetGlyph = this
       } else if (includeChildren) {
         targetGlyph = this.children.find(glyph => glyph.name === element.target)
@@ -292,24 +289,19 @@ class BaseGlyph {
     }
   }
 
-  scale (factorX = 1, factorY = 1) {
-    // wrapper to paper scale function - can only make smaller if features are normalized correctly into [0, 1]
-    if (factorX > 1 || factorY > 1) {
-      throw Error("Cannot scale by factor greater than 1")
-    }
-    if (factorX === 0.0) {
-      factorX += 0.05 // cannot scale to 0
-    }
-    if (factorY === 0.0) {
-      factorY += 0.05 // cannot scale to 0
-    }
-    this.activateLayer()
-    //paper.project.layers[this.layer].scale(factorX, factorY)
-    const group = this.group
+  fitToBox () {
+    let group = this.group
     if (group.children.length === 0) {
-      console.warn(`Scaling empty group for glyph ${this.id} - must call buildPathGroups first`)
+      group = this.mainPath
     }
-    group.scale(factorX, factorY)
+    group.translate(new paper.Point(
+        this.box.bounds.x - this.mainPath.bounds.x,
+        this.box.bounds.y - this.mainPath.bounds.y
+    ))
+    group.scale(
+        this.box.bounds.width / this.mainPath.bounds.width,
+        this.box.bounds.height / this.mainPath.bounds.height
+    )
   }
 
   reset () { // delete all paperjs items associated with glyph
@@ -341,20 +333,11 @@ class BaseGlyph {
     }
     glyph.parent = this // storing reference
     this.children.push(glyph)
-    this.updateBox(this.drawOptions) // make sure box of child is updated with correct shape positions
     // register drawing methods
     for (let element of glyph.constructor.elements) {
       if (element.type !== 'scale') { // scale elements don't have draw function
         this[`draw${glyph.name}${element.name}`] = glyph[`draw${element.name}`].bind(glyph) // drawElement method of child
       }
-    }
-    if (glyph.drawn) {
-      // made child items accessible through parent
-      for (let itemName in glyph.itemIds) {
-        if (glyph.itemIds.hasOwnProperty(itemName)) { this.itemIds[glyph.name + '-' + itemName] = glyph.itemIds[itemName] }
-      }
-    } else {
-      console.warn(`Passed glyph '${glyph.name}' has not been drawn`)
     }
   }
 

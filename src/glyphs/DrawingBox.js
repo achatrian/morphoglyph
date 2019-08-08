@@ -1,11 +1,13 @@
 import paper from 'paper'
 
-/* Position of glyphs + helper methods to change it */
+/* Position of glyphs + helper methods to change it
+* If glyph has any children */
 class DrawingBox {
 
-    constructor (glyph, {boundingRect, shapePositions = {
-        leftShift: 0, topShift: 0, widthProportion: 1, heightProportion: 1
-    }}) {
+    constructor (glyph, {
+        boundingRect,
+        shapePositions = {leftShift: 0, topShift: 0, widthProportion: 1, heightProportion: 1}}
+    ) {
         this.glyph = glyph
         this.drawingBounds = boundingRect // bounding rectangle of drawing box
         this.drawingCenter = {
@@ -14,6 +16,27 @@ class DrawingBox {
         }
         this.applyPositioning(shapePositions)
         this.canvasRect = paper.view.element.getBoundingClientRect()
+    }
+
+    history = []
+
+    copyTo (glyph) {
+        glyph.box = new DrawingBox(glyph, {
+            boundingRect: this.drawingBounds,
+            shapePositions: this.shapePositions
+        })
+    }
+
+    get childrenBoxes () { // returns boxes of children glyphs
+        let boxes = []
+        for (let glyph of this.glyph.children) {
+            if (!glyph.box) {
+                console.warn(`${this.glyph.name}'s child '${glyph.name}' has no drawing box`)
+            } else {
+                boxes.push(glyph.box)
+            }
+        }
+        return boxes
     }
 
     applyPositioning (positions) {
@@ -43,7 +66,14 @@ class DrawingBox {
         this.shapePositions = positions
     }
 
-    resize (widthProportion = 1.0, heightProportion = 1.0, center = true) { // TODO test
+    applyTransforms(history) { // applies all transforms in a given history (own history is updated by transforms)
+        for (let step of history) {
+            this[step.transform](...step.parameters)
+        }
+    }
+
+    resize (widthProportion = 1.0, heightProportion = 1.0, options = {center: false, children: false}) { // TODO test
+        const {center, children} = options
         const newWidthProportion = this.shapePositions.widthProportion * widthProportion
         const newHeightProportion = this.shapePositions.heightProportion * heightProportion
         let positions
@@ -61,18 +91,43 @@ class DrawingBox {
             })
         }
         this.applyPositioning(positions) // bounds for this glyph
+        // record transformation that occured on box
+        this.history.push({
+            transform: 'resize',
+            parameters: [widthProportion, heightProportion, {center: center, children: children}]
+        })
+        // apply to children
+        if (children) { // TODO test
+            for (let childBox of this.childrenBoxes) {
+                childBox.resize(widthProportion, heightProportion, center)
+            }
+        }
+
     }
 
-    shift (leftShift = 0.0, topShift = 0.0, scale = false) {
+    shift (leftShift = 0.0, topShift = 0.0, options = {scale: false, children: false}) {
+        const {scale, children} = options
         let positions = {
             leftShift: this.shapePositions.leftShift + leftShift,
-            topShift: this.shapePositions.topShift + topShift
+            topShift: this.shapePositions.topShift + topShift,
+            widthProportion: this.shapePositions.widthProportion,
+            heightProportion: this.shapePositions.heightProportion
         }
         if (scale) {
-            positions.widthProportion = this.shapePositions.widthProportion * (1 - leftShift) // FIXME this is not based on an invariant
-            positions.heightProportion = this.shapePositions.heightProportion * (1 - topShift) // FIXME this is not based on an invariant
+            // FIXME this is not based on an invariant
+            positions.widthProportion = this.shapePositions.widthProportion * (1 - leftShift)
+            positions.heightProportion = this.shapePositions.heightProportion * (1 - topShift)
         }
         this.applyPositioning(positions)
+        this.history.push({
+            transform: 'scale',
+            parameters: [leftShift, topShift, {scale: scale, children: children}]
+        })
+        if (children) { // TODO test
+            for (let childBox of this.childrenBoxes) {
+                childBox.shift(leftShift, topShift, scale)
+            }
+        }
     }
 }
 

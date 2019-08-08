@@ -15,7 +15,7 @@ class CellGlyph extends ShapeGlyph {
       meshType: 'grid',
       patternSize: 5, // size of pattern elements in patterning
       patternType: 'circle',
-      protrusionProportion: 0.85,
+      protrusionProportion: 0.15,
       protrusionBackgroundColor: '#F5F5F5',
       protrusionStrokeColor: '#212121',
       borderSymbolType: 'circle',
@@ -62,45 +62,29 @@ class CellGlyph extends ShapeGlyph {
 
   draw (options) {
     options.shapeType = 'ellipse' // Fixed elliptic shape for cell and nucleus glyphs
-    super.draw(options)
-    this.activateLayer()
-    if (options.drawNucleus.toLowerCase() === 'yes') {
-      this.updateBox(options)
-      const nucleusOptions = {
-        backend: 'paper',
-        strokeColor: '#283593',
-        primaryColor: '#AB47BC',
-        secondaryColor: '#D4E157',
-        lightColor: '#1E88E5',
-        darkColor: '#B71C1C',
-        strokeWidth: 2,
-        thickPathSize: 7,
-        narrowPathSize: 4,
-        numSides: 6, // for RegularPolygon: defaults to hexagon
-        numPoints: 250, // for drawing Membrane and Spikes
-        spikeHeight: 0.3,
-        meshType: 'grid'
-      }
-      const positions = {
-        widthProportion: 1,
-        heightProportion: 1,
-        leftShift: 0,
-        topShift: 0
-      } // Height and Width scaling is done inside ShapeGlyph
-      // const protrusionScaleOrder = options.scaleOrders.find(
-      //     scaleOrder => scaleOrder.element === 'Protrusion' && scaleOrder.shape === 'Cell'
-      // )
-      // if (protrusionScaleOrder) {
-      //   positions.topShift += 0 // total height of glyph (main shape + protrusion) remains unvaried //FIXME actually it's exceeding bounding box
-      //   positions.leftShift += 0
-      //   positions.widthProportion *= this.parameters.protrusionProportion
-      //   positions.heightProportion *= this.parameters.protrusionProportion
-      // }
-      options.shapePositions['Nucleus'] = positions
-      const nucleus = new ShapeGlyph(this.layer, '0', 'Nucleus', nucleusOptions, this)
-      nucleus.draw(options)
-      this.registerChild(nucleus)
+    super.draw(options) // draws cell
+    const nucleusOptions = {
+      backend: 'paper',
+      strokeColor: '#283593',
+      primaryColor: '#AB47BC',
+      secondaryColor: '#D4E157',
+      lightColor: '#1E88E5',
+      darkColor: '#B71C1C',
+      strokeWidth: 2,
+      thickPathSize: 7,
+      narrowPathSize: 4,
+      numSides: 6, // for RegularPolygon: defaults to hexagon
+      numPoints: 250, // for drawing Membrane and Spikes
+      spikeHeight: 0.3,
+      meshType: 'grid'
     }
+    const nucleus = new ShapeGlyph(this.layer, '0', 'Nucleus', nucleusOptions, this)
+    nucleus.draw(options)
+    const shiftToMainCenter = this.box.shapePositions.topShift + this.box.shapePositions.heightProportion / 2 -
+        nucleus.box.shapePositions.heightProportion / 2 - nucleus.box.shapePositions.topShift
+    nucleus.box.shift(0.0, shiftToMainCenter)
+    nucleus.fitToBox()
+    this.registerChild(nucleus)
   }
 }
 
