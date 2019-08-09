@@ -72,6 +72,7 @@ export default {
 
   updateGlyphArrangement (state) {
     /* arrange glyphs onto the canvas by defining bounding rectangles */
+    // !!! IMPORTANT: must produce square drawing boxes
     let boundingRects = state.boundingRects
     if (state.glyphArrangement === 'grid' && state.numDisplayedGlyphs) {
       // set up grid where to place glyphs
@@ -109,12 +110,20 @@ export default {
       boundingRects = Array(state.numDisplayedGlyphs).fill({
         top: 0,
         left: 0,
+        x: 0,
+        y: 0,
         width: 0,
         height: 0,
         generator: {type: 'editor', id: state.editorBox.index}
       }, 0, state.numDisplayedGlyphs) // fill only modifies arrays (name is confusing)
       let singleGlyphRect = state.editorBox.boundingRect
       singleGlyphRect.generator = {type: 'editor', id: state.editorBox.index}
+      // make bounding rectangle square
+      if (singleGlyphRect.width !== singleGlyphRect.height) {
+        const dim = Math.min(singleGlyphRect.width, singleGlyphRect.height)
+        singleGlyphRect.width = dim
+        singleGlyphRect.height = dim
+      }
       boundingRects[state.editorBox.index] = singleGlyphRect
       console.log(`Visualising glyph #${state.editorBox.index}`)
     }

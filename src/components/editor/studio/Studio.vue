@@ -15,7 +15,8 @@
   >
   <div class="pointers-please studioPanel elevation-1">
     <!--studio applets go in here-->
-    <app-viz-props/>
+    <!--turning off viz props when binder is showing (as multiple binding UIs would be confusing)-->
+    <app-viz-props v-show="!glyphBinder"/>
     <app-shape-canvas/>
   </div>
   </v-navigation-drawer>
@@ -38,7 +39,8 @@ export default {
   },
   computed: {
     ...mapState({
-      studioDrawer: state => state.app.studioDrawer
+      studioDrawer: state => state.app.studioDrawer,
+      glyphBinder: state => state.app.glyphBinder,
     })
   },
   methods: {

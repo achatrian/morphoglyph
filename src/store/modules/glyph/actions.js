@@ -20,6 +20,16 @@ export default {
       namingField: rootState.backend.namingField
     })
   },
+
+  makeEmptyGlyphs: ({rootState, commit, dispatch}, payload) => {
+    if (rootState.app.numDisplayedGlyphs === 0) {
+      dispatch('app/changeDisplayedGlyphNum', 1, {root: true})
+      dispatch('app/updateGlyphArrangement', null, {root: true})
+    }
+    payload.boundingRects = rootState.app.boundingRects
+    commit('makeEmptyGlyphs', payload)
+  },
+
   shiftLayersAssignment: ({commit}, payload) => commit('shiftLayersAssignment', payload),
 
   reassignGlyphIds: ({rootState, commit}) => commit('reassignGlyphIds', rootState.backend.dataDisplayOrder),

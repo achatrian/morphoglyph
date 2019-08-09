@@ -3,9 +3,11 @@
     <app-welcome-card id="welcome-card" v-if="welcomeCard" @configLoaded="applyBinding"/>
     <app-bind-options class="control-panel" v-show="glyphBinder" ref="bonds"/>
     <app-glyph-adder v-if="glyphAdder"/>
-    <app-glyph-canvas v-resize.quiet="updateGlyphArrangement"
-                      v-show="canvas" ref="canvas"
-    />
+    <app-glyph-canvas v-resize.quiet="updateGlyphArrangement" :drawing.sync="drawing"
+                      v-show="canvas" ref="canvas"/>
+    <div class="progress-wrap" v-show="drawing">
+      <v-progress-circular class="progress" indeterminate size="100" color="primary"/>
+    </div>
     <!--since canvas has z-index=1, it was on top of view card, which made clicking on buttons impossible-->
   </div>
 </template>
@@ -22,7 +24,8 @@ export default {
   data () {
     return {
       boundingRects: [],
-      page: 1
+      page: 1,
+      drawing: false
     }
   },
   components: {
@@ -36,7 +39,8 @@ export default {
       welcomeCard: state => state.app.welcomeCard,
       glyphBinder: state => state.app.glyphBinder,
       glyphAdder: state => state.app.glyphAdder,
-      canvas: state => state.app.canvas
+      canvas: state => state.app.canvas,
+      numDisplayedGlyphs: state=>state.app.numDisplayedGlyphs
     })
   },
   methods: {
@@ -67,6 +71,18 @@ export default {
     flex: 1 1 auto;
     z-index: 3;
     margin: 5px 5px 5px 5px;
+  }
+
+  .progress-wrap{
+    position: relative;
+    height: 100%;
+    width: 100%
+  }
+
+  .progress{
+    left: 45%;
+    top: 45%;
+    margin: auto
   }
 
   #view{

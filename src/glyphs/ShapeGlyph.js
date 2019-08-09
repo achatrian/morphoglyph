@@ -122,7 +122,7 @@ class ShapeGlyph extends BaseGlyph {
         subElements: []
       },
       {
-        name: 'BorderSymbol',
+        name: 'Islands', // previously BorderSymbol
         type: 'path',
         properties: {
           color: {range: [], step: []},
@@ -376,7 +376,6 @@ class ShapeGlyph extends BaseGlyph {
       decoration.push(decorationElement)
     }
     const decorationGroup = new paper.Group(decoration)
-    decorationGroup.name = 'DecorationGroup'
     decorationGroup.bringToFront()
     this.registerItem(decorationGroup, 'decoration')
   }
@@ -405,19 +404,20 @@ class ShapeGlyph extends BaseGlyph {
     this.registerItem(protrusionPath, 'protrusion')
   }
 
-  drawBorderSymbol (borderFraction, subElements) {// eslint-disable-line no-unused-vars
+  drawIslands (borderFraction, subElements) {// eslint-disable-line no-unused-vars
+    let islands = []
     for (let i = 0; i < Math.ceil(this.parameters.maxNumBorderSymbols * borderFraction); i++) {
       let symbolPosition = this.outerPath.getPointAt(this.outerPath.length * (1 - i / this.parameters.maxNumBorderSymbols))
-      let borderSymbol
+      let island
       switch (this.parameters.borderSymbolType) {
         case 'circle':
-          borderSymbol = new paper.Path.Circle(
+          island = new paper.Path.Circle(
               symbolPosition,
               0.8 * this.parameters.borderSymbolSize/2
           )
           break
         case 'star':
-          borderSymbol = new paper.Path.Star(
+          island = new paper.Path.Star(
               symbolPosition,
               5,
               0.5 * this.parameters.borderSymbolSize/2,
@@ -425,16 +425,19 @@ class ShapeGlyph extends BaseGlyph {
           )
           break
         case 'square':
-          borderSymbol = new paper.Path.Rectangle(
+          island = new paper.Path.Rectangle(
               symbolPosition,
               new paper.Size(0.8 * this.parameters.borderSymbolSize/2,
                   0.8 * this.parameters.borderSymbolSize/2)
           )
           break
       }
-      borderSymbol.fillColor = this.parameters.lightColor
-      borderSymbol.strokeColor = this.parameters.strokeColor
+      island.fillColor = this.parameters.lightColor
+      island.strokeColor = this.parameters.strokeColor
+      islands.push(island)
     }
+    const borderSymbolGroup = new paper.Group(islands)
+    this.registerItem(borderSymbolGroup, 'islands')
   }
 }
 

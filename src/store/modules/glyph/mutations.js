@@ -12,6 +12,19 @@ function glyphScope() {
   throw Error("No scope bound to element 'glyph-canvas'")
 }
 
+const checkRect = boundingRect => {
+  if (
+      typeof boundingRect.width === 'undefined' || typeof boundingRect.height === 'undefined' ||
+      typeof boundingRect.left === 'undefined' || typeof boundingRect.top === 'undefined' ||
+      typeof boundingRect.x === 'undefined' || typeof boundingRect.y === 'undefined'
+  ) {
+    throw Error("Drawing rectangle is missing one or more properties")
+  }
+  if (boundingRect.width !== boundingRect.height) {
+    console.warn("Drawing rectangle has unequal dimensions")
+  }
+}
+
 export default {
   setLayersUp: (state, maxDisplayedGlyphs) => {
     for (let i = 0; i < maxDisplayedGlyphs; i++) {
@@ -85,12 +98,38 @@ export default {
     state.project.glyphs = parsedData.map((dataPoint, layerIndex) => new glyphClass(layerIndex, dataPoint[namingField]))
   },
 
-  addEmptyGlyphs: (state, glyphTypeName) => {
-    const glyphClass = state.glyphTypes.find(glyphType => glyphType.type.startsWith(glyphTypeName))
+  makeEmptyGlyphs: (state, {
+    newGlyphName,
+    createOptions,
+      boundingRects
+  }) => {
+    if (state.project.glyphs.length === 0) {
+      throw Error("Databound glyphs must be added before empty glyphs can be created")
+    }
+    const glyphClass = state.glyphTypes.find(glyphType => glyphType.type.startsWith(state.glyphTypeName))
     if (typeof glyphClass === 'undefined') {
       throw Error(`Unknown glyph type: ${state.glyphTypeName}`)
     }
-
+    let createdGlyphs = [] // store references to newly created glyphs in order to draw them
+    for (let glyph of state.project.glyphs) {
+      let emptyGlyph
+      if (createOptions) {
+        emptyGlyph = new glyphClass(glyph.layer, newGlyphName, createOptions) // glyphs will be undrawn at this point
+      } else {
+        emptyGlyph = new glyphClass(glyph.layer, newGlyphName) // default options will be used
+      }
+      glyph.registerChild(emptyGlyph)
+      createdGlyphs.push(emptyGlyph)
+    }
+    // draw created children glyphs
+    for (let [i, boundingRect] of boundingRects.entries()) {
+      createdGlyphs[i].draw({
+        boundingRect: Object.assign({}, boundingRect),
+        scaleOrders: [],
+        [state.glyphSettings.name]: state.selectedGlyphSetting,
+        shapeJSON: state.shapeJSON // used by glyphs to draw custom main paths
+      })
+    }
   },
 
   shiftLayersAssignment: (state, {startIndex, endIndex}) => { // used to change page
@@ -122,6 +161,7 @@ export default {
           glyphIndex: Number
           boundingRect: {left: Number, top: Number, width: Number, height: Number}
     } */
+    checkRect(boundingRect) // ensures correct rect format
     let glyph = state.project.glyphs.find(glyph => glyph.id === glyphId)
     state.activeLayer = glyph.layer // activate layer corresponding to glyph
     glyph.activateLayer()
@@ -187,6 +227,7 @@ export default {
   moveGlyph: (state, {boundingRect, glyphId}) => {
     // function to change drawing bounds of a glyph
     // Warning: this function's purpose isn't to change relative position of glyphs in the drawing box
+    checkRect(boundingRect) // ensures correct rect format TODO disable if in production mode ?
     const glyph = state.project.glyphs.find(glyph => glyph.id === glyphId)
     state.activeLayer = glyph.layer // activate layer corresponding to glyph
     glyph.activateLayer()
@@ -197,6 +238,19 @@ export default {
   setRedrawing: (state, redrawing) => {
     state.redrawing = redrawing
   }, // used in activateRedrawing action
+
+  redrawElement: (state, {binding, normalizedData}) => {
+    for (let [i, glyph] of state.project.glyphs.entries()) {
+      let targetGlyph = [...glyph.iter()].find(glyph => glyph.name === binding.shape)
+      if (targetGlyph.drawn) {
+        targetGlyph.deleteItem(binding.element.toLowerCase()) // paths have same name of elements in lower-case
+        targetGlyph['draw' + binding.element](normalizedData[i][binding.field])
+      }
+    }
+    // remove any binding with same element as in new assignment
+    state.project.bindings.filter(binding_ => binding_.element !== binding.element)
+    state.project.bindings.push(binding)
+  },
 
   setGlyphVisibility: (state, {value, glyphSelector = 'all', shapeSelector = 'layer', itemSelector = 'group'}) => {
     let glyphsToChange = []
@@ -293,18 +347,6 @@ export default {
     let shapePositions = state.shapePositions
     shapePositions[shapeName] = position
     state.shapePositions = shapePositions // principle of rewriting object for vuex to react to it
-  },
-
-  addChildGlyph(state, {glyphId, childName}) {
-    // function to add arbitrary children to existing glyphs
-    // TODO integrate and add new button
-    const glyphClass = state.glyphTypes.find(glyphType => glyphType.type.startsWith(state.glyphTypeName))
-    if (typeof glyphClass === 'undefined') {
-      throw Error(`Unknown glyph type: ${state.glyphTypeName}`)
-    }
-    const glyph = state.project.glyphs.find(glyph => glyph.id === glyphId)
-    // eslint-disable-next-line new-cap
-    glyph.registerChild(new glyphClass(childName))
   },
 
   selectGlyphEl: (state, selection) => { // for glyph selection tool

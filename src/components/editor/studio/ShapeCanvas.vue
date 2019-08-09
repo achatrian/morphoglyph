@@ -172,7 +172,6 @@
                     if (this.glyphBinder) {
                         // if canvas was called by BindOptions, toggle it after saving the path
                         this.setShapeCanvasState(false)
-                        this.setStudioDrawerState(false)
                     }
                     this.glyphScope.activate()
                 } else {

@@ -96,6 +96,14 @@ class BaseGlyph {
     ] // not inherited by children
   }
 
+  // iterate over self and children
+  * iter () {
+    yield this
+    for (let child of this.children) {
+      yield child
+    }
+  }
+
   activateLayer () {
     BaseGlyph.glyphScope.activate()
     BaseGlyph.glyphScope.project.layers[this.layer].activate()
@@ -189,7 +197,7 @@ class BaseGlyph {
       item = this.findItem(children, itemName)
     }
     // id matching should make layer search work, but in case glyph has children of same type there will be multiple
-    // items with the same namae
+    // items with the same name
     if (typeof item === 'undefined') {
       throw new Error(`Either id or name did not match the tracked id (${this.itemIds[itemName]}) / name (${itemName})`)
     }
@@ -198,22 +206,17 @@ class BaseGlyph {
 
   deleteItem (itemName = this.name) {
     // deleting path if it is drawn (and id was registered using registerItem)
-    let found = false
-    const itemId = this.itemIds[itemName]
-    if (itemId !== null) {
-      for (let path of paper.project.layers[this.layer].children) {
-        if (path.id === itemId) {
-          path.remove()
-          this.itemIds[itemName] = null
-          found = true
-          break
-        }
-      }
+    let children = this.group.children
+    let item = this.findItem(children)
+    if (typeof item === 'undefined') {
+      children = paper.project.layers[this.layer].children
+      item = this.findItem(children, itemName)
     }
-    if (itemId !== null && !found) {
-      // shouldn't get here
+    if (typeof item === 'undefined') {
       throw new Error(`Either id or name did not match the tracked id (${this.itemIds[itemName]}) / name (${itemName})`)
     }
+    item.remove()
+    this.itemIds[itemName] = null
   }
 
   set mainPath (path) { // this should be original path with fixed aspect ratio

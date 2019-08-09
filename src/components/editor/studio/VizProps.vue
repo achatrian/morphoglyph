@@ -1,6 +1,7 @@
 <template>
   <div class="elevation-1">
     <v-card class="panel">
+      <!--Replace toolbar with flexbox ? -->
       <v-toolbar
         v-if="glyphShapes.children.length > 0"
         color="dark"
@@ -12,7 +13,7 @@
             dense
             label="Glyph Shape"
             v-model="selectedShapeName"
-            :disabled="changeFeatureIsPressed"
+            :disabled="Boolean(rebinding)"
           />
         </div>
       </v-toolbar>
@@ -23,19 +24,22 @@
       dense>
         <div class="select-title">
           <v-select
-            :items="elementNames"
+            :items="shapeElements.map(element => element.name)"
             dense
             label="Glyph Element"
             v-model="selectedElementName"
-            :disabled="changeFeatureIsPressed"
+            @change="onSelectElementName"
+            :disabled="rebinding === 'field'"
           />
         </div>
         <div class="select-title">
           <v-select
-            :items="fieldNames"
+            :items="dataFields"
             dense
             label="Bound Feature"
             v-model="selectedFieldName"
+            @change="onSelectFieldName"
+            :disabled="rebinding === 'element'"
           />
         </div>
       </v-toolbar>
@@ -44,48 +48,64 @@
         id="list"
       >
         <v-list-tile>
-          <!--Replace 'change feature' button with 'apply' button when pressed-->
-          <v-btn v-if="!changeFeatureIsPressed" depressed small
-                 v-show="selectedElementName"
-                 color="secondary"
-                 @click="changeFeatureIsPressed = true"
-          >
-            <span class="text--primary" >change feature</span>
-          </v-btn>
-          <v-btn v-else depressed small
-                 v-show="selectedElementName"
-                 color="secondary"
-                 @click="applyFeatureChange"
-          >
-            <span class="text--primary">Apply</span>
-          </v-btn>
-          <v-btn depressed small
-                 v-show="changeFeatureIsPressed"
-                 color="primary"
-                 @click="cancelFieldSelection"
-          >
-            <span class="text--white">Cancel</span>
-          </v-btn>
+          <!--Rebinding controls-->
+          <!--v-if converts to boolean-->
+          <div class="re-bind" v-show="selectedElementName">
+            <span class="bind-item">Bind: </span>
+            <v-btn depressed small v-if="!rebinding"
+                   color="secondary"
+                   @click="rebinding = 'element'"
+                   class="bind-item text--primary"
+            >
+              Element
+            </v-btn>
+            <v-btn depressed small v-if="!rebinding"
+                   color="secondary"
+                   @click="rebinding = 'field'"
+                   class="bind-item text--primary"
+            >
+              Feature
+            </v-btn>
+            <v-btn v-if="rebinding" depressed small
+                   color="secondary"
+                   @click="applyBindingChange"
+                   class="bind-item"
+            >
+              <span class="text--primary">Apply</span>
+            </v-btn>
+            <v-btn depressed small
+                   v-show="rebinding"
+                   color="primary"
+                   @click="rebinding = false"
+                   class="bind-item"
+            >
+              <span class="text--white">Cancel</span>
+            </v-btn>
+          </div>
         </v-list-tile>
         <v-list-tile>
           <v-slider color="secondary"
-                    label="Stroke Size:"
+                    class="text--white"
                     v-model="selectedWidth"
                     v-show="hasProperties.size"
                     :min="(hasProperties.size) ? selectedElement.properties.size.range[0] : 0"
                     :max="(hasProperties.size) ? selectedElement.properties.size.range[1] : 100"
                     :step="(hasProperties.size) ? selectedElement.properties.size.step: 1"
-                    :disabled="changeFeatureIsPressed"
-          />
+                    :disabled="Boolean(rebinding)"
+          >
+            <span class="text--white" style="display: inline-block; width: 100px; margin-top: 4px" slot="prepend">
+              Stroke Size:
+            </span>
+          </v-slider>
         </v-list-tile>
         <v-list-tile>
-          <span style="color:#BDBDBD" v-show="hasProperties.color">Element color:</span>
+          <span class="text--white" v-show="hasProperties.color">Element color:</span>
           <!--TODO change text color when disable as for slider-->
           <v-spacer/>
           <v-dialog
             v-model="dialog"
             width="225px"
-            :disabled="changeFeatureIsPressed"
+            :disabled="Boolean(rebinding)"
           >
             <a slot="activator" v-show="hasProperties.color">
               <div
@@ -98,7 +118,7 @@
               <color-picker
                 id="picker"
                 v-model="colorPick"
-                :disabled="changeFeatureIsPressed"
+                :disabled="rebinding"
               />
             </v-card>
           </v-dialog>
@@ -126,7 +146,7 @@ export default {
   },
   data () {
     return {
-      changeFeatureIsPressed: false,
+      rebinding: '',
       selectedShapeName: '',
       selectedElementName: '',
       selectedElement: {
@@ -146,6 +166,8 @@ export default {
     ...mapState({
       selection: state => state.glyph.selection,
       bindings: state => state.glyph.project.bindings,
+      glyphTypes: state => state.glyph.glyphTypes,
+      glyphs: state => state.glyph.project.glyphs,
       glyphTypeName: state => state.glyph.glyphTypeName,
       glyphShapes: state => state.glyph.glyphShapes,
       glyphElements: state => state.glyph.glyphElements,
@@ -153,44 +175,18 @@ export default {
       fieldTypes: state => state.backend.fieldTypes,
       numDisplayedGlyphs: state => state.app.numDisplayedGlyphs
     }),
-    elementNames () {
-      let elementNames = []
-      this.bindings.forEach(binding => {
-        if (binding.shape === this.selectedShapeName) { // only elements targeting currently selected shape
-          elementNames.push(binding.element) // store element names used in glyph
-        }
-      })
-      return elementNames
-    },
-    boundField () { // feature bound to selected element, for visualization
-      if (this.selectedElementName) {
-        for (let binding of this.bindings) {
-          if (binding.shape === this.selectedShapeName && binding.element === this.selectedElementName) {
-            return binding.field
-          }
-        }
-        throw Error(`No binding named ${this.selectedElement.name}`)
-      } else {
-        return ""
+    shapeElements () {
+      if (this.glyphs.length === 0 || !this.selectedShapeName) {
+        return []
       }
-    },
-    fieldNames () {
-      let elementNames = []
-      if (!this.changeFeatureIsPressed) {
-        this.bindings.forEach(binding => { elementNames.push(binding.field) }) // store element names used in glyph
-      } else {
-        // if change feature button is pressed, all fields are displayed
-        // as all can be assigned to element
-        this.dataFields.forEach(field => {
-          if (this.fieldTypes[field] === Number) { elementNames.push(field) }
-        })
-      }
-      return elementNames
+      const glyphs = [...this.glyphs[0].iter()]
+      const shapeType = glyphs.find(glyph => glyph.name === this.selectedShapeName).constructor
+      return shapeType.elements
     },
     hasProperties () {
       return {
-        size: !!(this.selectedElement.properties.size), // double negation is poor language ?
-        color: !!(this.selectedElement.properties.color)
+        size: Boolean(this.selectedElement.properties.size),
+        color: Boolean(this.selectedElement.properties.color)
       }
     }
   },
@@ -203,20 +199,63 @@ export default {
       changeDisplayedGlyphNum: 'app/changeDisplayedGlyphNum',
       addDataBoundGlyphs: 'glyph/addDataBoundGlyphs'
     }),
-    applyFeatureChange () { // handle change of field associated with element
+    onSelectElementName () {
+      // 0: find glyph element -> needed in order to check what parameters can be modified through element.properties
+      this.selectGlyphEl({layer: this.selection.layer, path: this.selectedElementName})
+      const selectedElement = this.shapeElements.find(element => element.name === this.selectedElementName)
+      if (selectedElement) {
+        this.selectedElement = this.shapeElements.find(element => element.name === this.selectedElementName)
+      } else {
+        this.selectedElement = {name: '', properties: {}}
+      }
+      // 1: if element is bound, update the displayed field name in the field select box
+      if (this.selectedElementName && this.rebinding !== 'element') {
+        const elementBinding = this.bindings.find(
+                binding => binding.shape === this.selectedShapeName && binding.element === this.selectedElementName
+        )
+        if (elementBinding) {
+          this.selectedFieldName = elementBinding.field
+        } else {
+          this.selectedFieldName = 'unbound'
+        }
+      }
+    },
+    onSelectFieldName () {
+      if (this.selectedFieldName && this.rebinding !== 'field') {
+        const fieldBinding = this.bindings.find(binding => binding.field === this.selectedFieldName)
+        if (fieldBinding) {
+          this.selectedElementName = fieldBinding.element
+          this.selectGlyphEl({layer: this.selection.layer, path: fieldBinding.element}) // FIXME unused
+          const selectedElement = this.shapeElements.find(element => element.name === fieldBinding.element)
+          if (selectedElement) {
+            this.selectedElement = selectedElement
+          }
+        } else {
+          this.selectedElementName = 'unbound'
+          this.selectedElement = {name: '', properties: {}}
+        }
+      }
+    },
+    applyBindingChange () { // handle change of field associated with element
       // Apply new field selection FIXME test this
       let newBindings = []
       let oldField = ''
-      this.bindings.forEach(binding => {
-        if (binding.shape === this.selectedShapeName && binding.element === this.selectedElementName) {
+      let oldElement = ''
+      for (let binding of this.bindings) {
+        let newBinding = Object.assign({}, binding)
+        if (this.rebinding === 'element' &&
+                binding.shape === this.selectedShapeName &&
+                binding.field === this.selectedFieldName) {
+          oldElement = binding.element
+          newBinding.element = this.selectedElementName // modify field to selected one
+        } else if (this.rebinding === 'field' &&
+                binding.shape === this.selectedShapeName &&
+                binding.element === this.selectedElementName) {
           oldField = binding.field
-          const newBinding = Object.assign({}, binding)
           newBinding.field = this.selectedFieldName // modify field to selected one
-          newBindings.push(newBinding)
-        } else {
-          newBindings.push(binding)
         }
-      })
+        newBindings.push(newBinding)
+      }
       // this.resetLayers()
       this.reset({
         selectedElementName: this.selectedElementName,
@@ -228,19 +267,20 @@ export default {
       const numDisplayedGlyphs = this.numDisplayedGlyphs
       this.changeDisplayedGlyphNum(0)
       setTimeout(function (numDisplayedGlyphs) {
-        console.log('num' + numDisplayedGlyphs)
         this.changeDisplayedGlyphNum(numDisplayedGlyphs)
-        this.changeFeatureIsPressed = false
-        console.log(`${this.selectedShapeName}.${this.selectedElementName} was bound to ${this.selectedFieldName} (previously bound to ${oldField})`)
+        this.rebinding = false
+        this.onSelectElementName()
+        if (this.rebinding === 'field') {
+          console.log(`${this.selectedShapeName}.${this.selectedElementName} was bound to ${this.selectedFieldName} (previously bound to ${oldField})`)
+        } else {
+          console.log(`${this.selectedFieldName} was bound to ${this.selectedShapeName}.${this.selectedElementName} (previously bound to ${oldElement})`)
+        }
       }.bind(this),
       100, numDisplayedGlyphs) // can pass arg to callback
       // FIXME glyph replacements are huge ??
     },
-    cancelFieldSelection () {
-      this.changeFeatureIsPressed = false
-    },
     reset (newData) {
-      this.changeFeatureIsPressed = newData.changeFeatureIsPressed || false
+      this.rebinding = newData.rebinding || false
       this.selectedElementName = newData.selectedElementName || ''
       this.selectedElement = newData.selectedElement || {
         name: '',
@@ -261,42 +301,6 @@ export default {
       if (this.glyphShapes.children.length === 0) {
         this.selectedShapeName = this.glyphShapes.main
       }
-    },
-    selectedElementName () {
-      this.selectGlyphEl({layer: this.selection.layer, path: this.selectedElementName})
-      let selectedElement // element object, not just name
-      for (let element of this.glyphElements) {
-        if (element.name === this.selectedElementName && element.target === this.selectedShapeName) {
-          selectedElement = element
-          break // break when element matches selected name
-        }
-      }
-      this.selectedElement = selectedElement
-    },
-    selectedFieldName () {
-      if (!this.changeFeatureIsPressed && this.selectedFieldName) {
-        let elementName = ''
-        for (let binding of this.bindings) {
-          if (binding.field === this.selectedFieldName) {
-            elementName = binding.element
-            break // break when element matches selected name
-          }
-        }
-        if (!elementName) { throw Error(`No element for selected field '${this.selectedFieldName}'`) }
-        this.selectGlyphEl({layer: this.selection.layer, path: elementName})
-        let selectedElement // element object, not just name
-        for (let element of this.glyphElements) {
-          if (element.name === elementName) {
-            selectedElement = element
-            break // break when element matches selected name
-          }
-        }
-        this.selectedElement = selectedElement
-        this.selectedElementName = elementName
-      } // if not, change is due to field selection and element properties should not be changed
-    },
-    boundField () {
-      this.selectedFieldName = this.boundField // must be independent for selection TODO check (?)
     },
     selectedWidth () {
       if (this.numDisplayedGlyphs) {
@@ -330,6 +334,17 @@ export default {
 
 .panel {
   margin-top: 20px;
+}
+
+.re-bind{
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.bind-item{
+  flex: 0 1 auto
 }
 
 .color-tile {

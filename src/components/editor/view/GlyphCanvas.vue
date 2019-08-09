@@ -51,7 +51,7 @@ export default {
       function () {
         let numDrawn = 0
         let numMoved = 0
-        const numDrawnGlyphs = this.glyphs.reduce((drawnCount, nextGlyph) => drawnCount + Number(nextGlyph.drawn), 0)
+        const numDrawnGlyphs = this.glyphs.reduce((drawing, nextGlyph) => drawing + Number(nextGlyph.drawn), 0)
         if (numDrawnGlyphs < this.numDisplayedGlyphs) {
           // it either draws glyphs out ...
           this.boundingRects.forEach((boundingRect, idx) => {
@@ -70,7 +70,9 @@ export default {
             }
           })
           if (numDrawn > 0) { console.log(`${numDrawn} glyphs were drawn`) }
+          this.$emit('update:drawing', false)
         } else {
+          this.$emit('update:drawing', false)
           // ... or moves them the rectangles' position has changed
           this.boundingRects.forEach((boundingRect, idx) => {
             let glyphIndex = (this.currentPage - 1) * this.numDisplayedGlyphs + idx // idx is relative to glyph position in page
@@ -114,6 +116,7 @@ export default {
         }
       })
       if (numRedrawn > 0) { console.log(`${numRedrawn} glyphs were redrawn`) }
+      this.$emit('update:drawing', false)
     },
     toggleDrawingBoxes () {
       for (let glyph of this.glyphs) {
@@ -124,22 +127,28 @@ export default {
   watch: {
     numDisplayedGlyphs () {
       // in fluid view, each time number of glyphs changes, whole grid is redrawn
+      this.$emit('update:drawing', true)
       this.updateGlyphArrangement()
       this.redrawGlyphs()
     },
     boundingRects: {
       handler () {
         if (this.glyphs.length >= this.boundingRects.length) {
+          this.$emit('update:drawing', true)
           this.placeGlyphs() // place glyphs if there are glyphs to place
         }
       },
       deep: true
     },
     currentPage () {
+      this.$emit('update:drawing', true)
       this.redrawGlyphs()
     },
     redrawing () {
-      if (this.redrawing) { this.redrawGlyphs() }
+      if (this.redrawing) {
+        this.$emit('update:drawing', true)
+        this.redrawGlyphs()
+      }
     }
   },
   mounted () {
