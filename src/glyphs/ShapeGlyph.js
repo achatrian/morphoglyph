@@ -11,17 +11,18 @@ class ShapeGlyph extends BaseGlyph {
     options = {
       ...ShapeGlyph.baseOptions(),
       numSides: 6, // for RegularPolygon: defaults to hexagon
-      numPoints: 250, // for drawing Membrane and Spikes
+      numPoints: 150, // for drawing Membrane and Spikes
       spikeHeight: 0.3,
       meshType: 'grid',
-      patternSize: 5, // size of pattern elements in patterning
-      patternType: 'circle',
+      spikeSize: 0.4,
+      decorationSize: 5, // size of pattern elements in patterning
+      decorationType: 'circle',
       protrusionProportion: 0.15,
       protrusionBackgroundColor: '#F5F5F5',
       protrusionStrokeColor: '#212121',
-      borderSymbolType: 'circle',
-      borderSymbolSize: 10,
-      maxNumBorderSymbols: 40
+      islandsType: 'circle',
+      islandsSize: 10,
+      maxNumIslands: 40
     }) {
     // constructor for standard PhenoPlot glyph
     super(layer, id, name, options)
@@ -82,7 +83,7 @@ class ShapeGlyph extends BaseGlyph {
         type: 'path',
         properties: {
           color: {range: [], step: []},
-          size: {range: [1, 15], step: 1}
+          size: {range: [0.4, 2], step: 0.2}
         },
         target: 'main',
         subElements: ['SpikeHeight', 'NumberOfPoints']
@@ -144,17 +145,17 @@ class ShapeGlyph extends BaseGlyph {
         scaleOrder => scaleOrder.element === 'Height' && scaleOrder.shape === this.name
     )
     if (widthScaleOrder) {
-      this.box.shift()
-      this.box.resize(widthScaleOrder.value, 1.0, {center: true, children: true})
+      // drawing option must be set to true for box to remember to reapply this transforms when shape positions is reset
+      this.box.resize(widthScaleOrder.value, null, {drawing: true, center: true, children: true})
     }
     if (heightScaleOrder) {
-      this.box.resize(1.0, heightScaleOrder.value, {center: true, children: true})
+      this.box.resize(null, heightScaleOrder.value, {drawing: true, center: true, children: true})
     }
     const protrusionScaleOrder = options.scaleOrders.find(
         scaleOrder => scaleOrder.element === 'Protrusion' && scaleOrder.shape === this.name
     )
     if (protrusionScaleOrder) {
-      this.box.shift(0, this.parameters.protrusionProportion, {scale: true, children: true})
+      this.box.shift(null, this.parameters.protrusionProportion, {drawing: true, scale: true, children: true})
     }
     this.drawOptions = options // update drawOptions !
     let {shapeType} = options
@@ -248,8 +249,8 @@ class ShapeGlyph extends BaseGlyph {
     this.registerItem(membranePath, 'membrane')
   }
 
-  drawSpikes (spikeFraction, subElements) {
-    let {spikeHeight, numPoints} = subElements
+  drawSpikes (spikeFraction, subElements = {}) {
+    let {spikeHeight, numPoints} = subElements // FIXME unused
     if (typeof spikeHeight === 'undefined') { spikeHeight = this.parameters.spikeHeight }
     if (typeof numPoints === 'undefined') { numPoints = this.parameters.numPoints }
     let pathClone = this.cloneItem('outer', numPoints)
@@ -271,7 +272,7 @@ class ShapeGlyph extends BaseGlyph {
       spikePath.add(newPoint)
     }
     spikePath.strokeColor = this.parameters.secondaryColor
-    spikePath.strokeWidth = this.parameters.narrowPathSize
+    spikePath.strokeWidth = this.parameters.spikeSize
     this.registerItem(spikePath, 'spikes')
   }
 
@@ -325,11 +326,11 @@ class ShapeGlyph extends BaseGlyph {
     // generate points where to draw pattern elements - use contains() to test whether point is inside the shape or not
     let possiblePoints = []
     const outerPath = this.outerPath
-    for (let x = this.box.drawingBounds.x; x < this.box.drawingBounds.x + this.box.drawingBounds.width; x += this.parameters.patternSize) {
-      for (let y = this.box.drawingBounds.y; y < this.box.drawingBounds.y + this.box.drawingBounds.height; y += this.parameters.patternSize) {
+    for (let x = this.box.drawingBounds.x; x < this.box.drawingBounds.x + this.box.drawingBounds.width; x += this.parameters.decorationSize) {
+      for (let y = this.box.drawingBounds.y; y < this.box.drawingBounds.y + this.box.drawingBounds.height; y += this.parameters.decorationSize) {
         let possiblePoint = new paper.Point(x, y)
-        let horVect = new paper.Point(this.parameters.patternSize/2, 0)
-        let verVect = new paper.Point(0, this.parameters.patternSize/2)
+        let horVect = new paper.Point(this.parameters.decorationSize/2, 0)
+        let verVect = new paper.Point(0, this.parameters.decorationSize/2)
         let containsExtremes = [ // + and - overloading for paper.Point is not working?
             outerPath.contains(possiblePoint), // center
             outerPath.contains(possiblePoint.add(horVect)), // E
@@ -349,25 +350,25 @@ class ShapeGlyph extends BaseGlyph {
     let decoration = []
     let decorationElement
     for (let i = 0; i < Math.ceil(possiblePoints.length * fillingFraction); i++) {
-      switch (this.parameters.patternType) {
+      switch (this.parameters.decorationType) {
         case 'circle':
            decorationElement = new paper.Path.Circle(
               possiblePoints[i],
-              0.8 * this.parameters.patternSize/2
+              0.8 * this.parameters.decorationSize/2
           )
           break
         case 'star':
           decorationElement = new paper.Path.Star(
               possiblePoints[i],
               5,
-              0.5 * this.parameters.patternSize/2,
-              0.8 * this.parameters.patternSize/2
+              0.5 * this.parameters.decorationSize/2,
+              0.8 * this.parameters.decorationSize/2
           )
           break
         case 'square':
           decorationElement = new paper.Path.Rectangle(
               possiblePoints[i],
-              new paper.Size(0.8 * this.parameters.patternSize/2,0.8 * this.parameters.patternSize/2)
+              new paper.Size(0.8 * this.parameters.decorationSize/2,0.8 * this.parameters.decorationSize/2)
           )
           break
       }
@@ -406,29 +407,29 @@ class ShapeGlyph extends BaseGlyph {
 
   drawIslands (borderFraction, subElements) {// eslint-disable-line no-unused-vars
     let islands = []
-    for (let i = 0; i < Math.ceil(this.parameters.maxNumBorderSymbols * borderFraction); i++) {
-      let symbolPosition = this.outerPath.getPointAt(this.outerPath.length * (1 - i / this.parameters.maxNumBorderSymbols))
+    for (let i = 0; i < Math.ceil(this.parameters.maxNumIslands * borderFraction); i++) {
+      let symbolPosition = this.outerPath.getPointAt(this.outerPath.length * (1 - i / this.parameters.maxNumIslands))
       let island
-      switch (this.parameters.borderSymbolType) {
+      switch (this.parameters.islandsType) {
         case 'circle':
           island = new paper.Path.Circle(
               symbolPosition,
-              0.8 * this.parameters.borderSymbolSize/2
+              0.8 * this.parameters.islandsSize/2
           )
           break
         case 'star':
           island = new paper.Path.Star(
               symbolPosition,
               5,
-              0.5 * this.parameters.borderSymbolSize/2,
-              0.8 * this.parameters.borderSymbolSize/2
+              0.5 * this.parameters.islandsSize/2,
+              0.8 * this.parameters.islandsSize/2
           )
           break
         case 'square':
           island = new paper.Path.Rectangle(
               symbolPosition,
-              new paper.Size(0.8 * this.parameters.borderSymbolSize/2,
-                  0.8 * this.parameters.borderSymbolSize/2)
+              new paper.Size(0.8 * this.parameters.islandsSize/2,
+                  0.8 * this.parameters.islandsSize/2)
           )
           break
       }

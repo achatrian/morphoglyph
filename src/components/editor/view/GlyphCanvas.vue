@@ -13,7 +13,7 @@ export default {
     ...mapState({
       boundingRects: state => state.app.boundingRects,
       numDisplayedGlyphs: state => state.app.numDisplayedGlyphs,
-      normalizedData: state => state.backend.normalizedData,
+      orderedNormalizedData: state => state.backend.orderedNormalizedData,
       glyphs: state => state.glyph.project.glyphs,
       currentPage: state => state.app.currentPage,
       redrawing: state => state.glyph.redrawing

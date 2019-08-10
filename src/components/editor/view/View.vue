@@ -5,7 +5,7 @@
     <app-glyph-adder v-if="glyphAdder"/>
     <app-glyph-canvas v-resize.quiet="updateGlyphArrangement" :drawing.sync="drawing"
                       v-show="canvas" ref="canvas"/>
-    <div class="progress-wrap" v-show="drawing">
+    <div class="progress-wrap" v-show="drawing && !glyphBinder && !glyphAdder">
       <v-progress-circular class="progress" indeterminate size="100" color="primary"/>
     </div>
     <!--since canvas has z-index=1, it was on top of view card, which made clicking on buttons impossible-->

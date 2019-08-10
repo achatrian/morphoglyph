@@ -10,17 +10,18 @@ class CellGlyph extends ShapeGlyph {
       ...CellGlyph.baseOptions(),
       membraneFraction: 0.5,
       membraneSize: '',
-      numPoints: 300,
+      numPoints: 200,
       spikeHeight: 0.3,
       meshType: 'grid',
-      patternSize: 5, // size of pattern elements in patterning
-      patternType: 'circle',
+      spikeSize: 0.4,
+      decorationSize: 5, // size of pattern elements in patterning
+      decorationType: 'circle',
       protrusionProportion: 0.15,
       protrusionBackgroundColor: '#F5F5F5',
       protrusionStrokeColor: '#212121',
-      borderSymbolType: 'circle',
-      borderSymbolSize: 10,
-      maxNumBorderSymbols: 55
+      islandsType: 'circle',
+      islandsSize: 10,
+      maxNumIslands: 55
     }) {
     super(layer, id, name, options)
     this.glyphElements = CellGlyph.elements

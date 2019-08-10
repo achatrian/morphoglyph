@@ -50,6 +50,57 @@
                     @change="viewGlyph"
             />
         </div>
+
+        <div class="move-resize-commands btn">
+            <v-slider label="x" min="0" max="1" step="0.05" v-model="leftShift" class="control-item">
+                <template v-slot:append>
+                    <v-text-field
+                            v-model="leftShift"
+                            class="mt-0 pt-0"
+                            hide-details
+                            single-line
+                            type="number"
+                            style="width: 50px"
+                    ></v-text-field>
+                </template>
+            </v-slider>
+            <v-slider label="y" min="0" max="1" step="0.05" v-model="topShift" class="control-item">
+                <template v-slot:append>
+                    <v-text-field
+                            v-model="topShift"
+                            class="mt-0 pt-0"
+                            hide-details
+                            single-line
+                            type="number"
+                            style="width: 50px"
+                    ></v-text-field>
+                </template>
+            </v-slider>
+            <v-slider label="width" min="0" max="1" step="0.05" v-model="widthProportion" class="control-item">
+                <template v-slot:append>
+                    <v-text-field
+                            v-model="widthProportion"
+                            class="mt-0 pt-0"
+                            hide-details
+                            single-line
+                            type="number"
+                            style="width: 50px"
+                    ></v-text-field>
+                </template>
+            </v-slider>
+            <v-slider label="height" min="0" max="1" step="0.05" v-model="heightProportion" class="control-item">
+                <template v-slot:append>
+                    <v-text-field
+                            v-model="heightProportion"
+                            class="mt-0 pt-0"
+                            hide-details
+                            single-line
+                            type="number"
+                            style="width: 50px"
+                    ></v-text-field>
+                </template>
+            </v-slider>
+        </div>
     </v-card>
 </template>
 
@@ -78,7 +129,11 @@
                 selectedGlyphName: '',
                 selectedGlyphId: '',
                 selectedGlyphSetting: '',
-                glyphBoundingRect: {top: 0, bottom:0, left: 0, right: 0, width: 0, height: 0}
+                glyphBoundingRect: {top: 0, bottom:0, left: 0, right: 0, width: 0, height: 0},
+                leftShift: 0.0,
+                topShift: 0.0,
+                widthProportion: 1.0,
+                heightProportion: 1.0
             }
         },
         computed: {
@@ -237,5 +292,21 @@
     .add-button{
         grid-column: 4 / 5;
         grid-row: 4 / 5;
+    }
+
+    .move-resize-commands{
+        grid-column: 4 / 5;
+        grid-row: 2 / 4;
+        margin: auto;
+        max-width: 300px;
+        display: flex;
+        justify-content: space-evenly;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .control-item{
+        padding: 0 0 0 10px;
+        max-width: 200px
     }
 </style>

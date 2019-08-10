@@ -147,7 +147,9 @@ export default {
     })
   },
 
-  reassignGlyphIds: (state, glyphIds) => state.project.glyphs.forEach((glyph, i) => { // function used to change page
+  // Whenever the data is shuffled, e.g. for re-ordeing by a numerical value, the glyph objects are not swapped.
+  // Instead, each glyph is renamed with a different ID, corresponding to the matching id in the display order index
+  reassignGlyphIds: (state, glyphIds) => state.project.glyphs.forEach((glyph, i) => {
     glyph.id = glyphIds[i]
   }),
 
@@ -235,6 +237,17 @@ export default {
     glyph.fitToBox(true)
   },
 
+  changeGlyphPosition: (state, {steps, shapeSelector = '', children = false}) => {
+    for (let glyph of state.project.glyphs) {
+      let targetGlyph = glyph
+      if (shapeSelector) {
+         targetGlyph = [...glyph.iter()].find(glyph.name === shapeSelector)
+      }
+      targetGlyph.box.applyTransforms(steps)
+      targetGlyph.fitToBox(children)
+    }
+  },
+
   setRedrawing: (state, redrawing) => {
     state.redrawing = redrawing
   }, // used in activateRedrawing action
@@ -243,12 +256,18 @@ export default {
     for (let [i, glyph] of state.project.glyphs.entries()) {
       let targetGlyph = [...glyph.iter()].find(glyph => glyph.name === binding.shape)
       if (targetGlyph.drawn) {
-        targetGlyph.deleteItem(binding.element.toLowerCase()) // paths have same name of elements in lower-case
-        targetGlyph['draw' + binding.element](normalizedData[i][binding.field])
+        targetGlyph.activateLayer()
+        if (targetGlyph.itemIds[binding.element]) {
+          targetGlyph.deleteItem(binding.element.toLowerCase()) // paths have same name of elements in lower-case
+        }
+        targetGlyph['draw' + binding.element](normalizedData[i][binding.field]) // FIXME must look for datapoint with correct id
+        targetGlyph.buildGroups()
       }
     }
     // remove any binding with same element as in new assignment
-    state.project.bindings.filter(binding_ => binding_.element !== binding.element)
+    state.project.bindings.filter(
+        binding_ => !(binding_.element === binding.element && binding_.shape === binding.shape)
+    )
     state.project.bindings.push(binding)
   },
 

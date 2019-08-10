@@ -1,56 +1,63 @@
 <template>
-  <div>
-    <v-toolbar
-      color="dark"
-      flat
-      dense>
-      <v-slider label="x"
-                color="secondary"
-                v-model="selectedRelativeX"
-                min=0
-                max=1
-                step=0.05
-                style="margin-left:-10px"
-                @change="updatePosition"
-      />
-      <v-slider label="y"
-                color="secondary"
-                v-model="selectedRelativeY"
-                min=0
-                max=1
-                step=0.05
-                style="margin-left:+10px"
-                @change="updatePosition"
-      />
-    </v-toolbar>
-    <v-toolbar
-      color="dark"
-      flat
-      dense>
-      <v-slider label="w"
-                color="secondary"
-                v-model="selectedRelativeW"
-                min=0
-                max=1
-                step=0.05
-                style="margin-left:-10px"
-                @change="updatePosition"
-      />
-      <v-slider label="h"
-                color="secondary"
-                v-model="selectedRelativeH"
-                min=0
-                max=1
-                step=0.05
-                style="margin-left:+10px"
-                @change="updatePosition"
-      />
-    </v-toolbar>
-  </div>
+  <div class="move-resize-commands">
+  <v-slider label="X" min="0" max="1" step="0.05" v-model="leftShift" class="control-item"
+            @change="planLeftShift">
+    <template v-slot:append>
+      <v-text-field
+              v-model="leftShift"
+              class="mt-0 pt-0 num-field"
+              hide-details
+              single-line
+              type="number"
+      ></v-text-field>
+    </template>
+  </v-slider>
+  <v-slider label="Y" min="0" max="1" step="0.05" v-model="topShift" class="control-item"
+            @change="planTopShift">
+    <template v-slot:append>
+      <v-text-field
+              v-model="topShift"
+              class="mt-0 pt-0 num-field"
+              hide-details
+              single-line
+              type="number"
+      ></v-text-field>
+    </template>
+  </v-slider>
+  <v-slider label="W" min="0" max="1" step="0.05" v-model="widthProportion" class="control-item"
+            @change="planWidthResize">
+    <template v-slot:append>
+      <v-text-field
+              v-model="widthProportion"
+              class="mt-0 pt-0 num-field"
+              hide-details
+              single-line
+              type="number"
+      ></v-text-field>
+    </template>
+  </v-slider>
+  <v-slider label="H" min="0" max="1" step="0.05" v-model="heightProportion" class="control-item"
+            @change="planHeightResize">
+    <template v-slot:append>
+      <v-text-field
+              v-model="heightProportion"
+              class="mt-0 pt-0 num-field"
+              hide-details
+              single-line
+              type="number"
+      ></v-text-field>
+    </template>
+  </v-slider>
+  <v-btn class="light primary--text" @click="planCentering">
+    Center
+  </v-btn>
+</div>
 </template>
 
 <script>
 import {mapActions} from 'vuex'
+import debounce from 'debounce'
+import Deque from 'double-ended-queue'
 
 export default {
   name: 'Positioner',
@@ -59,32 +66,82 @@ export default {
   },
   data () {
     return {
-      selectedRelativeX: 0.5,
-      selectedRelativeY: 0.5,
-      selectedRelativeW: 0.5,
-      selectedRelativeH: 0.5
+      leftShift: 0.0,
+      topShift: 0.0,
+      widthProportion: 1.0,
+      heightProportion: 1.0,
+      steps: new Deque(10)
     }
   },
   methods: {
     ...mapActions({
-      setShapePosition: 'glyph/setShapePosition'
+      setShapePosition: 'glyph/setShapePosition',
+      changeGlyphPosition: 'glyph/changeGlyphPosition'
     }),
-    updatePosition () {
-      const position = {
-        topShift: this.selectedRelativeY,
-        leftShift: this.selectedRelativeX,
-        widthProportion: this.selectedRelativeW,
-        heightProportion: this.selectedRelativeH
-      }
-      this.setShapePosition({
-        shapeName: this.shapeName,
-        position: position
+    planLeftShift: debounce.call(this, function () {
+      this.steps.push({
+        transform: 'shift',
+        parameters: [this.leftShift, null, {setValues: true, scale: false, children: false}]
       })
-    }
+      this.applySteps()
+    }, 400),
+    planTopShift: debounce.call(this, function () {
+      this.steps.push({
+        transform: 'shift',
+        parameters: [null, this.topShift, {setValues: true, scale: false, children: false}]
+      })
+      this.applySteps()
+    }, 400),
+    planWidthResize: debounce.call(this, function () {
+      this.steps.push({
+        transform: 'resize',
+        parameters: [this.widthProportion, null, {setValues: true, center: false, children: false}]
+      })
+      this.applySteps()
+    }, 400),
+    planHeightResize: debounce.call(this, function () {
+      this.steps.push({
+        transform: 'resize',
+        parameters: [null, this.heightProportion, {setValues: true, center: false, children: false}]
+      })
+      this.applySteps()
+    }, 400),
+    planCentering: debounce.call(this, function () {
+      this.steps.push({
+        transform: 'center',
+        parameters: [true, true, {setValues: true, center: false, children: false}]
+      })
+      this.applySteps()
+    }, 400),
+    applySteps: debounce.call(this, function () { // once steps are sent to glyphs, they are cleared up
+      this.changeGlyphPosition({
+        steps: this.steps.toArray(),
+        shapeSelector: this.shapeName,
+        children: false
+      })
+      this.steps.clear()
+    }, 600),
   }
 }
 </script>
 
 <style scoped>
+  .move-resize-commands{
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: auto;
+  }
 
+  .control-item{
+    padding: 0 0 0 10px;
+    max-width: 150px;
+  }
+
+  .num-field{
+    margin: 0 5px 10px 5px;
+    width: 40px;
+    font-size: 12px
+  }
 </style>

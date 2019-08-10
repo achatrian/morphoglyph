@@ -270,8 +270,9 @@ class BaseGlyph {
     let item
     if (itemName === 'outer') {
       item = this.outerPath
+    } else {
+      item = this.getItem(itemName)
     }
-    item = this.getItem(itemName)
     let newPath = new paper.Path()
     const theta = item.length / numPoints
     for (let t = 0; t < numPoints; t++) {
@@ -295,13 +296,16 @@ class BaseGlyph {
   updateDrawingBounds(drawingBounds, children = false) { // updates drawing box for glyph and children
     this.box = new DrawingBox(this, {
         boundingRect: drawingBounds,
-        shapePositions: this.box.shapePositions
+        shapePositions: this.box.shapePositions,
+        history: this.box.history, // so that transformers can be re-applied
     })
     if (children) {
       for (let childGlyph of this.children) {
         childGlyph.box = new DrawingBox(childGlyph, {
           boundingRect: drawingBounds,
-          shapePositions: childGlyph.box.shapePositions
+          shapePositions: childGlyph.box.shapePositions,
+          history: childGlyph.box.history,
+          maxHistLength: childGlyph.box.maxHistLength
         })
       }
     }
@@ -328,7 +332,8 @@ class BaseGlyph {
     )
   }
 
-  reset () { // delete all paperjs items associated with glyph
+  reset () { // reset box to null and delete all paperjs items associated with glyph
+    this.box = null
     if (this.drawn) {
       if (this.parent === null) { // if this is root glyph, clear layer
         paper.project.layers[this.layer].removeChildren()

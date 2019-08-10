@@ -1,15 +1,19 @@
-import paper from 'paper'
 
 /* Position of glyphs + helper methods to change it
 * If glyph has any children */
 class DrawingBox {
 
+    // all transforms applied to box
     history = []
+    // transforms used during drawing of glyphs, must be reapplied when setting transforms are applied
+    drawingTransforms = []
 
     constructor (glyph, {
                     boundingRect,
                     shapePositions = {leftShift: 0, topShift: 0, widthProportion: 1, heightProportion: 1},
-                    history = []
+                    history = [],
+                    maxHistLength = 20,
+                    applyTransforms = false
                  },
     ) {
         this.glyph = glyph
@@ -19,16 +23,23 @@ class DrawingBox {
             y: boundingRect.top + boundingRect.height / 2
         }
         this.applyPositioning(shapePositions)
-        if (history.length > 0) { // FIXME test, not used?
-            this.applyTransforms(history)
+        if (applyTransforms) {
+            this.applyTransforms(history) // also stories history
         }
-        this.canvasRect = paper.view.element.getBoundingClientRect()
+        if (history.length > 0) { // TODO test
+            this.history = history
+        }
+        this.drawingTransforms = this.history.filter(step => step.parameters[2].drawing)
+        this.maxHistLength = maxHistLength
     }
 
     copyTo (glyph) {
         glyph.box = new DrawingBox(glyph, {
             boundingRect: this.drawingBounds,
-            shapePositions: this.shapePositions
+            shapePositions: this.shapePositions,
+            history: this.history,
+            maxHistLength: this.maxHistLength,
+            applyTransforms: false
         })
     }
 
@@ -77,10 +88,59 @@ class DrawingBox {
         }
     }
 
-    resize (widthProportion = 1.0, heightProportion = 1.0, options = {center: false, children: false}) { // TODO test
-        const {center, children} = options
-        const newWidthProportion = this.shapePositions.widthProportion * widthProportion
-        const newHeightProportion = this.shapePositions.heightProportion * heightProportion
+    applyDrawingTransforms(selector = '') {
+        // adapts drawing transforms for re-application (e.g. by removing centering directives)
+        let adaptedTransforms = [...this.drawingTransforms]
+        switch (selector) {
+            case 'resize':
+                adaptedTransforms = adaptedTransforms.filter(step => step.transform === 'resize')
+                break
+            case 'resizeWidth':
+                adaptedTransforms = adaptedTransforms.filter(step => step.transform === 'resize' && step.parameters[1] == null)
+                break
+            case 'resizeHeight':
+                adaptedTransforms = adaptedTransforms.filter(step => step.transform  === 'resize' && step.parameters[0] == null)
+                break
+            case 'shift':
+                adaptedTransforms = adaptedTransforms.filter(step => step.transform === 'shift')
+                break
+            case 'shiftLeft':
+                adaptedTransforms = adaptedTransforms.filter(step => step.transform === 'shift' && step.parameters[1] == null)
+                break
+            case 'shiftTop':
+                adaptedTransforms = adaptedTransforms.filter(step => step.transform === 'shift' && step.parameters[0] == null)
+                break
+        }
+        for (let step of adaptedTransforms) {
+            if (step.transform === 'resize') {
+                step.parameters[2].center = false // prevent shifting in re-sizes when re-applying transforms
+            }
+            if (step.transform === 'shift') {
+                step.parameters[2].scale = false // prevent re-sizing in shifts when re-applying transforms
+            }
+            step.parameters[2].drawing = false // prevents storing duplicates in drawingTransforms
+        }
+        this.applyTransforms(adaptedTransforms)
+    }
+
+    resize (widthProportion = 1.0, heightProportion = 1.0,
+            options = {setValues: false, drawing: false, center: false, children: false}) {
+        const {center, children, setValues, drawing} = options
+        let newWidthProportion, newHeightProportion
+        if (widthProportion == null) {
+            newWidthProportion = this.shapePositions.widthProportion // if null, keep old value
+        } else if (setValues) {
+            newWidthProportion = widthProportion
+        } else {
+            newWidthProportion = this.shapePositions.widthProportion * widthProportion
+        }
+        if (heightProportion == null) {
+            newHeightProportion = this.shapePositions.heightProportion // if null, keep old value
+        } else if (setValues) {
+            newHeightProportion = heightProportion
+        } else {
+            newHeightProportion = this.shapePositions.heightProportion * heightProportion
+        }
         let positions
         if (center) { // center glyph inside box
             positions = {
@@ -99,38 +159,87 @@ class DrawingBox {
         // record transformation that occured on box
         this.history.push({
             transform: 'resize',
-            parameters: [widthProportion, heightProportion, {center: center, children: children}]
+            parameters: [widthProportion, heightProportion, options]
         })
+        if (drawing) {
+            this.drawingTransforms.push({
+                transform: 'resize',
+                parameters: [widthProportion, heightProportion, options]
+            })
+        }
+        // re-applies drawing transforms in case a modification occurred
+        if (setValues) {
+            let selector = ''
+            if (heightProportion == null) {
+                selector = 'resizeWidth'
+            } else if (widthProportion == null) {
+                selector = 'resizeHeight'
+            }
+            this.applyDrawingTransforms(selector)
+        }
+        // clean history if too long
+        if (this.history.length > this.maxHistLength) {
+            this.history.splice(0, this.history.length - this.maxHistLength) // remove one element
+        }
         // apply to children
         if (children) { // TODO test
             for (let childBox of this.childrenBoxes) {
-                childBox.resize(widthProportion, heightProportion, center)
+                childBox.resize(widthProportion, heightProportion, options)
             }
         }
 
     }
 
-    shift (leftShift = 0.0, topShift = 0.0, options = {scale: false, children: false}) {
-        const {scale, children} = options
-        let positions = {
-            leftShift: this.shapePositions.leftShift + leftShift,
-            topShift: this.shapePositions.topShift + topShift,
-            widthProportion: this.shapePositions.widthProportion,
-            heightProportion: this.shapePositions.heightProportion
+    shift (leftShift = 0.0, topShift = 0.0,
+           options = {setValues: false, drawing: false, scale: false, children: false}) {
+        const {scale, children, setValues, drawing} = options
+        let newLeftShift, newTopShift
+        if (leftShift == null) {
+            newLeftShift = this.shapePositions.leftShift // if null, keep old value
+        } else if (setValues) {
+            newLeftShift = leftShift
+        } else {
+            newLeftShift = this.shapePositions.leftShift + leftShift
         }
-        if (scale) {
-            // FIXME this is not based on an invariant
-            positions.widthProportion = this.shapePositions.widthProportion * (1 - leftShift)
-            positions.heightProportion = this.shapePositions.heightProportion * (1 - topShift)
+        if (topShift == null) {
+            newTopShift = this.shapePositions.topShift
+        } else if (setValues) {
+            newTopShift = topShift
+        } else {
+            newTopShift = this.shapePositions.topShift + topShift
+        }
+        let positions = {
+            leftShift: newLeftShift,
+            topShift: newTopShift,
+            widthProportion: scale ?
+                this.shapePositions.widthProportion * (1 - leftShift) : this.shapePositions.widthProportion,
+            heightProportion: scale ?
+                this.shapePositions.heightProportion * (1 - topShift) : this.shapePositions.heightProportion,
         }
         this.applyPositioning(positions)
         this.history.push({
-            transform: 'scale',
-            parameters: [leftShift, topShift, {scale: scale, children: children}]
+            transform: 'shift',
+            parameters: [leftShift, topShift, options]
         })
+        if (drawing) {
+            this.drawingTransforms.push({
+                transform: 'shift',
+                parameters: [leftShift, topShift, options]
+            })
+        }
+        // re-applies drawing transforms in case a modification occurred
+        if (setValues) {
+            let selector = ''
+            if (topShift == null) {
+                selector = 'shiftLeft'
+            } else if (leftShift == null) {
+                selector = 'shiftTop'
+            }
+            this.applyDrawingTransforms(selector)
+        }
         if (children) { // TODO test
             for (let childBox of this.childrenBoxes) {
-                childBox.shift(leftShift, topShift, scale)
+                childBox.shift(leftShift, topShift, options)
             }
         }
     }

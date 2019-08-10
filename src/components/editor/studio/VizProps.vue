@@ -1,9 +1,8 @@
 <template>
-  <div class="elevation-1">
-    <v-card class="panel">
+  <div>
+    <v-card class="panel" flat>
       <!--Replace toolbar with flexbox ? -->
       <v-toolbar
-        v-if="glyphShapes.children.length > 0"
         color="dark"
         flat
         dense>
@@ -53,25 +52,25 @@
           <div class="re-bind" v-show="selectedElementName">
             <span class="bind-item">Bind: </span>
             <v-btn depressed small v-if="!rebinding"
-                   color="secondary"
+                   color="primary"
                    @click="rebinding = 'element'"
-                   class="bind-item text--primary"
+                   class="bind-item text--white"
             >
               Element
             </v-btn>
             <v-btn depressed small v-if="!rebinding"
-                   color="secondary"
+                   color="light"
                    @click="rebinding = 'field'"
-                   class="bind-item text--primary"
+                   class="bind-item primary--text"
             >
               Feature
             </v-btn>
             <v-btn v-if="rebinding" depressed small
                    color="secondary"
                    @click="applyBindingChange"
-                   class="bind-item"
+                   class="bind-item primary--text"
             >
-              <span class="text--primary">Apply</span>
+              Apply
             </v-btn>
             <v-btn depressed small
                    v-show="rebinding"
@@ -94,6 +93,7 @@
                     :disabled="Boolean(rebinding)"
           >
             <span class="text--white" style="display: inline-block; width: 100px; margin-top: 4px" slot="prepend">
+              <!--TODO in new vuetify there is a 'label' slot to change the label-->
               Stroke Size:
             </span>
           </v-slider>
@@ -194,11 +194,21 @@ export default {
     ...mapActions({
       selectGlyphEl: 'glyph/selectGlyphEl',
       setPathParameter: 'glyph/setPathParameter',
-      setBindings: 'glyph/setBindings',
-      resetLayers: 'glyph/resetLayers',
-      changeDisplayedGlyphNum: 'app/changeDisplayedGlyphNum',
-      addDataBoundGlyphs: 'glyph/addDataBoundGlyphs'
+      redrawElement: 'glyph/redrawElement'
     }),
+    reset (newData) {
+      this.rebinding = newData.rebinding || false
+      this.selectedElementName = newData.selectedElementName || ''
+      this.selectedElement = newData.selectedElement || {
+        name: '',
+        properties: {}
+      }
+      this.selectedFieldName = newData.selectedFieldName || ''
+      this.currentGlyphId = newData.currentGlyphId || 0
+      this.selectedWidth = newData.selectedWidth || 1
+      this.colorPick = newData.colorPick || {hex: ''}
+      this.dialog = newData.dialog || false
+    },
     onSelectElementName () {
       // 0: find glyph element -> needed in order to check what parameters can be modified through element.properties
       this.selectGlyphEl({layer: this.selection.layer, path: this.selectedElementName})
@@ -238,59 +248,39 @@ export default {
     },
     applyBindingChange () { // handle change of field associated with element
       // Apply new field selection FIXME test this
-      let newBindings = []
+      let newBinding = {
+        element: this.selectedElementName,
+        field: this.selectedFieldName,
+        shape: this.selectedShapeName
+      }
       let oldField = ''
       let oldElement = ''
-      for (let binding of this.bindings) {
-        let newBinding = Object.assign({}, binding)
-        if (this.rebinding === 'element' &&
-                binding.shape === this.selectedShapeName &&
-                binding.field === this.selectedFieldName) {
-          oldElement = binding.element
-          newBinding.element = this.selectedElementName // modify field to selected one
-        } else if (this.rebinding === 'field' &&
-                binding.shape === this.selectedShapeName &&
-                binding.element === this.selectedElementName) {
-          oldField = binding.field
-          newBinding.field = this.selectedFieldName // modify field to selected one
-        }
-        newBindings.push(newBinding)
-      }
-      // this.resetLayers()
+      // for (let binding of this.bindings) {
+      //   if (this.rebinding === 'element' &&
+      //           binding.shape === this.selectedShapeName &&
+      //           binding.field === this.selectedFieldName) {
+      //     oldElement = binding.element
+      //     break
+      //   } else if (this.rebinding === 'field' &&
+      //           binding.shape === this.selectedShapeName &&
+      //           binding.element === this.selectedElementName) {
+      //     oldField = binding.field
+      //     break
+      //   }
+      // }
+      // redraw new element (bypasses glyph canvas, as there is no need for bounding rectangle information)
+      this.redrawElement(newBinding) // FIXME this will break for protrusions
       this.reset({
-        selectedElementName: this.selectedElementName,
-        selectedElement: this.selectedElement,
-        selectedField: this.selectedFieldName
+        selectedElementName: newBinding.element,
+        selectedField: newBinding.field
       }) // reset all except element name
-      this.setBindings(newBindings)
-      this.addDataBoundGlyphs()
-      const numDisplayedGlyphs = this.numDisplayedGlyphs
-      this.changeDisplayedGlyphNum(0)
-      setTimeout(function (numDisplayedGlyphs) {
-        this.changeDisplayedGlyphNum(numDisplayedGlyphs)
-        this.rebinding = false
-        this.onSelectElementName()
-        if (this.rebinding === 'field') {
-          console.log(`${this.selectedShapeName}.${this.selectedElementName} was bound to ${this.selectedFieldName} (previously bound to ${oldField})`)
-        } else {
-          console.log(`${this.selectedFieldName} was bound to ${this.selectedShapeName}.${this.selectedElementName} (previously bound to ${oldElement})`)
-        }
-      }.bind(this),
-      100, numDisplayedGlyphs) // can pass arg to callback
-      // FIXME glyph replacements are huge ??
-    },
-    reset (newData) {
-      this.rebinding = newData.rebinding || false
-      this.selectedElementName = newData.selectedElementName || ''
-      this.selectedElement = newData.selectedElement || {
-        name: '',
-        properties: {}
+      this.onSelectElementName() // find element to read properties and display controls
+      if (this.rebinding === 'field') {
+        console.log(`${this.selectedShapeName}.${this.selectedElementName} was bound to ${this.selectedFieldName} (previously bound to ${oldField})`)
+      } else {
+        console.log(`${this.selectedFieldName} was bound to ${this.selectedShapeName}.${this.selectedElementName} (previously bound to ${oldElement})`)
       }
-      this.selectedFieldName = newData.selectedFieldName || ''
-      this.currentGlyphId = newData.currentGlyphId || 0
-      this.selectedWidth = newData.selectedWidth || 1
-      this.colorPick = newData.colorPick || {hex: ''}
-      this.dialog = newData.dialog || false
+      this.rebinding = ''
     },
     moveShape () {
       console.log('to implement')

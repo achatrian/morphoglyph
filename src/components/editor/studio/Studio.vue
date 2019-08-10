@@ -17,6 +17,7 @@
     <!--studio applets go in here-->
     <!--turning off viz props when binder is showing (as multiple binding UIs would be confusing)-->
     <app-viz-props v-show="!glyphBinder"/>
+    <app-positioner/>
     <app-shape-canvas/>
   </div>
   </v-navigation-drawer>
@@ -28,6 +29,7 @@ import { mapState, mapActions } from 'vuex'
 //import Table from './Table'
 import VizProps from './VizProps'
 //import GlyphBind from './GlyphBind'
+import Positioner from './Positioner'
 import ShapeCanvas from './ShapeCanvas'
 
 export default {
@@ -35,6 +37,7 @@ export default {
   components: {
     //'app-table': Table,
     'app-viz-props': VizProps,
+    'app-positioner': Positioner,
     'app-shape-canvas': ShapeCanvas
   },
   computed: {

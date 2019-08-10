@@ -50,10 +50,27 @@ export default {
     commit('moveGlyph', payload)
   },
 
+  changeGlyphPosition: ({commit}, payload) => commit('changeGlyphPosition', payload),
+
   activateRedrawing: ({commit}) => {
     // function used to signal to canvas that glyphs need redrawing
     commit('setRedrawing', true)
     setTimeout(function () { commit('setRedrawing', false) }, 300)
+  },
+
+  redrawElement: ({rootState, commit}, newBinding) => {
+    const orderedData = [...rootState.backend.normalizedData]
+    orderedData.sort((dp0, dp1) => {
+      if (rootState.backend.fieldTypes[rootState.backend.namingField] === Number) {
+        return dp0[rootState.backend.namingField] - dp1[rootState.backend.namingField]
+      } else {
+        return dp0[rootState.backend.namingField].localeCompare(dp1[rootState.backend.namingField])
+      }
+    })
+    commit('redrawElement', {
+      binding: newBinding,
+      normalizedData: orderedData
+    })
   },
 
   setGlyphVisibility: ({commit}, payload) => commit('setGlyphVisibility', payload),

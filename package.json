@@ -22,7 +22,8 @@
     "vue-virtual-scroller": "^1.0.0-rc.2",
     "vuetify": "^1.5.16",
     "vuetify-upload-button": "^2.0.2",
-    "vuex": "^3.0.1"
+    "vuex": "^3.0.1",
+    "double-ended-queue": "latest"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^3.9.0",
