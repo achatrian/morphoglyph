@@ -83,8 +83,8 @@ class CellGlyph extends ShapeGlyph {
     nucleus.draw(options)
     const shiftToMainCenter = this.box.shapePositions.topShift + this.box.shapePositions.heightProportion / 2 -
         nucleus.box.shapePositions.heightProportion / 2 - nucleus.box.shapePositions.topShift
-    nucleus.box.shift(0.0, shiftToMainCenter)
-    nucleus.fitToBox()
+    nucleus.box.shift(null, shiftToMainCenter, {setValues: false, drawing: true, scale: false, children: false})
+    nucleus.fitToBox('glyph')
     this.registerChild(nucleus)
   }
 }

@@ -1,6 +1,6 @@
 <template>
   <div class="move-resize-commands">
-  <v-slider label="X" min="0" max="1" step="0.05" v-model="leftShift" class="control-item"
+    <v-slider label="X" min="0" max="1" step="0.05" v-model="leftShift" class="control-item position-slider"
             @change="planLeftShift">
     <template v-slot:append>
       <v-text-field
@@ -12,7 +12,7 @@
       ></v-text-field>
     </template>
   </v-slider>
-  <v-slider label="Y" min="0" max="1" step="0.05" v-model="topShift" class="control-item"
+  <v-slider label="Y" min="0" max="1" step="0.05" v-model="topShift" class="control-item position-slider"
             @change="planTopShift">
     <template v-slot:append>
       <v-text-field
@@ -24,7 +24,7 @@
       ></v-text-field>
     </template>
   </v-slider>
-  <v-slider label="W" min="0" max="1" step="0.05" v-model="widthProportion" class="control-item"
+  <v-slider label="W" min="0" max="1" step="0.05" v-model="widthProportion" class="control-item position-slider"
             @change="planWidthResize">
     <template v-slot:append>
       <v-text-field
@@ -36,7 +36,7 @@
       ></v-text-field>
     </template>
   </v-slider>
-  <v-slider label="H" min="0" max="1" step="0.05" v-model="heightProportion" class="control-item"
+  <v-slider label="H" min="0" max="1" step="0.05" v-model="heightProportion" class="control-item position-slider"
             @change="planHeightResize">
     <template v-slot:append>
       <v-text-field
@@ -48,14 +48,17 @@
       ></v-text-field>
     </template>
   </v-slider>
-  <v-btn class="light primary--text" @click="planCentering">
-    Center
-  </v-btn>
+  <div class="move-resize-commands move-options">
+    <v-btn class="control-item light primary--text" @click="planCentering">
+      Center
+    </v-btn>
+    <v-checkbox class="control-item" label="Children" color="secondary" v-model="changeChildren"/>
+  </div>
 </div>
 </template>
 
 <script>
-import {mapActions} from 'vuex'
+import {mapState, mapActions, mapGetters} from 'vuex'
 import debounce from 'debounce'
 import Deque from 'double-ended-queue'
 
@@ -70,7 +73,59 @@ export default {
       topShift: 0.0,
       widthProportion: 1.0,
       heightProportion: 1.0,
-      steps: new Deque(10)
+      steps: new Deque(10),
+      changeChildren: false,
+      originalShapePositions: []
+    }
+  },
+  computed: {
+    ...mapState({
+      glyphs: state => state.glyph.project.glyphs
+    }),
+    ...mapGetters({
+      totalGlyphNum: 'glyph/totalGlyphNum'
+    }),
+    meanShapeBounds () {
+      const leftShiftSum = this.glyphs.reduce((total, nextGlyph) => {
+        if (nextGlyph.drawn && nextGlyph.box) {
+          const shift = (nextGlyph.box.bounds.x - nextGlyph.box.drawingBounds.x) / nextGlyph.box.drawingBounds.width
+          return total + shift
+        } else {
+          return total
+        }
+      }, 0.0)
+      const topShiftSum = this.glyphs.reduce((total, nextGlyph) => {
+        if (nextGlyph.drawn && nextGlyph.box) {
+          const shift = (nextGlyph.box.bounds.y - nextGlyph.box.drawingBounds.y) / nextGlyph.box.drawingBounds.height
+          return total + shift
+        } else {
+          return total
+        }
+      }, 0.0)
+      const widthProportionSum = this.glyphs.reduce((total, nextGlyph) => {
+        if (nextGlyph.drawn && nextGlyph.box) {
+          const proportion = nextGlyph.box.bounds.width / nextGlyph.box.drawingBounds.width
+          return total + proportion
+        } else {
+          return total
+        }
+      }, 1.0)
+      const heightProportionSum = this.glyphs.reduce((total, nextGlyph) => {
+        if (nextGlyph.drawn && nextGlyph.box) {
+          const proportion = nextGlyph.box.bounds.height / nextGlyph.box.drawingBounds.height
+          return total + proportion
+        } else {
+          return total
+        }
+      }, 1.0)
+      const numDrawn = this.glyphs.reduce(
+              (total, nextGlyph) => total + Number(nextGlyph.drawn && Boolean(nextGlyph.box)), 1)
+      return {
+        leftShift: leftShiftSum / numDrawn,
+        topShift : topShiftSum / numDrawn,
+        widthProportion: widthProportionSum / numDrawn,
+        heightProportion: heightProportionSum / numDrawn
+      }
     }
   },
   methods: {
@@ -108,19 +163,44 @@ export default {
     }, 400),
     planCentering: debounce.call(this, function () {
       this.steps.push({
-        transform: 'center',
+        transform: 'toCenter',
         parameters: [true, true, {setValues: true, center: false, children: false}]
       })
       this.applySteps()
+      this.leftShift = 0.0
+      this.topShift = 0.0
     }, 400),
     applySteps: debounce.call(this, function () { // once steps are sent to glyphs, they are cleared up
       this.changeGlyphPosition({
         steps: this.steps.toArray(),
         shapeSelector: this.shapeName,
-        children: false
+        children: this.changeChildren
       })
       this.steps.clear()
     }, 600),
+  },
+  watch: {
+    meanShapeBounds: debounce.call(this, function () {
+      this.leftShift = this.meanShapeBounds.leftShift
+      this.topShift = this.meanShapeBounds.topShift
+      this.widthProportion = this.meanShapeBounds.widthProportion
+      this.heightProportion = this.meanShapeBounds.heightProportion
+    }, 1000),
+    glyphs () {
+      // TODO check in template if any new child glyphs were added ?
+      if (this.glyphs.length > 0 && this.originalShapePositions.length === 0) {
+        let originalShapePositions = []
+        for (let layerGlyph of this.glyphs) {
+          let layerPositions = {}
+          for (let glyph of [...layerGlyph.iter()]) {
+            layerPositions[glyph.name] = Object.assign({}, glyph.box.shapePositions)
+          }
+          originalShapePositions.push(layerPositions)
+        }
+      } else if (this.glyphs === 0 && this.originalShapePositions.length > 0) {
+
+      }
+    }
   }
 }
 </script>
@@ -128,14 +208,17 @@ export default {
 <style scoped>
   .move-resize-commands{
     display: flex;
-    justify-content: space-evenly;
+    justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
     margin: auto;
   }
 
-  .control-item{
+  .position-slider{
     padding: 0 0 0 10px;
+  }
+
+  .control-item{
     max-width: 150px;
   }
 
@@ -143,5 +226,10 @@ export default {
     margin: 0 5px 10px 5px;
     width: 40px;
     font-size: 12px
+  }
+
+  .move-options{
+    justify-content: space-around;
+    flex-wrap: nowrap;
   }
 </style>

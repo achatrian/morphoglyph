@@ -26,7 +26,7 @@ class DrawingBox {
         if (applyTransforms) {
             this.applyTransforms(history) // also stories history
         }
-        if (history.length > 0) { // TODO test
+        if (history.length > 0) {
             this.history = history
         }
         this.drawingTransforms = this.history.filter(step => step.parameters[2].drawing)
@@ -80,6 +80,22 @@ class DrawingBox {
             y: this.bounds.top + this.bounds.height / 2
         }
         this.shapePositions = positions
+    }
+
+    registerTransform (transformName, parameters = [], drawing = false) { // TODO test
+        if (parameters.length !== 3) {
+            throw Error('Transforms take 3 parameters')
+        }
+        this.history.push({
+            transform: transformName,
+            parameters: parameters
+        })
+        if (drawing) {
+            this.drawingTransforms.push({
+                transform: transformName,
+                parameters: parameters
+            })
+        }
     }
 
     applyTransforms(history) { // applies all transforms in a given history (own history is updated by transforms)
@@ -157,16 +173,7 @@ class DrawingBox {
         }
         this.applyPositioning(positions) // bounds for this glyph
         // record transformation that occured on box
-        this.history.push({
-            transform: 'resize',
-            parameters: [widthProportion, heightProportion, options]
-        })
-        if (drawing) {
-            this.drawingTransforms.push({
-                transform: 'resize',
-                parameters: [widthProportion, heightProportion, options]
-            })
-        }
+        this.registerTransform('resize', [widthProportion, heightProportion, options], drawing)
         // re-applies drawing transforms in case a modification occurred
         if (setValues) {
             let selector = ''
@@ -217,16 +224,7 @@ class DrawingBox {
                 this.shapePositions.heightProportion * (1 - topShift) : this.shapePositions.heightProportion,
         }
         this.applyPositioning(positions)
-        this.history.push({
-            transform: 'shift',
-            parameters: [leftShift, topShift, options]
-        })
-        if (drawing) {
-            this.drawingTransforms.push({
-                transform: 'shift',
-                parameters: [leftShift, topShift, options]
-            })
-        }
+        this.registerTransform('shift', [leftShift, topShift, options], drawing)
         // re-applies drawing transforms in case a modification occurred
         if (setValues) {
             let selector = ''
@@ -242,6 +240,19 @@ class DrawingBox {
                 childBox.shift(leftShift, topShift, options)
             }
         }
+    }
+
+    toCenter (left = true, top = true, options = {drawing: false}) {
+        const {drawing} = options
+        const positions = {
+            leftShift: left ? (1 - this.shapePositions.widthProportion) / 2 : this.shapePositions.leftShift,
+            topShift: top ? (1 - this.shapePositions.heightProportion) / 2 : this.shapePositions.topShift,
+            widthProportion: this.shapePositions.widthProportion,
+            heightProportion: this.shapePositions.heightProportion,
+        }
+        this.applyPositioning(positions)
+        this.applyDrawingTransforms('shift') // applies any required drawing shifts after centering
+        this.registerTransform('center', [left, top, options], drawing)
     }
 }
 

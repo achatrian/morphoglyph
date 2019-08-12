@@ -234,17 +234,37 @@ export default {
     state.activeLayer = glyph.layer // activate layer corresponding to glyph
     glyph.activateLayer()
     glyph.updateDrawingBounds(boundingRect, true)
-    glyph.fitToBox(true)
+    setTimeout(glyph.fitToBox('layer'))
   },
 
   changeGlyphPosition: (state, {steps, shapeSelector = '', children = false}) => {
     for (let glyph of state.project.glyphs) {
       let targetGlyph = glyph
       if (shapeSelector) {
-         targetGlyph = [...glyph.iter()].find(glyph.name === shapeSelector)
+         targetGlyph = [...glyph.iter()].find(glyph => glyph.name === shapeSelector)
+      }
+      if (children) { // must use initial glyph position
+        for (let childGlyph of targetGlyph.children) {
+          // make child steps relative to parent glyph
+          let childSteps = steps.map(step => {
+            let childStep = JSON.parse(JSON.stringify(step)) // deep copy
+            if (childStep.transform === 'shift' && childStep.parameters[2].setValues) {
+              if (childStep.parameters[0] !== null) {
+                childStep.parameters[0] += childGlyph.box.shapePositions.leftShift -
+                    targetGlyph.box.shapePositions.leftShift
+              }
+              if (childStep.parameters[1] !== null) {
+                childStep.parameters[1] += childGlyph.box.shapePositions.topShift -
+                    targetGlyph.box.shapePositions.topShift
+              }
+              return childStep
+            }
+          })
+          childGlyph.box.applyTransforms(childSteps)
+        }
       }
       targetGlyph.box.applyTransforms(steps)
-      targetGlyph.fitToBox(children)
+      targetGlyph.fitToBox(children ? 'all' : 'glyph')
     }
   },
 

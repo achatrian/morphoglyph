@@ -16,8 +16,9 @@
   <div class="pointers-please studioPanel elevation-1">
     <!--studio applets go in here-->
     <!--turning off viz props when binder is showing (as multiple binding UIs would be confusing)-->
-    <app-viz-props v-show="!glyphBinder"/>
-    <app-positioner/>
+    <app-viz-props v-show="!glyphBinder" :shapeName.sync="shapeName"/>
+    <span class="app-title light--text subheading ">Glyph position:</span>
+    <app-positioner :shape-name="shapeName"/>
     <app-shape-canvas/>
   </div>
   </v-navigation-drawer>
@@ -34,6 +35,11 @@ import ShapeCanvas from './ShapeCanvas'
 
 export default {
   name: 'Studio',
+  data () {
+    return {
+      shapeName: '' // shape name to pass from viz-props into positioner
+    }
+  },
   components: {
     //'app-table': Table,
     'app-viz-props': VizProps,
@@ -63,5 +69,10 @@ export default {
     /*background: #EDE7F6;*/
     height: 100%;
     overflow: auto;
+  }
+
+  .app-title{
+    display: block;
+    margin-left: 5%;
   }
 </style>

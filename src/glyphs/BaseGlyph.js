@@ -234,7 +234,7 @@ class BaseGlyph {
     return this.mainPath
   }
 
-  getNamedItems (includeChildren = true) {
+  getNamedItems (searchChildren = true) {
     // object with keys referencing path objects in layer
     // does not return drawing box
     let items = {}
@@ -244,9 +244,9 @@ class BaseGlyph {
         continue // no item to return for scale-type elements
       }
       let targetGlyph
-      if (element.target === this.name) {
+      if (element.target === 'main' || element.target === this.name) {
         targetGlyph = this
-      } else if (includeChildren) {
+      } else if (searchChildren) {
         targetGlyph = this.children.find(glyph => glyph.name === element.target)
       } else {
         continue // only get here if includeChildren is false
@@ -311,25 +311,81 @@ class BaseGlyph {
     }
   }
 
-  fitToBox (children = false) {
+  checkBoxUpdate (threshold = 0.1) {
+    // Check whether drawing bounds have change, in which case the change is applied with reference to the drawing box
+    let updated = {box: false, main: false}
+    let drawingBox
+    try {
+      drawingBox = this.getItem('drawingBox')
+    } catch (e) {
+      return updated
+    }
+    if (this.drawn && (
+        Math.abs(this.box.drawingBounds.x - drawingBox.bounds.x) > threshold ||
+        Math.abs(this.box.drawingBounds.y - drawingBox.bounds.y) > threshold ||
+        Math.abs(this.box.drawingBounds.width -  drawingBox.bounds.width) > threshold ||
+        Math.abs(this.box.drawingBounds.height - drawingBox.bounds.height) > threshold
+    )) {
+      updated.box = true
+    }
+    const mainPath = this.mainPath
+    // same, but w.r. to the main path
+    if (this.drawn && (
+        Math.abs(this.box.bounds.x - mainPath.bounds.x) > threshold ||
+        Math.abs(this.box.bounds.y - mainPath.bounds.y) > threshold ||
+        Math.abs(this.box.bounds.width -  mainPath.bounds.width) > threshold ||
+        Math.abs(this.box.bounds.height - mainPath.bounds.height) > threshold
+    )) {
+      updated.main = true
+    }
+    return updated
+  }
+
+  fitToBox (selector = 'glyph') {
+    /*
+      selector === 'layer': update drawing box and all glyphs
+      selector ===  'glyph': only update glyph group (main + elements)
+      selector === 'all' : update glyph and children
+    */
     let group
-    if (children) {
+    if (selector === 'layer') {
       group = paper.project.layers[this.layer]
-    } else {
+    } else if (selector === 'glyph' || selector === 'all') {
       group = this.group
     }
     // for transforms applied before element drawing: if group is empty target the main path
     if (group.children.length === 0) {
       group = this.mainPath
     }
-    group.translate(new paper.Point(
-        this.box.bounds.x - this.mainPath.bounds.x,
-        this.box.bounds.y - this.mainPath.bounds.y
-    ))
-    group.scale(
-        this.box.bounds.width / this.mainPath.bounds.width,
-        this.box.bounds.height / this.mainPath.bounds.height
-    )
+    const updated = this.checkBoxUpdate()
+    if (selector === 'layer' && updated.box) {
+      const drawingBox = this.getItem('drawingBox')
+      group.translate(new paper.Point(
+          this.box.drawingBounds.x - drawingBox.bounds.x,
+          this.box.drawingBounds.y - drawingBox.bounds.y
+      ))
+      group.scale(
+          this.box.drawingBounds.width /  drawingBox.bounds.width,
+          this.box.drawingBounds.height /  drawingBox.bounds.height
+      )
+    } else if (updated.main) {
+      const mainPath = this.mainPath
+      group.translate(new paper.Point(
+          this.box.bounds.x - mainPath.bounds.x,
+          this.box.bounds.y - mainPath.bounds.y
+      ))
+      group.scale(
+          this.box.bounds.width / mainPath.bounds.width,
+          this.box.bounds.height / mainPath.bounds.height
+      )
+    } else {
+      console.warn('fitToBox did not update any path')
+    }
+    if (selector === 'all') {
+      for (let glyph of this.children) {
+        glyph.fitToBox('glyph')
+      }
+    }
   }
 
   reset () { // reset box to null and delete all paperjs items associated with glyph

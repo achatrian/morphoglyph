@@ -9,6 +9,11 @@ import {debounce} from 'debounce'
 
 export default {
   name: 'GlyphCanvas',
+  data () {
+    return {
+      intervalRef: null
+    }
+  },
   computed: {
     ...mapState({
       boundingRects: state => state.app.boundingRects,
@@ -16,7 +21,9 @@ export default {
       orderedNormalizedData: state => state.backend.orderedNormalizedData,
       glyphs: state => state.glyph.project.glyphs,
       currentPage: state => state.app.currentPage,
-      redrawing: state => state.glyph.redrawing
+      redrawing: state => state.glyph.redrawing,
+      glyphBinder: state => state.app.glyphBinder,
+      glyphAdder: state => state.app.glyphAdder
     }),
     glyphScope () {
       for (let i = 0; i < 3; i++) {
@@ -91,7 +98,7 @@ export default {
           if (numMoved > 0) { console.log(`${numMoved} glyphs were moved`) }
         }
       },
-      450
+      800
     ), // debouncing to speed up application -- don't need to move glyphs at every resize event
     // function to forcefully redraw glyphs on command
     redrawGlyphs () {
@@ -122,6 +129,32 @@ export default {
       for (let glyph of this.glyphs) {
         glyph.getItem('drawingBox').visible = true
       }
+    },
+    // check whether glyphs drawing rects and app bounding rects do not match
+    glyphsNeedUpdate () {
+      return this.glyphs.some(glyph => {
+      const update = glyph.checkBoxUpdate()
+      return update.box
+    })
+    },
+    setAutomaticBoxFit (on) {
+      if (on && !(this.intervalRef)) {
+        console.log('Turning automatic box fit on')
+        this.intervalRef = setInterval(
+          function (canvasComponent) {
+            if (canvasComponent.glyphsNeedUpdate()) {
+              console.log('automatic box-to-glyph fit')
+              canvasComponent.placeGlyphs()
+            }
+          },
+          3000,
+          this
+        )
+      } else {
+        console.log('Turning automatic box fit off')
+        clearInterval(this.intervalRef)
+        this.intervalRef = null
+      }
     }
   },
   watch: {
@@ -149,6 +182,13 @@ export default {
         this.$emit('update:drawing', true)
         this.redrawGlyphs()
       }
+    },
+    // turn off automatic box fitting when full screen cards are activated
+    glyphBinder () {
+      this.setAutomaticBoxFit(!(this.glyphBinder || this.glyphAdder))
+    },
+    glyphAdder () {
+      this.setAutomaticBoxFit(!(this.glyphBinder || this.glyphAdder))
     }
   },
   mounted () {
@@ -162,6 +202,15 @@ export default {
     paper.activate()
     this.setLayersUp() // setting up all the needed layers
     this.resizeCanvasToView() // fit canvas to dimensions
+    // ensure that glyphs are fitted to boxes all the time
+    // this.setAutomaticBoxFit(true)
+   this.setAutomaticBoxFit(true)
+  },
+  // to help debugging, whenever canvas is re-rendered, redraw glyphs
+  updated () {
+    this.$emit('update:drawing', true)
+    this.updateGlyphArrangement()
+    this.redrawGlyphs()
   }
 }
 </script>

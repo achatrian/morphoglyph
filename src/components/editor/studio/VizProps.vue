@@ -13,6 +13,7 @@
             label="Glyph Shape"
             v-model="selectedShapeName"
             :disabled="Boolean(rebinding)"
+            @change="$emit('update:shapeName', selectedShapeName)"
           />
         </div>
       </v-toolbar>
