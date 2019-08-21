@@ -105,7 +105,8 @@ export default {
     commit('setChartPoints', payload)
     commit('setGlyphArrangement', 'chart')
     commit('updateGlyphArrangement')
-    setTimeout(() => dispatch('glyph/addShrinkRegrowAnimation', null, {root: true}), 2000)
+    // need all glyphs to be in chart position before they're downscaled
+    setTimeout(() => dispatch('glyph/addShrinkRegrowAnimation', null, {root: true}), 1000)
   },
 
   destroyChart: ({commit}) => {

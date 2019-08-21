@@ -76,6 +76,7 @@ class BaseGlyph {
   children = [] // array storing children glyphs
   box = null
   drawOptions = {} // in BaseGlyph().draw() drawing options for glyphs are stored here
+  animations = new Set() // stores animations that were added to glyph
 
   static get type () {
     return 'BaseGlyph'
@@ -452,7 +453,8 @@ class BaseGlyph {
     for (let childGroup of childrenGroups) {
       childGroup.scale(scaleFactor)
     }
-    // can responsiveness be improved through hit-testing?
+    // TODO can responsiveness be improved through hit-testing?
+    // TODO can scale change be achieved gradually through tween() ?
     group.on({
       mouseenter: debounce.call(this, function () {
         if (!this.data.shrunk) {
@@ -473,9 +475,13 @@ class BaseGlyph {
         }
       }, 400)
     })
+    this.animations.add('shrink-regrow')
   }
 
-  removeShrinkRegrow () {}
+  removeShrinkRegrow () {
+    this.group.off('mouseenter').off('mouseleave')
+    this.animations.delete('shrink-regrow')
+  }
 }
 
 export default BaseGlyph

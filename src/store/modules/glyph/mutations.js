@@ -416,5 +416,13 @@ export default {
         state.project.glyphs[i].addShrinkRegrow(0.4)
       }
     }
+  },
+
+  removeShrinkRegrowAnimation: (state) => {
+    for (let glyph of state.project.glyphs) {
+      if (glyph.animations.has('shrink-regrow')) {
+        glyph.removeShrinkRegrow()
+      }
+    }
   }
 }
