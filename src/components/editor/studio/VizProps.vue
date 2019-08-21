@@ -1,6 +1,7 @@
 <template>
   <div>
     <v-card class="panel" flat>
+      <v-divider/>
       <!--Replace toolbar with flexbox ? -->
       <v-toolbar
         color="dark"
@@ -8,7 +9,7 @@
         dense>
         <div class="select-title">
           <v-select
-            :items="[glyphShapes.main].concat(glyphShapes.children)"
+            :items="Array.from(glyphNames)"
             dense
             label="Glyph Shape"
             v-model="selectedShapeName"
@@ -129,12 +130,13 @@
           <!--<app-positioner shape-name="selectedShapeName"/>-->
         </v-list-tile>
       </v-list>
+      <v-divider/>
     </v-card>
   </div>
 </template>
 
 <script>
-import {mapState, mapActions} from 'vuex'
+import {mapState, mapActions, mapGetters} from 'vuex'
 import { Chrome } from 'vue-color'
 // import Positioner from './Positioner'
 // must make this work even in the case of multiple glyphs that have elements
@@ -175,6 +177,9 @@ export default {
       dataFields: state => state.backend.dataFields,
       fieldTypes: state => state.backend.fieldTypes,
       numDisplayedGlyphs: state => state.app.numDisplayedGlyphs
+    }),
+    ...mapGetters({
+      glyphNames: 'glyph/glyphNames'
     }),
     shapeElements () {
       if (this.glyphs.length === 0 || !this.selectedShapeName) {
@@ -282,15 +287,13 @@ export default {
         console.log(`${this.selectedFieldName} was bound to ${this.selectedShapeName}.${this.selectedElementName} (previously bound to ${oldElement})`)
       }
       this.rebinding = ''
-    },
-    moveShape () {
-      console.log('to implement')
     }
   },
   watch: {
-    glyphShapes () {
-      if (this.glyphShapes.children.length === 0) {
-        this.selectedShapeName = this.glyphShapes.main
+    glyphNames () {
+      if (this.glyphs.length > 0) {
+        this.selectedShapeName = this.glyphs[0].name
+        this.$emit('update:shapeName', this.selectedShapeName)
       }
     },
     selectedWidth () {

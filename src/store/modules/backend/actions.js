@@ -64,7 +64,7 @@ export default {
     dispatch('glyph/activateRedrawing', {}, {root: true})
   },
 
-  async getArrayOfTemplates ({commit}) {
+  async getArrayOfTemplates ({commit}) { // TODO finish / unused
     try {
       await axios.post(location.origin + '/checkForTemplates')
       const pathToArrayOfTemplatesFile = location.origin + '/data/templates.json'

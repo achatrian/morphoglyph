@@ -18,6 +18,7 @@ const state = {
   canvas: true,
   shapeCanvas: false,
   welcomeCard: true,
+  chartController: false,
   // view props
   maxDisplayedGlyphs: 20,
   numDisplayedGlyphs: 0,
@@ -26,7 +27,13 @@ const state = {
   glyphArrangement: 'grid', // determines how glyphs are arranged spatially on the canvas
   numPages: 0,
   currentPage: 1,
-  editorBox: {id: '', boundingRect: {top: 0, left: 0, width: 0, height: 0}}
+  editorBox: {id: '', boundingRect: {top: 0, left: 0, width: 0, height: 0}},
+  // charts
+  axesPoints: null,
+  chart: false,
+  chartXField: '',
+  chartYField: '',
+  chartPoints: []
 }
 
 export default {

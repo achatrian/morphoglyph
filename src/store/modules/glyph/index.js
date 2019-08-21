@@ -15,7 +15,7 @@ const state = {
     name: 'A new phew project',
     bindings: [], // stores features -> marker bindings
     glyphs: [], // stores the glyph objects
-    template: {}
+    template: {} // FIXME unused
   },
   activeLayer: null,
   selection: {layer: 0, path: ''}, // TODO this is for selecting glyph element by clicking -- not well integrated
@@ -25,7 +25,7 @@ const state = {
   selectedGlyphSetting: '',
   redrawing: false, // flag used to signal glyph canvas to redraw glyphs (canvas has access to bounding boxes)
   // Shape appearance parameters
-  shapePositions: {},
+  shapePositions: {}, // TODO used ?
   shapeJSON: ''
 }
 

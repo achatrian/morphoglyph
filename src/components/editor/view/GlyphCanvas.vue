@@ -23,7 +23,8 @@ export default {
       currentPage: state => state.app.currentPage,
       redrawing: state => state.glyph.redrawing,
       glyphBinder: state => state.app.glyphBinder,
-      glyphAdder: state => state.app.glyphAdder
+      glyphAdder: state => state.app.glyphAdder,
+      chart: state => state.app.chart
     }),
     glyphScope () {
       for (let i = 0; i < 3; i++) {
@@ -42,7 +43,8 @@ export default {
       drawGlyph: 'glyph/drawGlyph',
       moveGlyph: 'glyph/moveGlyph',
       resetGlyph: 'glyph/resetGlyph',
-      addCaption: 'glyph/addCaption'
+      addCaption: 'glyph/addCaption',
+      drawChart: 'app/drawChart'
     }),
     resizeCanvasToView () {
       let view = document.getElementById('view')
@@ -50,6 +52,10 @@ export default {
         paper.view.viewSize.width = view.offsetWidth // avoid using DOM API if possible
         paper.view.viewSize.height = view.offsetHeight
         console.log('Canvas resized')
+      }
+      // TODO fix method name to include chart functionality
+      if (this.chart) {
+        this.drawChart()
       }
     },
     // automatically called function that keeps the view populated with glyphs when bounding rectangles change
@@ -160,8 +166,10 @@ export default {
   watch: {
     numDisplayedGlyphs () {
       // in fluid view, each time number of glyphs changes, whole grid is redrawn
-      this.$emit('update:drawing', true)
       this.updateGlyphArrangement()
+      if (this.boundingRects.length > 0) {
+        this.$emit('update:drawing', true)
+      }
       this.redrawGlyphs()
     },
     boundingRects: {

@@ -19,18 +19,12 @@
 </template>
 
 <script>
-import {mapState, mapActions} from 'vuex'
+import {mapActions} from 'vuex'
 
 export default {
   name: 'addChild',
   props: {
     color: {type: String, default: 'white'}
-  },
-  computed: {
-    ...mapState({
-      glyphBinder: state => state.app.glyphBinder,
-      welcomeCard: state => state.app.welcomeCard
-    })
   },
   methods: {
     ...mapActions({

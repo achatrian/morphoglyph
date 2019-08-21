@@ -140,8 +140,8 @@ class DrawingBox {
     }
 
     resize (widthProportion = 1.0, heightProportion = 1.0,
-            options = {setValues: false, drawing: false, center: false, children: false}) {
-        const {center, children, setValues, drawing} = options
+            options = {setValues: false, drawing: false, center: false, children: false, redraw: false}) {
+        const {center, children, setValues, drawing, redraw} = options
         let newWidthProportion, newHeightProportion
         if (widthProportion == null) {
             newWidthProportion = this.shapePositions.widthProportion // if null, keep old value
@@ -175,7 +175,7 @@ class DrawingBox {
         // record transformation that occured on box
         this.registerTransform('resize', [widthProportion, heightProportion, options], drawing)
         // re-applies drawing transforms in case a modification occurred
-        if (setValues) {
+        if (redraw) {
             let selector = ''
             if (heightProportion == null) {
                 selector = 'resizeWidth'
@@ -198,8 +198,8 @@ class DrawingBox {
     }
 
     shift (leftShift = 0.0, topShift = 0.0,
-           options = {setValues: false, drawing: false, scale: false, children: false}) {
-        const {scale, children, setValues, drawing} = options
+           options = {setValues: false, drawing: false, scale: false, children: false, redraw: false}) {
+        const {scale, children, setValues, drawing, redraw} = options
         let newLeftShift, newTopShift
         if (leftShift == null) {
             newLeftShift = this.shapePositions.leftShift // if null, keep old value
@@ -226,7 +226,7 @@ class DrawingBox {
         this.applyPositioning(positions)
         this.registerTransform('shift', [leftShift, topShift, options], drawing)
         // re-applies drawing transforms in case a modification occurred
-        if (setValues) {
+        if (redraw) {
             let selector = ''
             if (topShift == null) {
                 selector = 'shiftLeft'

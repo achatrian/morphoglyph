@@ -16,7 +16,9 @@ const state = {
   loadedBindingData: {date: '', fileName: '', glyphType: '', namingField: '', bindings: []},
   dataDisplayOrder: [],
   orderField: 'file entries',
-  availableTemplates: [] // stores templates found in /data dir TODO integrate
+  availableTemplates: [], // stores templates found in /data dir TODO integrate
+  chartPointPositions: [],
+  chart: null
 }
 
 export default {

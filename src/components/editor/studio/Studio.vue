@@ -17,8 +17,8 @@
     <!--studio applets go in here-->
     <!--turning off viz props when binder is showing (as multiple binding UIs would be confusing)-->
     <app-viz-props v-show="!glyphBinder" :shapeName.sync="shapeName"/>
-    <span class="app-title light--text subheading ">Glyph position:</span>
     <app-positioner :shape-name="shapeName"/>
+    <app-chart-controller/>
     <app-shape-canvas/>
   </div>
   </v-navigation-drawer>
@@ -32,6 +32,7 @@ import VizProps from './VizProps'
 //import GlyphBind from './GlyphBind'
 import Positioner from './Positioner'
 import ShapeCanvas from './ShapeCanvas'
+import ChartController from './ChartController'
 
 export default {
   name: 'Studio',
@@ -44,7 +45,8 @@ export default {
     //'app-table': Table,
     'app-viz-props': VizProps,
     'app-positioner': Positioner,
-    'app-shape-canvas': ShapeCanvas
+    'app-shape-canvas': ShapeCanvas,
+    'app-chart-controller': ChartController
   },
   computed: {
     ...mapState({
@@ -69,10 +71,5 @@ export default {
     /*background: #EDE7F6;*/
     height: 100%;
     overflow: auto;
-  }
-
-  .app-title{
-    display: block;
-    margin-left: 5%;
   }
 </style>

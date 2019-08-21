@@ -17,6 +17,7 @@
       <app-bind/>
       <app-add-child/>
       <app-remove/>
+      <app-chart/>
     </v-list>
   </v-navigation-drawer>
 </template>
@@ -26,13 +27,15 @@ import {mapState, mapActions} from 'vuex'
 import Bind from './Bind'
 import AddChild from './AddChild'
 import Remove from './Remove'
+import Chart from './Chart'
 
 export default {
   name: 'Tools',
   components: {
     'app-bind': Bind,
     'app-add-child': AddChild,
-    'app-remove': Remove
+    'app-remove': Remove,
+    'app-chart': Chart
   },
   computed: {
     ...mapState({

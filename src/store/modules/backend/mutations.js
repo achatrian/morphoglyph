@@ -1,5 +1,6 @@
 const parse = require('csv-parse/lib/sync') // synchronous version of package
 
+
 export default {
   updateData: (state, data) => {
     // Read in csv file

@@ -54,6 +54,8 @@ export default {
 
   setWelcomeCardState: ({commit}, payload) => commit('setWelcomeCardState', payload),
 
+  setChartControllerState: ({commit}, payload) => commit('setChartControllerState', payload),
+
   dismissSnackbar: ({commit}) => commit('dismissSnackbar'),
 
   activateSnackbar: ({commit}, payload) => commit('activateSnackbar', payload),
@@ -67,5 +69,48 @@ export default {
 
   setEditorBox: ({commit}, editorBox) => commit('setEditorBox', editorBox),
 
-  setBoundingRectSizeFactor: ({commit}, sizeFactor) => commit('setBoundingRectSizeFactor', sizeFactor)
+  setBoundingRectSizeFactor: ({commit}, sizeFactor) => commit('setBoundingRectSizeFactor', sizeFactor),
+
+  // drawChart: ({rootState, state: app, dispatch, commit}, payload) => {
+  //   if (window.chart) {
+  //     dispatch('destroyChart')
+  //   }
+  //   const backend = rootState.backend
+  //   // order data ...
+  //   const orderedData = [...backend.normalizedData]
+  //   payload.orderedData = orderedData.sort((dataPoint0, dataPoint1) =>
+  //       backend.dataDisplayOrder.indexOf(dataPoint0[backend.orderField]) -
+  //       backend.dataDisplayOrder.indexOf(dataPoint1[backend.orderField])
+  //   )
+  //   // remove undisplayed data points (this allows user to plot less points)
+  //   // if no glyphs are displayed, chart is plotted without glyphs
+  //   if (app.numDisplayedGlyphs !== 0) {
+  //     orderedData.splice(app.numDisplayedGlyphs, orderedData.length - app.numDisplayedGlyphs)
+  //   }
+  //   commit('drawChart', payload)
+  //   commit('setGlyphArrangement', 'chart')
+  //   commit('updateGlyphArrangement')
+  // },
+
+  setChartState: ({commit}, payload) => commit('setChartState', payload),
+
+  drawChart: ({rootState, state, dispatch, commit}, payload = { // defaults are for redrawing chart on resize of canvas component
+    xField: state.chartXField,
+    yField: state.chartYField
+  }) => {
+    dispatch('destroyChart')
+    commit('setChartState', true)
+    commit('drawAxes') // must happen before setChartPoints
+    payload.backend = rootState.backend
+    commit('setChartPoints', payload)
+    commit('setGlyphArrangement', 'chart')
+    commit('updateGlyphArrangement')
+  },
+
+  destroyChart: ({commit}) => {
+    commit('setChartState', false)
+    commit('destroyAxes')
+  },
+
+  setChartPoints: ({commit}, chartMetaData) => commit('setChartPoints', chartMetaData)
 }

@@ -1,4 +1,5 @@
 import paper from 'paper'
+import drawAxes from "./helpers/drawAxes";
 
 export default {
   changeDisplayedGlyphMax: (state, maxDisplayedGlyphs) => {
@@ -68,13 +69,17 @@ export default {
 
   setWelcomeCardState: (state, payload) => state.welcomeCard = payload,
 
+  setChartControllerState: (state, payload) => state.chartController = payload,
+
   setGlyphArrangement: (state, glyphArrangement) => state.glyphArrangement = glyphArrangement,
 
   updateGlyphArrangement (state) {
     /* arrange glyphs onto the canvas by defining bounding rectangles */
     // !!! IMPORTANT: must produce square drawing boxes
-    let boundingRects = state.boundingRects
-    if (state.glyphArrangement === 'grid' && state.numDisplayedGlyphs) {
+    let boundingRects
+    if (!state.numDisplayedGlyphs) {
+      boundingRects = [...state.boundingRects]
+    } else if (state.glyphArrangement === 'grid') {
       // set up grid where to place glyphs
       boundingRects = []
       // paper.view.bounds is in project coordinates, i.e. in canvas coordinates. Use client rect instead
@@ -126,6 +131,52 @@ export default {
       }
       boundingRects[state.editorBox.index] = singleGlyphRect
       console.log(`Visualising glyph #${state.editorBox.index}`)
+    } else if (state.glyphArrangement === 'chart') {
+      if (state.chartPoints.length === 0) {
+        throw Error("'chart' glyph arrangement requires non-empty points array")
+      }
+      boundingRects = []
+      let minXDistances = []
+      let minYDistances = []
+      for (let point0 of state.chartPoints) {
+        let minXDist = 100000.0
+        let minYDist = 100000.0
+        for (let point1 of state.chartPoints) {
+          if (point0.x === point1.x && point0.y === point1.y) {
+            continue
+          }
+          let xDist = Math.abs(point0.x - point1.x)
+          if (xDist < minXDist) {
+            minXDist = xDist
+          }
+          let yDist = Math.abs(point0.y - point1.y)
+          if (yDist < minYDist) {
+            minYDist = yDist
+          }
+        }
+        minXDistances.push(minXDist)
+        minYDistances.push(minYDist)
+      }
+      // FIXME finish and deal with overlapping glyphs
+      const rectSize = Math.min( // TODO kinda arbitrary
+          paper.view.viewSize.width / Math.ceil(Math.sqrt(state.numDisplayedGlyphs + 1.0)),
+          paper.view.viewSize.height / Math.ceil(Math.sqrt(state.numDisplayedGlyphs + 1.0))
+      ) * state.boundingRectSizeFactor - 0.5 // inscribe glyph in square in order to keep aspect ratio constant
+      const drawingDist = Math.max(Math.min(...minXDistances, ...minYDistances),  rectSize)
+      for (let point of state.chartPoints) {
+        let pointRect = {
+          left: point.x - drawingDist / 2,
+          top: point.y - drawingDist / 2,
+          x: point.x - drawingDist / 2,
+          y: point.y - drawingDist / 2,
+          width: drawingDist,
+          height: drawingDist,
+          generator: {type: 'chart', id: `${point.x}, ${point.y}`}
+        }
+        boundingRects.push(pointRect)
+      }
+    } else if (state.glyphArrangement){ // if non-empty
+      throw Error(`Unknown glyph arrangement type ${state.glyphArrangement}`)
     }
     state.boundingRects = boundingRects // assign bounding rects
     // check for overlap between bounding rects
@@ -160,5 +211,72 @@ export default {
   setEditorBox: (state, editorBox) => state.editorBox = editorBox,
 
   // boundingRectSizeFactor is used to zoom in an out from glyphs
-  setBoundingRectSizeFactor: (state, sizeFactor) => { state.boundingRectSizeFactor = sizeFactor }
+  setBoundingRectSizeFactor: (state, sizeFactor) => { state.boundingRectSizeFactor = sizeFactor },
+
+  // chart drawing methods
+  setChartState: (state, payload) => state.chart = payload,
+
+  setChartPoints: (state, {xField, yField, backend}) => {
+    if (!state.axesPoints) {
+      throw Error("Cannot compute chart points without axis data")
+    }
+    state.chartXField = xField
+    state.chartYField = yField
+    // order data ...
+    const orderedData = [...backend.normalizedData]
+    orderedData.sort((dataPoint0, dataPoint1) =>
+        backend.dataDisplayOrder.indexOf(dataPoint0[backend.orderField]) -
+        backend.dataDisplayOrder.indexOf(dataPoint1[backend.orderField])
+    )
+    // remove undisplayed data points (this allows user to plot less points)
+    // if no glyphs are displayed, chart is plotted without glyphs
+    if (state.numDisplayedGlyphs !== 0) {
+      orderedData.splice(state.numDisplayedGlyphs, orderedData.length - state.numDisplayedGlyphs)
+    }
+    const xSpan = state.axesPoints.xSpanEnd - state.axesPoints.origin[0]
+    const ySpan = state.axesPoints.origin[1] - state.axesPoints.ySpanEnd
+    state.chartPoints = orderedData.map(dataPoint => {
+      const point = [
+        dataPoint[xField]*xSpan + state.axesPoints.origin[0],
+        state.axesPoints.origin[1] - dataPoint[yField]*ySpan
+      ]
+      point.x = point[0]
+      point.y = point[1]
+      return point
+    })
+  },
+
+  drawAxes: state => state.axesPoints = drawAxes(),
+
+  destroyAxes: () => {
+    const chartLayer = paper.project.getItem({name: 'chart'})
+    if (chartLayer) {
+      chartLayer.remove()
+    }
+  }
+
+  // chart.js
+  // drawChart: (state, {xField, yField, orderedData}) => {  // TODO (?) move this to own separate module
+  //   const xData = orderedData.map(dataPoint => dataPoint[xField])
+  //   const yData = orderedData.map(dataPoint => dataPoint[yField])
+  //   const chart = drawChart()
+  //   // need to store chart somewhere in order to destroy it, but saving chart in store cause call stack overflow,
+  //   // probably because of observing triggering some mutual reactions (same as when trying to store some paperjs path)
+  //   window.chart = chart
+  //   const chartPoints = []
+  //   const datasetMeta = chart.getDatasetMeta(0).data
+  //   for (let point of datasetMeta) {
+  //     chartPoints.push([point._model.x, point._model.y])
+  //     chartPoints[chartPoints.length - 1].x = point._model.x
+  //     chartPoints[chartPoints.length - 1].y = point._model.y
+  //   }
+  //   state.chartPoints = chartPoints // store chart points to position glyph in their center
+  // },
+
+  // destroyChart: () => {
+  //   if (window.chart) {
+  //     window.chart.destroy()
+  //     window.chart = null // garbage-collect chart object
+  //   }
+  // },
 }

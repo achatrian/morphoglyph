@@ -1,60 +1,68 @@
 <template>
-  <div class="move-resize-commands">
-    <v-slider label="X" min="0" max="1" step="0.05" v-model="leftShift" class="control-item position-slider"
-            @change="planLeftShift">
-    <template v-slot:append>
-      <v-text-field
-              v-model="leftShift"
-              class="mt-0 pt-0 num-field"
-              hide-details
-              single-line
-              type="number"
-      ></v-text-field>
-    </template>
-  </v-slider>
-  <v-slider label="Y" min="0" max="1" step="0.05" v-model="topShift" class="control-item position-slider"
-            @change="planTopShift">
-    <template v-slot:append>
-      <v-text-field
-              v-model="topShift"
-              class="mt-0 pt-0 num-field"
-              hide-details
-              single-line
-              type="number"
-      ></v-text-field>
-    </template>
-  </v-slider>
-  <v-slider label="W" min="0" max="1" step="0.05" v-model="widthProportion" class="control-item position-slider"
-            @change="planWidthResize">
-    <template v-slot:append>
-      <v-text-field
-              v-model="widthProportion"
-              class="mt-0 pt-0 num-field"
-              hide-details
-              single-line
-              type="number"
-      ></v-text-field>
-    </template>
-  </v-slider>
-  <v-slider label="H" min="0" max="1" step="0.05" v-model="heightProportion" class="control-item position-slider"
-            @change="planHeightResize">
-    <template v-slot:append>
-      <v-text-field
-              v-model="heightProportion"
-              class="mt-0 pt-0 num-field"
-              hide-details
-              single-line
-              type="number"
-      ></v-text-field>
-    </template>
-  </v-slider>
-  <div class="move-resize-commands move-options">
-    <v-btn class="control-item light primary--text" @click="planCentering">
-      Center
-    </v-btn>
-    <v-checkbox class="control-item" label="Children" color="secondary" v-model="changeChildren"/>
-  </div>
-</div>
+  <v-card id="positioner">
+    <v-divider/>
+    <span class="app-title light--text subheading">Glyph position:</span>
+    <div class="move-resize-commands">
+      <v-slider label="X" min="0" max="1" step="0.05" v-model="leftShift" class="control-item position-slider"
+                @change="planLeftShift">
+        <template v-slot:append>
+          <v-text-field
+                  v-model="leftShift"
+                  class="mt-0 pt-0 num-field"
+                  hide-details
+                  single-line
+                  type="number"
+          ></v-text-field>
+        </template>
+      </v-slider>
+      <v-slider label="Y" min="0" max="1" step="0.05" v-model="topShift" class="control-item position-slider"
+                @change="planTopShift">
+        <template v-slot:append>
+          <v-text-field
+                  v-model="topShift"
+                  class="mt-0 pt-0 num-field"
+                  hide-details
+                  single-line
+                  type="number"
+          ></v-text-field>
+        </template>
+      </v-slider>
+      <v-slider label="W" min="0" max="1" step="0.05" v-model="widthProportion" class="control-item position-slider"
+                @change="planWidthResize">
+        <template v-slot:append>
+          <v-text-field
+                  v-model="widthProportion"
+                  class="mt-0 pt-0 num-field"
+                  hide-details
+                  single-line
+                  type="number"
+          ></v-text-field>
+        </template>
+      </v-slider>
+      <v-slider label="H" min="0" max="1" step="0.05" v-model="heightProportion" class="control-item position-slider"
+                @change="planHeightResize">
+        <template v-slot:append>
+          <v-text-field
+                  v-model="heightProportion"
+                  class="mt-0 pt-0 num-field"
+                  hide-details
+                  single-line
+                  type="number"
+          ></v-text-field>
+        </template>
+      </v-slider>
+      <div class="move-resize-commands move-options">
+        <v-checkbox class="control-item" label="Children" color="secondary" v-model="changeChildren"/>
+        <v-btn class="control-item light primary--text" icon @click="planCentering">
+          <v-icon>adjust</v-icon>
+        </v-btn>
+        <v-btn class="control-item secondary dark--text" icon @click="resetOriginalPosition">
+          <v-icon>undo</v-icon>
+        </v-btn>
+      </div>
+    </div>
+    <v-divider/>
+  </v-card>
 </template>
 
 <script>
@@ -75,7 +83,9 @@ export default {
       heightProportion: 1.0,
       steps: new Deque(10),
       changeChildren: false,
-      originalShapePositions: []
+      totalGlyphNumStore: 0,
+      glyphNamesStore: new Set (),
+      positionStored: false
     }
   },
   computed: {
@@ -83,7 +93,8 @@ export default {
       glyphs: state => state.glyph.project.glyphs
     }),
     ...mapGetters({
-      totalGlyphNum: 'glyph/totalGlyphNum'
+      totalGlyphNum: 'glyph/totalGlyphNum',
+      glyphNames: 'glyph/glyphNames'
     }),
     meanShapeBounds () {
       const leftShiftSum = this.glyphs.reduce((total, nextGlyph) => {
@@ -126,6 +137,26 @@ export default {
         widthProportion: widthProportionSum / numDrawn,
         heightProportion: heightProportionSum / numDrawn
       }
+    },
+    originalShapePositions () {
+      if (([...this.glyphNames].some(name => !this.glyphNamesStore.has(name)) ||
+              [...this.glyphNamesStore].some(name => !this.glyphNames.has(name)) ||
+              this.totalGlyphNum !== this.totalGlyphNumStore) && !this.positionStored
+      ) {
+        let originalShapePositions = []
+        for (let layerGlyph of this.glyphs) {
+          let layerPositions = {}
+          if (layerGlyph.drawn && Boolean(layerGlyph.box)) {
+            for (let glyph of [...layerGlyph.iter()]) {
+              layerPositions[glyph.name] = Object.assign({}, glyph.box.shapePositions)
+            }
+          }
+          originalShapePositions.push(layerPositions)
+        }
+        return originalShapePositions
+      } else {
+        return [] // FIXME returning the same value leads to error
+      }
     }
   },
   methods: {
@@ -136,40 +167,51 @@ export default {
     planLeftShift: debounce.call(this, function () {
       this.steps.push({
         transform: 'shift',
-        parameters: [this.leftShift, null, {setValues: true, scale: false, children: false}]
+        parameters: [this.leftShift, null, {setValues: true, scale: false, children: false, redraw: true}]
       })
       this.applySteps()
     }, 400),
     planTopShift: debounce.call(this, function () {
       this.steps.push({
         transform: 'shift',
-        parameters: [null, this.topShift, {setValues: true, scale: false, children: false}]
+        parameters: [null, this.topShift, {setValues: true, scale: false, children: false, redraw: true}]
       })
       this.applySteps()
     }, 400),
     planWidthResize: debounce.call(this, function () {
       this.steps.push({
         transform: 'resize',
-        parameters: [this.widthProportion, null, {setValues: true, center: false, children: false}]
+        parameters: [this.widthProportion, null, {setValues: true, center: false, children: false, redraw: true}]
       })
       this.applySteps()
     }, 400),
     planHeightResize: debounce.call(this, function () {
       this.steps.push({
         transform: 'resize',
-        parameters: [null, this.heightProportion, {setValues: true, center: false, children: false}]
+        parameters: [null, this.heightProportion, {setValues: true, center: false, children: false, redraw: true}]
       })
       this.applySteps()
     }, 400),
-    planCentering: debounce.call(this, function () {
+    planCentering () {
       this.steps.push({
         transform: 'toCenter',
         parameters: [true, true, {setValues: true, center: false, children: false}]
       })
       this.applySteps()
-      this.leftShift = 0.0
-      this.topShift = 0.0
-    }, 400),
+      this.leftShift = this.meanShapeBounds.leftShift
+      this.topShift = this.meanShapeBounds.topShift
+    },
+    resetOriginalPosition () {
+      this.steps.push({
+        transform: 'shift',
+        parameters: [
+          this.originalShapePositions[0][this.shapeName].leftShift,
+          this.originalShapePositions[0][this.shapeName].topShift,
+          {setValues: true, scale: false, children: false, redraw: false}
+          ]
+      })
+      this.applySteps()
+    },
     applySteps: debounce.call(this, function () { // once steps are sent to glyphs, they are cleared up
       this.changeGlyphPosition({
         steps: this.steps.toArray(),
@@ -177,7 +219,7 @@ export default {
         children: this.changeChildren
       })
       this.steps.clear()
-    }, 600),
+    }, 600)
   },
   watch: {
     meanShapeBounds: debounce.call(this, function () {
@@ -186,19 +228,13 @@ export default {
       this.widthProportion = this.meanShapeBounds.widthProportion
       this.heightProportion = this.meanShapeBounds.heightProportion
     }, 1000),
-    glyphs () {
-      // TODO check in template if any new child glyphs were added ?
-      if (this.glyphs.length > 0 && this.originalShapePositions.length === 0) {
-        let originalShapePositions = []
-        for (let layerGlyph of this.glyphs) {
-          let layerPositions = {}
-          for (let glyph of [...layerGlyph.iter()]) {
-            layerPositions[glyph.name] = Object.assign({}, glyph.box.shapePositions)
-          }
-          originalShapePositions.push(layerPositions)
-        }
-      } else if (this.glyphs === 0 && this.originalShapePositions.length > 0) {
-
+    glyph () {
+      this.glyphNamesStore = this.glyphNames
+      this.totalGlyphNumStore = this.totalGlyphNum
+    },
+    originalShapePositions () {
+      if (this.originalShapePositions.length > 0 && !this.positionStored) {
+        this.positionStored = true
       }
     }
   }
@@ -231,5 +267,10 @@ export default {
   .move-options{
     justify-content: space-around;
     flex-wrap: nowrap;
+  }
+
+  .app-title{
+    display: block;
+    margin-left: 5%;
   }
 </style>
