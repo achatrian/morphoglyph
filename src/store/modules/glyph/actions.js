@@ -99,6 +99,7 @@ export default {
 
   setBoundingRectSizeFactor: ({commit}, sizeFactor) => commit('setBoundingRectSizeFactor', sizeFactor),
 
-  setShapeJSON: ({commit}, shapeJSON) => commit('setShapeJSON', shapeJSON)
+  setShapeJSON: ({commit}, shapeJSON) => commit('setShapeJSON', shapeJSON),
 
+  addShrinkRegrowAnimation: ({commit}) => commit('addShrinkRegrowAnimation')
 }

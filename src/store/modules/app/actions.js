@@ -105,6 +105,7 @@ export default {
     commit('setChartPoints', payload)
     commit('setGlyphArrangement', 'chart')
     commit('updateGlyphArrangement')
+    setTimeout(() => dispatch('glyph/addShrinkRegrowAnimation', null, {root: true}), 2000)
   },
 
   destroyChart: ({commit}) => {

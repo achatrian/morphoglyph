@@ -393,5 +393,28 @@ export default {
     state.selection = selection
   },
 
-  setShapeJSON: (state, shapeJSON) => state.shapeJSON = shapeJSON // save path in json format to move it across canvases
+  setShapeJSON: (state, shapeJSON) => state.shapeJSON = shapeJSON, // save path in json format to move it across canvases
+
+  // configure glyph animations
+  addShrinkRegrowAnimation: (state) => {
+    // find out which glyphs overlap with other glyphs (must wait till this is complete to shrink glyphs)
+    let glyphOverlaps = []
+    for (let glyph0 of state.project.glyphs) {
+      let overlaps = false
+      for (let glyph1 of state.project.glyphs) {
+        overlaps = glyph0.group.intersects(glyph1.group)
+        if (overlaps) {
+          console.log(`Glyph ${glyph0.id} overlaps with glyph ${glyph1.id}`)
+          break
+        }
+      }
+      glyphOverlaps.push(overlaps)
+    }
+    // apply shrink / regrowth animation
+    for (let [i, overlap] of glyphOverlaps.entries()) {
+      if (overlap) {
+        state.project.glyphs[i].addShrinkRegrow(0.4)
+      }
+    }
+  }
 }

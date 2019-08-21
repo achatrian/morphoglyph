@@ -6,6 +6,7 @@ and references to parent / children glyphs.
 */
 
 import paper from 'paper'
+import debounce from 'debounce'
 // import store from '../store/index'
 import DrawingBox from './DrawingBox'
 
@@ -442,6 +443,39 @@ class BaseGlyph {
     delete this.children[i]
     throw Error(`Glyph ${this.name} has no children named '${childName}'`)
   }
+
+  addShrinkRegrow (scaleFactor) {
+    // scaleFactor must be less than 1
+    const group = this.group
+    const childrenGroups = this.children.map(glyph => glyph.group)
+    group.scale(scaleFactor)
+    for (let childGroup of childrenGroups) {
+      childGroup.scale(scaleFactor)
+    }
+    // can responsiveness be improved through hit-testing?
+    group.on({
+      mouseenter: debounce.call(this, function () {
+        if (!this.data.shrunk) {
+          this.scale(1/scaleFactor)
+          for (let group of childrenGroups) {
+            group.scale(1/scaleFactor)
+          }
+          this.data.shrunk = true
+        }
+      }, 400),
+      mouseleave: debounce.call(this, function () {
+        if (this.data.shrunk) {
+          this.scale(scaleFactor)
+          for (let group of childrenGroups) {
+            group.scale(scaleFactor)
+          }
+          this.data.shrunk = false
+        }
+      }, 400)
+    })
+  }
+
+  removeShrinkRegrow () {}
 }
 
 export default BaseGlyph
