@@ -32,11 +32,13 @@ export default {
   methods: {
     ...mapActions({
       resetLayers: 'glyph/resetLayers',
-      changeDisplayedGlyphNum: 'app/changeDisplayedGlyphNum'
+      changeDisplayedGlyphNum: 'app/changeDisplayedGlyphNum',
+      setGlyphArrangement: 'app/setGlyphArrangement'
     }),
     onClick () {
       this.resetLayers()
       this.changeDisplayedGlyphNum(0)
+      this.setGlyphArrangement('grid') // reset glyph arrangement to default grid
     }
   }
 }

@@ -8,7 +8,7 @@
             id="pagination"
             v-model="page"
             :length="numPages"
-            v-show="!(glyphBinder || glyphAdder)"
+            v-show="!(glyphBinder || shapeManager)"
           ></v-pagination>
         </v-flex>
       </v-layout>
@@ -40,7 +40,7 @@ export default {
   data () { return { page: 1, selectedOrderField: 'file entries' } },
   computed: {...mapState({
       glyphBinder: state => state.app.glyphBinder,
-      glyphAdder: state => state.app.glyphAdder,
+      shapeManager: state => state.app.shapeManager,
       numDisplayedGlyphs: state => state.app.numDisplayedGlyphs,
       glyphs: state => state.glyph.project.glyphs,
       numPages: state => state.app.numPages,

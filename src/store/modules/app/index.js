@@ -3,6 +3,7 @@ import mutations from './mutations'
 import getters from './getters'
 
 const state = {
+  // UI view status
   toolbar: true,
   toolsDrawer: true,
   studioDrawer: false,
@@ -14,11 +15,12 @@ const state = {
     timeout: 4000
   },
   glyphBinder: false,
-  glyphAdder: false,
+  shapeManager: false,
   canvas: true,
   shapeCanvas: false,
   welcomeCard: true,
   chartController: false,
+  legendViewer: false,
   // view props
   maxDisplayedGlyphs: 20,
   numDisplayedGlyphs: 0,

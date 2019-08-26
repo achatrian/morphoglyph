@@ -68,7 +68,7 @@ export default {
     },
     onButtonClick (item) {
       this.$emit('buttonClick', item.key)
-      setTimeout(function () {
+      setTimeout(function () { // avoids triggering cycle of events in parent component
         this.lastItem = ''
       }.bind(this), 150)
     }

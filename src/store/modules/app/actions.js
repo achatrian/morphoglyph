@@ -26,28 +26,44 @@ export default {
 
   setStudioDrawerState: ({commit}, payload) => commit('setStudioDrawerState', payload),
 
+  removeWindows: ({commit}) => { // function to kill any open window in main view
+    commit('setGlyphBinderState', false)
+    commit('setShapeManagerState', false)
+    commit('setWelcomeCardState', false)
+    commit('setLegendViewerState', false)
+    // more window togglers go here
+  },
+
   setGlyphBinderState: ({commit, dispatch}, payload) => {
     if (payload) {
       dispatch('glyph/setGlyphVisibility', {value: false}, {root: true})
-      commit('setGlyphAdderState', false) // commit and not dispatch, as some of the logic in adder's action conflicts with logic here
+      dispatch('removeWindows')
     } else {
       setTimeout(dispatch, 200, 'glyph/setGlyphVisibility', {value: true}, {root: true})
     }
     commit('setGlyphBinderState', payload)
   },
 
-  setGlyphAdderState: ({commit, dispatch}, payload) => {
+  setShapeManagerState: ({commit, dispatch}, payload) => {
     if (payload) {
       dispatch('glyph/setGlyphVisibility', {value: false}, {root: true})
-      commit('setGlyphBinderState', false)
-      dispatch('setGlyphArrangement', 'editor') // swap to editor arrangement of glyphs
-      dispatch('glyph/makeTempLayer', null, {root: true}) // create a new temporary layer for GlyphAdder
+      dispatch('removeWindows')
+      dispatch('glyph/makeTempLayer', null, {root: true}) // create a new temporary layer for ShapeManager
     } else {
-      dispatch('setGlyphArrangement', 'grid')
       setTimeout(dispatch, 500, 'glyph/setGlyphVisibility', {value: true}, {root: true})
-      dispatch('glyph/removeTempLayer', null, {root: true}) // create a new temporary layer for GlyphAdder
+      dispatch('glyph/removeTempLayer', null, {root: true}) // create a new temporary layer for ShapeManager
     }
-    commit('setGlyphAdderState', payload)
+    commit('setShapeManagerState', payload)
+  },
+
+  setLegendViewer: ({commit, dispatch}, payload) => {
+    if (payload) {
+      dispatch('glyph/setGlyphVisibility', {value: false}, {root: true})
+      dispatch('removeWindows')
+    } else {
+      setTimeout(dispatch, 200, 'glyph/setGlyphVisibility', {value: true}, {root: true})
+    }
+    commit('setLegendViewerState', payload)
   },
 
   setShapeCanvasState: ({commit}, payload) => commit('setShapeCanvasState', payload),

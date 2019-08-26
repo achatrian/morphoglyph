@@ -10,7 +10,7 @@
         slot="activator"
         flat
         block
-        @click="setGlyphAdderState(true)">
+        @click="setShapeManagerState(true)">
         <v-icon light :color="color">add</v-icon>
       </v-btn>
       <span> Add glyph to existing drawing </span>
@@ -22,13 +22,13 @@
 import {mapActions} from 'vuex'
 
 export default {
-  name: 'addChild',
+  name: 'Shape',
   props: {
     color: {type: String, default: 'white'}
   },
   methods: {
     ...mapActions({
-      setGlyphAdderState: 'app/setGlyphAdderState'
+      setShapeManagerState: 'app/setShapeManagerState'
     })
   }
 }

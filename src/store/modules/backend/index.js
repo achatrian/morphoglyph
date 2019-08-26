@@ -18,7 +18,10 @@ const state = {
   orderField: 'file entries',
   availableTemplates: [], // stores templates found in /data dir TODO integrate
   chartPointPositions: [],
-  chart: null
+  chart: null,
+  shapeJSON: '',
+  shapeJSONStore: new Map(),
+  varShapeAssignment: []
 }
 
 export default {

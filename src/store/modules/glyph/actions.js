@@ -37,11 +37,16 @@ export default {
   reassignGlyphLayer: ({commit}, payload) => commit('reassignGlyphLayer', payload),
 
   drawGlyph: ({rootState, commit}, payload) => {
-    // find dataPoint in backend
-    payload.glyphId = rootState.backend.dataDisplayOrder[payload.glyphIndex]
-    payload.dataPoint = rootState.backend.normalizedData.find(
-        dataPoint => dataPoint[rootState.backend.namingField] === payload.glyphId
-    ) // data point corresponding to cluster in given dock
+    const glyphId = rootState.backend.dataDisplayOrder[payload.glyphIndex]
+    Object.assign(payload, {
+      glyphId: glyphId,
+      // find dataPoint in backend
+      dataPoint: rootState.backend.normalizedData.find(
+          dataPoint => dataPoint[rootState.backend.namingField] === glyphId
+      ), // data point corresponding to cluster in given dock,
+      varShapeAssignment: rootState.backend.varShapeAssignment,
+      shapeJSONStore: rootState.backend.shapeJSONStore
+    })
     commit('drawGlyph', payload)
   },
 
@@ -98,8 +103,6 @@ export default {
   selectGlyphEl: ({commit}, payload) => commit('selectGlyphEl', payload),
 
   setBoundingRectSizeFactor: ({commit}, sizeFactor) => commit('setBoundingRectSizeFactor', sizeFactor),
-
-  setShapeJSON: ({commit}, shapeJSON) => commit('setShapeJSON', shapeJSON),
 
   addShrinkRegrowAnimation: ({commit}) => commit('addShrinkRegrowAnimation')
 }

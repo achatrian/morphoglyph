@@ -23,7 +23,7 @@ export default {
       currentPage: state => state.app.currentPage,
       redrawing: state => state.glyph.redrawing,
       glyphBinder: state => state.app.glyphBinder,
-      glyphAdder: state => state.app.glyphAdder,
+      shapeManager: state => state.app.shapeManager,
       chart: state => state.app.chart
     }),
     glyphScope () {
@@ -193,10 +193,10 @@ export default {
     },
     // turn off automatic box fitting when full screen cards are activated
     glyphBinder () {
-      this.setAutomaticBoxFit(!(this.glyphBinder || this.glyphAdder))
+      this.setAutomaticBoxFit(!(this.glyphBinder || this.shapeManager))
     },
-    glyphAdder () {
-      this.setAutomaticBoxFit(!(this.glyphBinder || this.glyphAdder))
+    shapeManager () {
+      this.setAutomaticBoxFit(!(this.glyphBinder || this.shapeManager))
     }
   },
   mounted () {

@@ -41,8 +41,8 @@ export default function drawAxes(options = {
     const distFromXAxis = 30 // number of pixels between axis and number
     let pointTextLength
     // write ticks on x and y axes
-    // FIXME biggest glyphs don't seem to be on final tick
-    for (let ix = 0; ix<numXTicks+1; ix++) {
+    let xSpanEnd, ySpanEnd // store final axis position (corresponds to 1.0)
+    for (let ix = 0; ix<numXTicks; ix++) {
         // write tick label
         let xPointText = new paper.PointText({
             point: [origin[0] + ix*xTickSpacing, origin[1] + distFromXAxis],
@@ -62,9 +62,10 @@ export default function drawAxes(options = {
         verGridLine.strokeCap = 'round'
         verGridLine.dashArray = [10, 12]
         pointTextLength = xPointText.bounds.width
+        xSpanEnd = origin[0] + ix*xTickSpacing
     }
     const distFromYAxis = distFromXAxis + pointTextLength // must include length of point text
-    for (let iy = 0; iy<numYTicks+1; iy++) {
+    for (let iy = 0; iy<numYTicks; iy++) {
         // write tick label
         new paper.PointText({
             point: [origin[0] - distFromYAxis, origin[1] - iy*yTickSpacing],
@@ -83,13 +84,10 @@ export default function drawAxes(options = {
         horGridLine.strokeColor = lighterColor
         horGridLine.strokeCap = 'round'
         horGridLine.dashArray = [10, 12]
+        ySpanEnd = origin[1] - iy*yTickSpacing
     }
     // return axes details, used to compute glyph positions
-    return {
-        origin: origin,
-        xSpanEnd: (1 - offsetFraction)*viewWidth,
-        ySpanEnd: offsetFraction*viewHeight
-    }
+    return {origin: origin, xSpanEnd: xSpanEnd, ySpanEnd: ySpanEnd}
 }
 
 // export default function drawChart(canvasElement, xData, yData, animation = false) {

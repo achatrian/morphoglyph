@@ -15,9 +15,11 @@
     <!--v-if="['loading'].indexOf($route.name) === -1"-->
     <v-list>
       <app-bind/>
-      <app-add-child/>
+      <app-shape/>
+      <!--<app-child/>-->
       <app-remove/>
       <app-chart/>
+      <app-legend/>
     </v-list>
   </v-navigation-drawer>
 </template>
@@ -25,17 +27,19 @@
 <script>
 import {mapState, mapActions} from 'vuex'
 import Bind from './Bind'
-import AddChild from './AddChild'
+import Shape from './Shape'
 import Remove from './Remove'
 import Chart from './Chart'
+import Legend from './Legend'
 
 export default {
   name: 'Tools',
   components: {
     'app-bind': Bind,
-    'app-add-child': AddChild,
+    'app-shape': Shape,
     'app-remove': Remove,
-    'app-chart': Chart
+    'app-chart': Chart,
+    'app-legend': Legend
   },
   computed: {
     ...mapState({

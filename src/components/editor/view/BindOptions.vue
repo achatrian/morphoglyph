@@ -38,7 +38,8 @@
                             />
                         </v-flex>
                         <v-flex xs6 sm3>
-                            <v-btn round flat @click="setGlyphBinderState(false); setGlyphVisibility({value: true})">
+                            <v-btn round flat @click="setGlyphBinderState(false); setGlyphVisibility({value: true})"
+                            style="left: 50%">
                                 <v-icon color="primary">close</v-icon>
                             </v-btn>
                         </v-flex>
@@ -46,7 +47,7 @@
                     <v-layout row wrap>
                         <v-flex xs12 md4>
                             <app-scroll-options title="Shape selection" :items="shapeItems"
-                                                v-if="glyphShapes.children.length > 0" :select.sync="selectedShape"/>
+                                                :select.sync="selectedShape"/>
                         </v-flex>
                         <v-flex xs6 md4>
                             <app-scroll-options title="Element selection" :items="elementItems"
@@ -197,9 +198,7 @@
                 changeDisplayedGlyphNum: 'app/changeDisplayedGlyphNum',
                 setNamingField: 'backend/setNamingField',
                 normalizeFeatures: 'backend/normalizeFeatures',
-                setGlyphVisibility: 'glyph/setGlyphVisibility',
-                setStudioDrawerState: 'app/setStudioDrawerState',
-                setShapeCanvasState: 'app/setShapeCanvasState'
+                setGlyphVisibility: 'glyph/setGlyphVisibility'
             }),
             bindFieldToElement (selectedField) { // function to turn element and feature selections into a binding object
                 if (this.selectedGlyphEl) {
@@ -300,11 +299,6 @@
                 // same as above, to update setting when needed
                 if (this.selectedGlyphName !== 'None') {
                     this.setGlyphType({glyphTypeName: this.selectedGlyphName, glyphSetting: this.selectedGlyphSetting})
-                }
-                // activate drawing dialog if option is
-                if (this.glyphSettings.name === 'shapeType' && this.selectedGlyphSetting === 'customShape') {
-                    this.setStudioDrawerState(true)
-                    this.setShapeCanvasState(true)
                 }
             }
         }

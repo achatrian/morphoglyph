@@ -64,6 +64,24 @@ export default {
     dispatch('glyph/activateRedrawing', {}, {root: true})
   },
 
+  // glyph shapes data
+  setShapeJSON: ({commit}, shapeJSON) => commit('setShapeJSON', shapeJSON),
+
+  storeShapeJSON: ({commit, dispatch, state}, payload) => {
+    if (state.shapeJSONStore.has(payload.name)) {
+      dispatch('app/activateSnackbar', {
+        text: `Shape ${payload.name} already exists - please choose another name or delete existing shape`,
+        color: 'error'
+      }, {root: true})
+    } else {
+      commit('storeShapeJSON', payload)
+    }
+  },
+
+  removeShapeJSON: ({commit}, name) => commit('removeShapeJSON', name),
+
+  setVarShapeAssignment: ({commit}, varShapeAssignment) => commit('setVarShapeAssignment', varShapeAssignment),
+
   async getArrayOfTemplates ({commit}) { // TODO finish / unused
     try {
       await axios.post(location.origin + '/checkForTemplates')

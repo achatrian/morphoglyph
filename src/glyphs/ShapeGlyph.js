@@ -42,7 +42,7 @@ class ShapeGlyph extends BaseGlyph {
 
   static get settings () {
     return {
-      // name: 'shapeType', // NB case sensitive
+      name: 'shapeType', // NB case sensitive
       message: 'Select glyph shape',
       options: ['ellipse', 'rectangle', 'circle', 'regularPolygon', 'customShape']
     }
@@ -163,6 +163,22 @@ class ShapeGlyph extends BaseGlyph {
     this.activateLayer()
     let path // declare here so that it can be initialized inside switch
     switch (shapeType) {
+      case 'customShape':
+        if (options.shapeJSONs.length > 0) {
+          // create empty path and import JSON into it, then
+          path = new paper.Path()
+          path.importJSON(options.shapeJSONs[0]) // only one shape per glyph should be passed
+          path.translate(new paper.Point(
+              this.box.center.x - path.bounds.center.x,
+              this.box.center.y - path.bounds.center.y
+          ))
+          path.scale(
+              this.box.bounds.width / path.bounds.width,
+              this.box.bounds.height / path.bounds.height
+          )
+          break
+        } // if no shapes are given, falls through to ellipse drawing
+      /* eslint-disable-next-line no-fallthrough */
       case 'ellipse':
         path = new paper.Path.Ellipse({
           center: [this.box.center.x, this.box.center.y],
@@ -199,22 +215,6 @@ class ShapeGlyph extends BaseGlyph {
           fillColor: this.parameters.lightColor,
           strokeWidth: this.parameters.strokeWidth
         })
-        break
-      case 'customShape':
-        if (!options.shapeJSON) {
-          throw Error("Option 'customShape' is selected, but shape JSON is empty")
-        }
-        // create empty path and import JSON into it, then
-        path = new paper.Path()
-        path.importJSON(options.shapeJSON)
-        path.translate(new paper.Point(
-            this.box.center.x - path.bounds.center.x,
-            this.box.center.y - path.bounds.center.y
-        ))
-        path.scale(
-            this.box.bounds.width / path.bounds.width,
-            this.box.bounds.height / path.bounds.height
-        )
         break
       default:
         throw Error(`Unknown shape type '${shapeType}'`)

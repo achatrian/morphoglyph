@@ -69,7 +69,7 @@
             ...mapActions({
                 setShapeCanvasState: 'app/setShapeCanvasState',
                 setStudioDrawerState: 'app/setStudioDrawerState',
-                setShapeJSON: 'glyph/setShapeJSON',
+                setShapeJSON: 'backend/setShapeJSON',
                 activateSnackbar: 'app/activateSnackbar'
             }),
             initialiseTool () {

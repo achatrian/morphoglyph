@@ -57,19 +57,22 @@ export default {
 
   toggleStudioDrawer: state => state.studioDrawer = !state.studioDrawer,
 
+  // state setters TODO replace with one function that takes attribute name, does existence check, then sets that attribute
   setToolsDrawerState: (state, payload) => state.toolsDrawer = payload,
 
   setStudioDrawerState: (state, payload) => state.studioDrawer = payload,
 
   setGlyphBinderState: (state, payload) => state.glyphBinder = payload,
 
-  setGlyphAdderState: (state, payload) => state.glyphAdder = payload,
+  setShapeManagerState: (state, payload) => state.shapeManager = payload,
 
   setShapeCanvasState: (state, payload) => state.shapeCanvas = payload,
 
   setWelcomeCardState: (state, payload) => state.welcomeCard = payload,
 
   setChartControllerState: (state, payload) => state.chartController = payload,
+
+  setLegendViewerState: (state, payload) => state.legendViewer = payload,
 
   setGlyphArrangement: (state, glyphArrangement) => state.glyphArrangement = glyphArrangement,
 
@@ -277,6 +280,6 @@ export default {
   //   if (window.chart) {
   //     window.chart.destroy()
   //     window.chart = null // garbage-collect chart object
-  //   }
+  //   }3
   // },
 }

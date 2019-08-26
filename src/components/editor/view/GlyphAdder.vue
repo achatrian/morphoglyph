@@ -4,7 +4,7 @@
             Add a new glyph
         </v-card-text>
 
-        <div class="glyph-name-type btn">
+        <div class="text-fields btn">
             <v-text-field
                     label="Enter glyph name"
                     v-model="newGlyphName"
@@ -36,7 +36,7 @@
             </v-btn>
         </div>
 
-        <v-btn class="btn close-button" round flat @click="setGlyphAdderState(false)">
+        <v-btn class="btn close-button" round flat @click="setShapeManagerState(false)">
             <v-icon color="primary">close</v-icon>
         </v-btn>
         <!-- Box where glyph is displayed -->
@@ -122,10 +122,10 @@
     }
 
     export default {
-        name: "GlyphAdder",
+        name: "ShapeManager",
         data () {
             return {
-                newGlyphName: '',
+                newShapeName: '',
                 selectedGlyphName: '',
                 selectedGlyphId: '',
                 selectedGlyphSetting: '',
@@ -150,7 +150,7 @@
         },
         methods: {
             ...mapActions({
-                setGlyphAdderState: 'app/setGlyphAdderState',
+                setShapeManagerState: 'app/setShapeManagerState',
                 setGlyphType: 'glyph/setGlyphType',
                 reassignGlyphLayer: 'glyph/reassignGlyphLayer',
                 setEditorBox: 'app/setEditorBox',
@@ -208,10 +208,10 @@
             // method that triggers creation of a new glyph
             addNewGlyph () {
                 this.makeEmptyGlyphs({
-                    newGlyphName: this.newGlyphName
+                    newShapeName: this.newShapeName
                     // TODO make custom create options and feed them in here ?
                 })
-                console.log(`Adding new glyph: ${this.newGlyphName}`)
+                console.log(`Adding new glyph: ${this.newShapeName}`)
             },
             // functions called on change of selectors
             glyphTypeSetter (glyphName) {
@@ -277,7 +277,7 @@
         grid-row: 1 / 2
     }
 
-    .glyph-name-type{
+    .text-fields{
         grid-column: 1 / 2;
         grid-row: 2 / 4;
         margin: auto;

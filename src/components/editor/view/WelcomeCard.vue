@@ -38,7 +38,7 @@ export default {
     ...mapState({
       welcomeCard: state => state.app.welcomeCard,
       glyphBinder: state => state.app.glyphBinder,
-      glyphAdder: state => state.app.glyphAdder,
+      shapeManager: state => state.app.shapeManager,
       numDisplayedGlyphs: state => state.app.numDisplayedGlyphs,
       fileName: state => state.backend.fileName
     })
@@ -66,8 +66,8 @@ export default {
         this.setWelcomeCardState(false)
       }
     },
-    glyphAdder () {
-      if (this.glyphAdder) {
+    shapeManager () {
+      if (this.shapeManager) {
         this.setWelcomeCardState(false)
       }
     }

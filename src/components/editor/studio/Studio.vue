@@ -19,7 +19,7 @@
     <app-viz-props v-show="!glyphBinder" :shapeName.sync="shapeName"/>
     <app-positioner :shape-name="shapeName"/>
     <app-chart-controller/>
-    <app-shape-canvas/>
+    <!--<app-shape-canvas/>-->
   </div>
   </v-navigation-drawer>
   <!--v-if="['loading', 'landing', 'examples'].indexOf($route.name) === -1"-->
@@ -31,7 +31,7 @@ import { mapState, mapActions } from 'vuex'
 import VizProps from './VizProps'
 //import GlyphBind from './GlyphBind'
 import Positioner from './Positioner'
-import ShapeCanvas from './ShapeCanvas'
+// import ShapeCanvas from './ShapeCanvas'
 import ChartController from './ChartController'
 
 export default {
@@ -45,7 +45,7 @@ export default {
     //'app-table': Table,
     'app-viz-props': VizProps,
     'app-positioner': Positioner,
-    'app-shape-canvas': ShapeCanvas,
+    // 'app-shape-canvas': ShapeCanvas,
     'app-chart-controller': ChartController
   },
   computed: {

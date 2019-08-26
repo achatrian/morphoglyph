@@ -106,6 +106,12 @@ export default {
     } else {
       throw new Error('Data has not been parsed yet - cannot normalize')
     }
+
+    // index categorical variables:
+    for (let field in state.fieldTypes) {
+      let values = new Set(state.normalizedData.map(dataPoint => dataPoint[field]))
+      state.featuresRanges[field] = Array.from(values)
+    }
   },
 
   setNamingField: (state, namingField) => {
@@ -141,5 +147,34 @@ export default {
 
   setAvailableTemplates (state, availableTemplates) {
     state.availableTemplates = availableTemplates
-  }
+  },
+
+  // glyph shapes data
+  setShapeJSON: (state, shapeJSON) => state.shapeJSON = shapeJSON, // save path in json format to move it across canvases
+
+  storeShapeJSON: (state, {shapeJSON, name=''}) => {
+    if (!name) { // if name is empty, replace with numbeer
+      let i = 0
+      while (state.shapeJSONStore.has(String(i))) {
+        i++
+      }
+      name = String(i)
+    }
+    // NB bracket operator is not overloadable in JS, hence non-primitives (like Map) must use other methods
+    const newStore = new Map(state.shapeJSONStore)
+    newStore.set(name, shapeJSON)
+    state.shapeJSONStore = newStore // update object to trigger computed properties
+  },
+
+  removeShapeJSON: (state, name) => {
+    const newStore = new Map(state.shapeJSONStore)
+    newStore.delete(name)
+    state.shapeJSONStore = newStore
+    // remove all shape assignments to categorical values
+    state.varShapeAssignment = state.varShapeAssignment.filter(
+        assignment => assignment.shape !== name
+    )
+  },
+
+  setVarShapeAssignment: (state, varShapeAssignment) => state.varShapeAssignment = varShapeAssignment
 }

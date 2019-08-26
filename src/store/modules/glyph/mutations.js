@@ -158,7 +158,7 @@ export default {
     glyph.changeLayer(layerId)
   },
 
-  drawGlyph: (state, {boundingRect, glyphId, dataPoint}) => {
+  drawGlyph: (state, {boundingRect, glyphId, dataPoint, varShapeAssignment, shapeJSONStore}) => {
     /* params {
           glyphIndex: Number
           boundingRect: {left: Number, top: Number, width: Number, height: Number}
@@ -167,7 +167,7 @@ export default {
     let glyph = state.project.glyphs.find(glyph => glyph.id === glyphId)
     state.activeLayer = glyph.layer // activate layer corresponding to glyph
     glyph.activateLayer()
-    // Handle scaling of glyph (relies on built groups !) -- TODO generalise to scale-type elements other than Height and Width ?
+    // Handle scaling of glyph
     let scaleOrders = []
     for (let binding of state.project.bindings) {
       let glyphElement = state.glyphElements.find(element => element.name === binding.element)
@@ -180,11 +180,20 @@ export default {
       })
       scaleOrders.push(scaleOrder)
     }
+    // pass custom shape according to categorical features
+    const shapeJSONs = []
+    for (let assignment of varShapeAssignment) {
+      if (dataPoint[assignment.field] === assignment.categoricalValue) {
+        shapeJSONs.push(shapeJSONStore.get(assignment.shape))
+        // for glyphs that require named shapes (N.B not used yet)
+        shapeJSONs[assignment.shape] = shapeJSONStore.get(assignment.shape)
+      }
+    }
     let drawOptions = {
       boundingRect: Object.assign({}, boundingRect),
       scaleOrders: scaleOrders,
       [state.glyphSettings.name]: state.selectedGlyphSetting,
-      shapeJSON: state.shapeJSON // used by glyphs to draw custom main paths
+      shapeJSONs: shapeJSONs // used by glyphs to draw custom main paths
     }
     // Draw all glyph paths
     glyph.draw(drawOptions)
@@ -393,8 +402,6 @@ export default {
     state.selection = selection
   },
 
-  setShapeJSON: (state, shapeJSON) => state.shapeJSON = shapeJSON, // save path in json format to move it across canvases
-
   // configure glyph animations
   addShrinkRegrowAnimation: (state) => {
     // find out which glyphs overlap with other glyphs (must wait till this is complete to shrink glyphs)
@@ -412,13 +419,14 @@ export default {
     }
     // apply shrink / regrowth animation
     for (let [i, overlap] of glyphOverlaps.entries()) {
-      if (overlap) {
-        state.project.glyphs[i].addShrinkRegrow(0.4)
+      let glyph = state.project.glyphs[i]
+      if (overlap && !glyph.animations.has('shrink-regrow')) {
+        glyph.addShrinkRegrow(0.4)
       }
     }
   },
 
-  removeShrinkRegrowAnimation: (state) => {
+  removeShrinkRegrowAnimation: (state) => { // TODO use this when switching from chart to grid / edi
     for (let glyph of state.project.glyphs) {
       if (glyph.animations.has('shrink-regrow')) {
         glyph.removeShrinkRegrow()
