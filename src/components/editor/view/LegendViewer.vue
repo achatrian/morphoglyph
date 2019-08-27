@@ -2,14 +2,14 @@
     <v-card id='content' class="light elevation-5" v-resize="updateBoxRects">
         <!-- Box where glyph is displayed -->
         <div id="glyph-box" class="canvas-box" ref="glyphBox">
-            <v-select
-                    class="btn"
-                    :items="glyphs.map(glyph => glyph.id)"
-                    label="Select glyph to visualize"
-                    outlined
-                    v-model="selectedGlyphId"
-                    @change="viewGlyph"
-            />
+            <!--<v-select-->
+                    <!--class="btn"-->
+                    <!--:items="glyphs.map(glyph => glyph.id)"-->
+                    <!--label="Select glyph to visualize"-->
+                    <!--outlined-->
+                    <!--v-model="selectedGlyphId"-->
+                    <!--@change="viewGlyph"-->
+            <!--/>-->
         </div>
     </v-card>
 </template>
@@ -78,10 +78,10 @@
                     height: glyphBoxRect.height
                 }, 0.7)
                 // update box in state, so that glyph can be visualised inside its box
-                this.setEditorBox({
-                    index: this.glyphs.findIndex(glyph => glyph.id === this.selectedGlyphId),
-                    boundingRect: this.glyphBoundingRect
-                })
+                // this.setEditorBox({
+                //     index: this.glyphs.findIndex(glyph => glyph.id === this.selectedGlyphId),
+                //     boundingRect: this.glyphBoundingRect
+                // })
             },
             viewGlyph (glyphId) {
                 this.setGlyphVisibility({
@@ -107,12 +107,12 @@
 
 <style scoped>
     #content{
-        width: 50%;
-        height: 50%;
+        width: 90%;
+        height: 90%;
         margin: auto;
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        grid-template-rows: repeat(3, 1fr);
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: repeat(4, 1fr);
         align-items: center;
     }
 
@@ -131,8 +131,8 @@
     }
 
     #glyph-box{
-        grid-column: 0 / 2;
-        grid-row: 0 / 2;
+        grid-column: 1 / 2;
+        grid-row: 1 / 3;
         min-height: 400px;
         min-width: 400px;
     }

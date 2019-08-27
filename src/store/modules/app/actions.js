@@ -31,6 +31,8 @@ export default {
     commit('setShapeManagerState', false)
     commit('setWelcomeCardState', false)
     commit('setLegendViewerState', false)
+    // must remove temp layers that's used by some windows
+    commit('glyph/removeTempLayer', null, {root: true})
     // more window togglers go here
   },
 
@@ -60,6 +62,7 @@ export default {
     if (payload) {
       dispatch('glyph/setGlyphVisibility', {value: false}, {root: true})
       dispatch('removeWindows')
+      dispatch('glyph/makeTempLayer', null, {root: true}) // create a new temporary layer for ShapeManager
     } else {
       setTimeout(dispatch, 200, 'glyph/setGlyphVisibility', {value: true}, {root: true})
     }

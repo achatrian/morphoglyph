@@ -19,7 +19,7 @@ const state = {
   canvas: true,
   shapeCanvas: false,
   welcomeCard: true,
-  chartController: false,
+  chartController: true,
   legendViewer: false,
   // view props
   maxDisplayedGlyphs: 20,
