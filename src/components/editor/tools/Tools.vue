@@ -16,7 +16,7 @@
     <v-list>
       <app-bind/>
       <app-shape/>
-      <!--<app-child/>-->
+      <app-child/>
       <app-remove/>
       <!--<app-chart/>-->
       <app-legend/>
@@ -28,6 +28,7 @@
 import {mapState, mapActions} from 'vuex'
 import Bind from './Bind'
 import Shape from './Shape'
+import Child from './Child'
 import Remove from './Remove'
 // import Chart from './Chart'
 import Legend from './Legend'
@@ -37,6 +38,7 @@ export default {
   components: {
     'app-bind': Bind,
     'app-shape': Shape,
+    'app-child': Child,
     'app-remove': Remove,
     // 'app-chart': Chart,
     'app-legend': Legend

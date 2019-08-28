@@ -102,7 +102,7 @@ export default {
     newGlyphName,
     createOptions,
       boundingRects
-  }) => {
+  }) => { // TODO not used anymore to add child glyphs ... remove ?
     if (state.project.glyphs.length === 0) {
       throw Error("Databound glyphs must be added before empty glyphs can be created")
     }

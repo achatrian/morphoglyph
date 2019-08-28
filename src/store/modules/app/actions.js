@@ -29,6 +29,7 @@ export default {
   removeWindows: ({commit}) => { // function to kill any open window in main view
     commit('setGlyphBinderState', false)
     commit('setShapeManagerState', false)
+    commit('setGlyphAdderState', false)
     commit('setWelcomeCardState', false)
     commit('setLegendViewerState', false)
     // must remove temp layers that's used by some windows
@@ -39,6 +40,7 @@ export default {
   setGlyphBinderState: ({commit, dispatch}, payload) => {
     if (payload) {
       dispatch('glyph/setGlyphVisibility', {value: false}, {root: true})
+      // action used to close all other windows, so that no two windows are open at the same time
       dispatch('removeWindows')
     } else {
       setTimeout(dispatch, 200, 'glyph/setGlyphVisibility', {value: true}, {root: true})
@@ -58,6 +60,16 @@ export default {
     commit('setShapeManagerState', payload)
   },
 
+  setGlyphAdderState: ({commit, dispatch}, payload) => {
+    if (payload) {
+      dispatch('glyph/setGlyphVisibility', {value: false}, {root: true})
+      dispatch('removeWindows')
+    } else {
+      setTimeout(dispatch, 500, 'glyph/setGlyphVisibility', {value: true}, {root: true})
+    }
+    commit('setGlyphAdderState', payload)
+  },
+
   setLegendViewer: ({commit, dispatch}, payload) => {
     if (payload) {
       dispatch('glyph/setGlyphVisibility', {value: false}, {root: true})
@@ -65,6 +77,7 @@ export default {
       dispatch('glyph/makeTempLayer', null, {root: true}) // create a new temporary layer for ShapeManager
     } else {
       setTimeout(dispatch, 200, 'glyph/setGlyphVisibility', {value: true}, {root: true})
+      dispatch('glyph/removeTempLayer', null, {root: true}) // create a new temporary layer for ShapeManager
     }
     commit('setLegendViewerState', payload)
   },

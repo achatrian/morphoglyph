@@ -66,6 +66,8 @@ export default {
 
   setShapeManagerState: (state, payload) => state.shapeManager = payload,
 
+  setGlyphAdderState: (state, payload) => state.glyphAdder = payload,
+
   setShapeCanvasState: (state, payload) => state.shapeCanvas = payload,
 
   setWelcomeCardState: (state, payload) => state.welcomeCard = payload,

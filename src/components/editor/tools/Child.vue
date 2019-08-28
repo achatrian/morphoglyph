@@ -10,7 +10,7 @@
         slot="activator"
         flat
         block
-        @click="setShapeManagerState(true)">
+        @click="setGlyphAdderState(true)">
         <v-icon light :color="color">add</v-icon>
       </v-btn>
       <span> Add glyph to existing drawing </span>
@@ -28,7 +28,7 @@ export default {
   },
   methods: {
     ...mapActions({
-      setShapeManagerState: 'app/setShapeManagerState'
+      setGlyphAdderState: 'app/setGlyphAdderState'
     })
   }
 }

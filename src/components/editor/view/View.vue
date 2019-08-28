@@ -2,11 +2,12 @@
   <div id="view">
     <app-welcome-card id="welcome-card" v-if="welcomeCard && !drawing" @configLoaded="applyBinding"/>
     <app-bind-options class="control-panel" v-show="glyphBinder" ref="bonds"/>
-    <app-glyph-adder v-if="shapeManager"/>
+    <app-shape-manager v-if="shapeManager"/>
+    <app-glyph-adder v-if="glyphAdder"/>
     <app-glyph-canvas v-resize.quiet="updateGlyphArrangement" :drawing.sync="drawing"
                       v-show="canvas" ref="canvas"/>
     <app-legend-viewer v-if="legendViewer"/>
-    <div class="progress-wrap" v-show="drawing && !glyphBinder && !shapeManager && !legendViewer">
+    <div class="progress-wrap" v-show="drawing && !glyphBinder && !shapeManager && !glyphAdder && !legendViewer">
       <v-progress-circular class="progress" indeterminate size="100" color="primary"/>
     </div>
     <!--since canvas has z-index=1, it was on top of view card, which made clicking on buttons impossible-->
@@ -18,6 +19,7 @@ import {mapState, mapActions} from 'vuex'
 import GlyphCanvas from './GlyphCanvas'
 import BindOptions from './BindOptions'
 import ShapeManager from './ShapeManager'
+import GlyphAdder from './GlyphAdder'
 import WelcomeCard from './WelcomeCard'
 import LegendViewer from "./LegendViewer";
 
@@ -33,7 +35,8 @@ export default {
   components: {
     'app-glyph-canvas': GlyphCanvas,
     'app-bind-options': BindOptions,
-    'app-glyph-adder': ShapeManager,
+    'app-shape-manager': ShapeManager,
+    'app-glyph-adder': GlyphAdder,
     'app-legend-viewer': LegendViewer,
     'app-welcome-card': WelcomeCard
   },
@@ -42,6 +45,7 @@ export default {
       welcomeCard: state => state.app.welcomeCard,
       glyphBinder: state => state.app.glyphBinder,
       shapeManager: state => state.app.shapeManager,
+      glyphAdder: state => state.app.glyphAdder,
       canvas: state => state.app.canvas,
       legendViewer: state => state.app.legendViewer,
       numDisplayedGlyphs: state=>state.app.numDisplayedGlyphs

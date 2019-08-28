@@ -16,6 +16,7 @@ const state = {
   },
   glyphBinder: false,
   shapeManager: false,
+  glyphAdder: false,
   canvas: true,
   shapeCanvas: false,
   welcomeCard: true,

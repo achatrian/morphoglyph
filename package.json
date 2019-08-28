@@ -19,6 +19,7 @@
     "paper": "^0.12.3",
     "vue": "^2.6.10",
     "vue-color": "^2.7.0",
+    "vue-material-design-icons": "^3.4.0",
     "vue-number-input-spinner": "^2.2.0",
     "vue-router": "^3.0.3",
     "vue-virtual-scroller": "^1.0.0-rc.2",

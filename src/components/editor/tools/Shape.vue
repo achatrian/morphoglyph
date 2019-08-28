@@ -11,9 +11,10 @@
         flat
         block
         @click="setShapeManagerState(true)">
-        <v-icon light :color="color">add</v-icon>
+        <v-icon light :color="color">circle</v-icon>
+        <!--TODO install shape icon-->
       </v-btn>
-      <span> Add glyph to existing drawing </span>
+      <span> Draw shapes for use in glyphs </span>
     </v-tooltip>
   </v-list-tile>
 </template>

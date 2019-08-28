@@ -67,7 +67,7 @@
         },
         data () {
             return {
-                newShapeName: '',
+                newGlyphName: '',
                 drawingMode: false,
                 drawingBounds: {top: 0, bottom:0, left: 0, right: 0, width: 0, height: 0},
                 drawGlyphTool: null,
@@ -276,7 +276,7 @@
             savePath () {
                 if (this.path) {
                     this.storeShapeJSON({
-                        name: this.newShapeName,
+                        name: this.newGlyphName,
                         shapeJSON: this.path.exportJSON()
                     })
                     this.drawingMode = false

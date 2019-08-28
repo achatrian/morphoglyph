@@ -23,11 +23,6 @@
                     v-model="selectedGlyphSetting"
                     @change="glyphSettingsSetter"
             />
-            <v-btn class="white--text primary"
-                   small
-                   @click="() => {setStudioDrawerState(true); setShapeCanvasState(true)}">
-                Draw
-            </v-btn>
             <v-btn class="btn add-button dark white--text"
                    small
                    @click="addNewGlyph"
@@ -36,7 +31,7 @@
             </v-btn>
         </div>
 
-        <v-btn class="btn close-button" round flat @click="setShapeManagerState(false)">
+        <v-btn class="btn close-button" round flat @click="setGlyphAdderState(false)">
             <v-icon color="primary">close</v-icon>
         </v-btn>
         <!-- Box where glyph is displayed -->
@@ -122,10 +117,10 @@
     }
 
     export default {
-        name: "ShapeManager",
+        name: "GlyphAdder",
         data () {
             return {
-                newShapeName: '',
+                newGlyphName: '',
                 selectedGlyphName: '',
                 selectedGlyphId: '',
                 selectedGlyphSetting: '',
@@ -150,7 +145,7 @@
         },
         methods: {
             ...mapActions({
-                setShapeManagerState: 'app/setShapeManagerState',
+                setGlyphAdderState: 'app/setGlyphAdderState',
                 setGlyphType: 'glyph/setGlyphType',
                 reassignGlyphLayer: 'glyph/reassignGlyphLayer',
                 setEditorBox: 'app/setEditorBox',
@@ -208,10 +203,10 @@
             // method that triggers creation of a new glyph
             addNewGlyph () {
                 this.makeEmptyGlyphs({
-                    newShapeName: this.newShapeName
+                    newGlyphName: this.newGlyphName
                     // TODO make custom create options and feed them in here ?
                 })
-                console.log(`Adding new glyph: ${this.newShapeName}`)
+                console.log(`Adding new glyph: ${this.newGlyphName}`)
             },
             // functions called on change of selectors
             glyphTypeSetter (glyphName) {
