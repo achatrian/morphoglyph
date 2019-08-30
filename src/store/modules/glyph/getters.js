@@ -3,9 +3,9 @@ export default {
 
     glyphNames: (state) => state.project.glyphs.reduce((names, newGlyph) => {
         for (let glyph of [...newGlyph.iter()]) {
-            names.add(glyph.name)
+            names.add(glyph.name) // FIXME names of added glyphs don't appear?
         }
         return names
-    }, new Set())
+    }, new Set()) // FIXME does not update when adding child glyph
 }
 

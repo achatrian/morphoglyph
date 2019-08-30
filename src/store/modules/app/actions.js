@@ -64,8 +64,10 @@ export default {
     if (payload) {
       dispatch('glyph/setGlyphVisibility', {value: false}, {root: true})
       dispatch('removeWindows')
+      dispatch('setGlyphArrangement', 'editor')
     } else {
       setTimeout(dispatch, 500, 'glyph/setGlyphVisibility', {value: true}, {root: true})
+      dispatch('setGlyphArrangement', 'grid')
     }
     commit('setGlyphAdderState', payload)
   },
