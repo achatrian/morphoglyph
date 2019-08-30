@@ -44,16 +44,18 @@
                             </v-btn>
                         </v-flex>
                     </v-layout>
+                    <v-tabs v-model="selectedShapeIndex" color="secondary"
+                            slider-color="primary" grow>
+                        <v-tab v-for="item of shapeItems" :key="item.id" :value="item.value">
+                            {{item.value}}
+                        </v-tab>
+                    </v-tabs>
                     <v-layout row wrap>
-                        <v-flex xs12 md4>
-                            <app-scroll-options title="Shape selection" :items="shapeItems"
-                                                :select.sync="selectedShape"/>
-                        </v-flex>
-                        <v-flex xs6 md4>
+                        <v-flex xs12 md6>
                             <app-scroll-options title="Element selection" :items="elementItems"
                                                 :select.sync="selectedGlyphEl" @buttonClick="unbindElement"/>
                         </v-flex>
-                        <v-flex xs6 md4>
+                        <v-flex xs12 md6>
                             <app-scroll-options title="Feature selection" :items="fieldItems"
                                                 @change="bindFieldToElement" @buttonClick="unbindField"/>
                         </v-flex>
@@ -84,6 +86,7 @@
         },
         data () {
             return {
+                selectedShapeIndex: 0,
                 selectedShape: '',
                 selectedGlyphEl: '',
                 fieldBindings: [],
@@ -282,6 +285,9 @@
             }
         },
         watch: {
+            selectedShapeIndex () { // v-tabs gives scalar number, use to selected desired shape
+              this.selectedShape = this.shapeItems[this.selectedShapeIndex].value
+            },
             glyphShapes () { // if shapes array contains only one element or it is empty, assign it automatically
                 if (this.glyphShapes.children.length === 0 || this.selectedShape === '') {
                     this.selectedShape = this.glyphShapes.main

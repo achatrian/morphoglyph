@@ -1,7 +1,7 @@
 <template>
   <div class="lists-outer">
     <!--Scrolling selector for elements-->
-    <div class="subtitle-2" style="margin-left: 30px">
+    <div class="title" style="margin-left: 10%">
       {{title}}
     </div>
     <v-list class="lists" avatar dense>
@@ -51,6 +51,10 @@ export default {
   },
   props: {
     title: String,
+    titleFontClass: {
+      type: String,
+      default: 'title'
+    },
     items: Array, // item: {id, value, selected}
     selected: Object
   },
