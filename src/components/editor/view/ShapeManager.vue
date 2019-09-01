@@ -1,5 +1,6 @@
 <template>
     <v-card id='content' class="light elevation-5" v-resize="updateBoxRects">
+        <!--<v-card-title class="title">Add new shapes and assign shapes to variables</v-card-title>-->
         <app-scroll-options id="shape-list" title="Saved shapes" :items="shapeNames"
                             @change="loadShape" @buttonClick="removeShape"/>
 

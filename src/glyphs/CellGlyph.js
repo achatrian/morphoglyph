@@ -39,7 +39,11 @@ class CellGlyph extends ShapeGlyph {
   }
 
   static get settings () {
-    return {name: 'drawNucleus', message: 'Draw nucleus', options: ['Yes', 'No']}
+    return {
+        name: 'shapeType', // NB case sensitive
+        message: 'Select glyph shape',
+        options: ['ellipse', 'rectangle', 'circle', 'regularPolygon', 'customShape']
+    }
   }
 
   static get shapes () {
@@ -62,7 +66,6 @@ class CellGlyph extends ShapeGlyph {
   }
 
   draw (options) {
-    options.shapeType = 'ellipse' // Fixed elliptic shape for cell and nucleus glyphs
     super.draw(options) // draws cell
     const nucleusOptions = {
       backend: 'paper',

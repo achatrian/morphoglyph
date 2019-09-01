@@ -1,7 +1,7 @@
 <template>
         <v-container fluid>
             <v-card id='bind-card' class="light elevation-5">
-                <v-layout column justify-end>
+                <v-layout column justify-space-around>
                     <v-layout row>
                         <v-flex xs12>
                             <v-card-text class="title">
@@ -10,7 +10,7 @@
                         </v-flex>
                     </v-layout>
                     <v-layout row justify-space-around wrap>
-                        <v-flex xs6 sm3>
+                        <v-flex xs6 sm2>
                             <v-select
                                     class="selector"
                                     outlined
@@ -19,7 +19,7 @@
                                     v-model="selectedGlyphName"
                             />
                         </v-flex>
-                        <v-flex xs6 sm3>
+                        <v-flex xs6 sm2>
                             <v-select
                                     class="selector"
                                     outlined
@@ -28,7 +28,7 @@
                                     v-model="selectedGlyphSetting"
                             />
                         </v-flex>
-                        <v-flex xs6 sm3>
+                        <v-flex xs6 sm2>
                             <v-select
                                     class="selector"
                                     outlined
@@ -37,7 +37,7 @@
                                     v-model="selectedOrderField"
                             />
                         </v-flex>
-                        <v-flex xs6 sm3>
+                        <v-flex xs6 sm6>
                             <v-btn round flat @click="setGlyphBinderState(false); setGlyphVisibility({value: true})"
                             style="left: 50%">
                                 <v-icon color="primary">close</v-icon>
@@ -51,7 +51,7 @@
                         </v-tab>
                     </v-tabs>
                     <v-layout row wrap>
-                        <v-flex xs12 md6>
+                        <v-flex xs12 md6 >
                             <app-scroll-options title="Element selection" :items="elementItems"
                                                 :select.sync="selectedGlyphEl" @buttonClick="unbindElement"/>
                         </v-flex>
@@ -288,16 +288,14 @@
             selectedShapeIndex () { // v-tabs gives scalar number, use to selected desired shape
               this.selectedShape = this.shapeItems[this.selectedShapeIndex].value
             },
-            glyphShapes () { // if shapes array contains only one element or it is empty, assign it automatically
-                if (this.glyphShapes.children.length === 0 || this.selectedShape === '') {
-                    this.selectedShape = this.glyphShapes.main
-                } else {
-                    this.selectedShape = '' // otherwise, reset
-                }
-            },
             selectedGlyphName () {
                 // watcher that loads the type of glyph, and makes the glyph elements available for selection
                 if (this.selectedGlyphName !== 'None') {
+                    for (let glyphType of this.glyphTypes) {
+                        if (glyphType.type === this.selectedGlyphName) {
+                            this.selectedShape = glyphType.shapes.main
+                        }
+                    }
                     this.setGlyphType({glyphTypeName: this.selectedGlyphName, glyphSetting: this.selectedGlyphSetting})
                 }
             },
@@ -317,18 +315,7 @@
     }
 
     .selector{
-        max-width: 200px;
+        max-width: 90%;
         margin: auto
     }
-
-    #drawing-box{
-        background-color: white;
-        border: 1px solid black;
-        min-height: 250px;
-        min-width: 200px;
-        margin: auto;
-        grid-column: 1 / 2;
-        grid-row: 3 / 5
-    }
-
 </style>

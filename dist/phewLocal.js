@@ -1,33 +1,41 @@
 const express = require('express')
+const fsp = require('fs').promises
+const path = require('path')
 const ip = require('ip')
 const bodyParser = require('body-parser')
 const chalk = require('chalk')
 
-// // Check for template files in data/templates
-// async function checkForTemplates () {
-//   const writeFile = promisify(fs.writeFile)
-//   const templates = await findImages('data/templates')
-//   let json = JSON.stringify(templates)
-//   await writeFile('data/images.json', json, 'utf8')
-// }
-//
-// // Returns an array of available templates in the specified directory.
-// async function findTemplates (dirPath) {
-//   const readdir = promisify(fs.readdir)
-//
-//   try {
-//     // Get an array of **all items** at the path.
-//     const items = await readdir(dirPath)
-//
-//     // Exclude hidden files and directories
-//     return items.filter(item => {
-//       const fileStats = fs.statSync(dirPath + '/' + item)
-//       return item[0] !== '.' && !fileStats.isDirectory()
-//     })
-//   } catch (err) {
-//     console.log(err)
-//   }
-// }
+// Check for template files in data/templates
+async function checkForImages () {
+    const templates = await walk('data/templates')
+    const json = JSON.stringify(templates)
+    await fsp.writeFile('data/templates.json', json, 'utf8')
+}
+
+// Returns an array of available templates in the specified directory.
+async function walk (dir, fileList = []) {
+    const files = await fsp.readdir(dir)
+    for (const file of files) {
+        const stat = await fsp.stat(path.join(dir, file))
+
+        if (stat.isDirectory()) {
+            fileList.push({
+                name: path.basename(file),
+                children: []
+            })
+
+            const children = fileList[fileList.length - 1].children
+            await walk(path.join(dir, file), children)
+        } else if (file !== '.DS_Store') {
+            fileList.push({
+                name: file,
+                ext: path.extname(file),
+                path: path.join(dir, file).split(dir + '/')[1] // TODO test
+            })
+        }
+    }
+    return fileList
+}
 
 
 async function startServer () {
@@ -48,42 +56,9 @@ async function startServer () {
         limit: '100mb'
     }))
 
-    // // Save annoation data
-    // app.post('/save', async function (req, res) {
-    //   try {
-    //     await saveAnnotation(req.body)
-    //     res.send('Success, annotation data saved')
-    //   } catch (err) {
-    //     console.log('Data could not be saved')
-    //     console.log(err)
-    //     res.send('Failed, annotation data could not be saved')
-    //   }
-    // })
-    //
-    // // Check for images that may have been added to the directory
-    // app.post('/checkForTemplates', async function (req, res) {
-    //   try {
-    //     await checkForTemplates()
-    //     res.send('Success, found templates')
-    //   } catch (err) {
-    //     console.log('Could not check for templates')
-    //     console.log(err)
-    //     res.send('Failed, could not find templates')
-    //   }
-    // })
 
     // Serve image files
     app.use('/templates', express.static('data/templates', {})) // makes templates available at /template
-
-    // // Serve static annotation data
-    // // Always respond with headers that disable the cache. Specifically this is
-    // // important when editing raster images. Without this, when the editor is
-    // // reloaded the browser will serve the original, pre-edit, from the cache.
-    // app.use('/annotations', express.static('data/annotations', {
-    //   setHeaders: function (res, path) {
-    //     res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private')
-    //   }
-    // }))
 
     // Serve the built application
     app.use(express.static('.'))

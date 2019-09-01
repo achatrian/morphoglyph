@@ -82,12 +82,12 @@ export default {
 
 <style scoped>
   .lists-outer {
-    position: relative;
-    height: 350px;
     z-index: 3;
+    height: 350px;
+    margin-top: 5%
   }
   .lists{
-    height: 90%;
+    height: 80%;
     width: 80%;
     margin: auto
   }
@@ -99,6 +99,7 @@ export default {
   }
   .tile-content {
     width: 100%;
-    z-index: 3
+    z-index: 3;
+    font-size: 16px
   }
 </style>
