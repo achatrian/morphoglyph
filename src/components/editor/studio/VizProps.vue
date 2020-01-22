@@ -37,7 +37,7 @@
           <v-select
             :items="dataFields"
             dense
-            label="Bound Feature"
+            label="Data Feature"
             v-model="selectedFieldName"
             @change="onSelectFieldName"
             :disabled="rebinding === 'element'"
@@ -331,9 +331,15 @@ export default {
       }) // reset all except element name
       this.onSelectElementName() // find element to read properties and display controls
       if (this.rebinding === 'field') {
-        console.log(`${this.selectedShapeName}.${this.selectedElementName} was bound to ${this.selectedFieldName} (previously bound to ${oldBinding.field})`)
+        console.log(`${this.selectedShapeName}.${this.selectedElementName} was bound to ${this.selectedFieldName}`)
+        if (oldBinding) {
+          console.log(`(previously bound to ${oldBinding.field})`)
+        }
       } else {
         console.log(`${this.selectedFieldName} was bound to ${this.selectedShapeName}.${this.selectedElementName} (previously bound to ${oldBinding.element})`)
+        if (oldBinding) {
+          console.log(`(previously bound to ${oldBinding.element})`)
+        }
       }
       this.rebinding = ''
     },

@@ -19,7 +19,7 @@
       <app-child/>
       <app-remove/>
       <!--<app-chart/>-->
-      <app-legend/>
+      <!--<app-legend/>-->
     </v-list>
   </v-navigation-drawer>
 </template>

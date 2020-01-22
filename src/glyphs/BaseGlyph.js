@@ -218,6 +218,8 @@ class BaseGlyph {
       throw new Error(`Either id or name did not match the tracked id (${this.itemIds[itemName]}) / name (${itemName})`)
     }
     item.remove()
+    this.drawnItems.delete(itemName)
+    delete this.zOrder[itemName]
     this.itemIds[itemName] = null
   }
 
