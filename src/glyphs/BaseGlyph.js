@@ -209,7 +209,7 @@ class BaseGlyph {
   deleteItem (itemName = this.name) {
     // deleting path if it is drawn (and id was registered using registerItem)
     let children = this.group.children
-    let item = this.findItem(children)
+    let item = this.findItem(children, itemName)
     if (typeof item === 'undefined') {
       children = paper.project.layers[this.layer].children
       item = this.findItem(children, itemName)

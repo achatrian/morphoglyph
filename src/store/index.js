@@ -7,6 +7,7 @@ import Vuex from 'vuex'
 import app from './modules/app/index'
 import backend from './modules/backend'
 import glyph from './modules/glyph'
+import template from './modules/template'
 
 Vue.use(Vuex)
 
@@ -16,6 +17,7 @@ export default new Vuex.Store({
   modules: {
     app,
     backend,
-    glyph
+    glyph,
+    template
   }
 })

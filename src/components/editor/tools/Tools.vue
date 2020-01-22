@@ -31,7 +31,7 @@ import Shape from './Shape'
 import Child from './Child'
 import Remove from './Remove'
 // import Chart from './Chart'
-import Legend from './Legend'
+// import Legend from './Legend'
 
 export default {
   name: 'Tools',
@@ -41,7 +41,7 @@ export default {
     'app-child': Child,
     'app-remove': Remove,
     // 'app-chart': Chart,
-    'app-legend': Legend
+    // 'app-legend': Legend
   },
   computed: {
     ...mapState({

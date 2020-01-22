@@ -52,36 +52,88 @@
           <!--Rebinding controls-->
           <!--v-if converts to boolean-->
           <div class="re-bind" v-show="selectedElementName">
-            <span class="bind-item">Bind: </span>
-            <v-btn depressed small v-if="!rebinding"
-                   color="primary"
-                   @click="rebinding = 'element'"
-                   class="bind-item text--white"
+            <v-tooltip
+                    class="tooltip"
+                    open-delay="700"
+                    bottom
+                    :disabled="Boolean(rebinding)"
             >
-              Element
-            </v-btn>
-            <v-btn depressed small v-if="!rebinding"
-                   color="light"
-                   @click="rebinding = 'field'"
-                   class="bind-item primary--text"
+              <v-btn icon
+                     slot="activator"
+                     v-if="!rebinding"
+                     color="primary"
+                     @click="rebinding = 'element'"
+                     class="bind-item text--white"
+              >
+                <v-icon color="white">nature</v-icon>
+              </v-btn>
+              <span>Choose feature to bind to selected element</span>
+            </v-tooltip>
+            <v-tooltip
+                    class="tooltip"
+                    open-delay="700"
+                    bottom
+                    :disabled="Boolean(rebinding)"
             >
-              Feature
-            </v-btn>
-            <v-btn v-if="rebinding" depressed small
-                   color="secondary"
-                   @click="applyBindingChange"
-                   class="bind-item primary--text"
+              <v-btn icon
+                     slot="activator"
+                     v-if="!rebinding"
+                     color="light"
+                     @click="rebinding = 'field'"
+                     class="bind-item primary--text"
+              >
+                <v-icon color="primary">texture</v-icon>
+              </v-btn>
+              <span>Choose element to bind to selected feature</span>
+            </v-tooltip>
+            <v-tooltip
+                    class="tooltip"
+                    open-delay="700"
+                    bottom
             >
-              Apply
-            </v-btn>
-            <v-btn depressed small
-                   v-show="rebinding"
-                   color="primary"
-                   @click="rebinding = false"
-                   class="bind-item"
+              <v-btn icon
+                     slot="activator"
+                     v-if="rebinding"
+                     color="secondary"
+                     @click="applyBindingChange"
+                     class="bind-item primary--text"
+              >
+                <v-icon color="primary">check_circle</v-icon>
+              </v-btn>
+              <span>Apply selection</span>
+            </v-tooltip>
+            <v-tooltip
+                    class="tooltip"
+                    open-delay="700"
+                    bottom
             >
-              <span class="text--white">Cancel</span>
-            </v-btn>
+              <v-btn icon
+                     slot="activator"
+                     v-show="rebinding"
+                     color="primary"
+                     @click="rebinding = false"
+                     class="bind-item"
+              >
+                <v-icon color="white">cancel</v-icon>
+              </v-btn>
+              <span>Cancel selection</span>
+            </v-tooltip>
+            <v-tooltip
+                    class="tooltip"
+                    open-delay="700"
+                    bottom
+            >
+              <v-btn icon
+                     v-show="!rebinding"
+                     slot="activator"
+                     color="white"
+                     @click="applyUnbinding"
+                     class="bind-item"
+              >
+                <v-icon color="dark">remove</v-icon>
+              </v-btn>
+            <span>Remove selected element-feature binding</span>
+            </v-tooltip>
           </div>
         </v-list-tile>
         <v-list-tile>
@@ -92,7 +144,7 @@
                     :min="(hasProperties.size) ? selectedElement.properties.size.range[0] : 0"
                     :max="(hasProperties.size) ? selectedElement.properties.size.range[1] : 100"
                     :step="(hasProperties.size) ? selectedElement.properties.size.step: 1"
-                    :disabled="Boolean(rebinding)"
+                    :disabled="Boolean(rebinding) || selectedFieldName === 'unbound'"
           >
             <span class="text--white" style="display: inline-block; width: 100px; margin-top: 4px" slot="prepend">
               <!--TODO in new vuetify there is a 'label' slot to change the label-->
@@ -107,7 +159,7 @@
           <v-dialog
             v-model="dialog"
             width="225px"
-            :disabled="Boolean(rebinding)"
+            :disabled="Boolean(rebinding) || selectedFieldName === 'unbound'"
           >
             <a slot="activator" v-show="hasProperties.color">
               <div
@@ -120,7 +172,7 @@
               <color-picker
                 id="picker"
                 v-model="colorPick"
-                :disabled="rebinding"
+                :disabled="Boolean(rebinding) || selectedFieldName === 'unbound'"
               />
             </v-card>
           </v-dialog>
@@ -200,9 +252,10 @@ export default {
     ...mapActions({
       selectGlyphEl: 'glyph/selectGlyphEl',
       setPathParameter: 'glyph/setPathParameter',
-      redrawElement: 'glyph/redrawElement'
+      redrawElement: 'glyph/redrawElement',
+      deleteElement: 'glyph/deleteElement'
     }),
-    reset (newData) {
+    reset (newData = {}) {
       this.rebinding = newData.rebinding || false
       this.selectedElementName = newData.selectedElementName || ''
       this.selectedElement = newData.selectedElement || {
@@ -259,22 +312,18 @@ export default {
         field: this.selectedFieldName,
         shape: this.selectedShapeName
       }
-      let oldField = ''
-      let oldElement = ''
-      // for (let binding of this.bindings) {
-      //   if (this.rebinding === 'element' &&
-      //           binding.shape === this.selectedShapeName &&
-      //           binding.field === this.selectedFieldName) {
-      //     oldElement = binding.element
-      //     break
-      //   } else if (this.rebinding === 'field' &&
-      //           binding.shape === this.selectedShapeName &&
-      //           binding.element === this.selectedElementName) {
-      //     oldField = binding.field
-      //     break
-      //   }
-      // }
-      // redraw new element (bypasses glyph canvas, as there is no need for bounding rectangle information)
+      let oldBinding
+      if (this.rebinding === 'element') {
+        oldBinding = this.bindings.find(
+                binding => binding.shape === this.selectedShapeName && binding.field === this.selectedFieldName
+        )
+      } else if (this.rebinding === 'field') {
+        oldBinding = this.bindings.find(
+                binding => binding.shape === this.selectedShapeName && binding.element === this.selectedElementName
+        )
+      } else {
+        throw Error("Shouldn't be here")
+      }
       this.redrawElement(newBinding) // FIXME this will break for protrusions
       this.reset({
         selectedElementName: newBinding.element,
@@ -282,11 +331,23 @@ export default {
       }) // reset all except element name
       this.onSelectElementName() // find element to read properties and display controls
       if (this.rebinding === 'field') {
-        console.log(`${this.selectedShapeName}.${this.selectedElementName} was bound to ${this.selectedFieldName} (previously bound to ${oldField})`)
+        console.log(`${this.selectedShapeName}.${this.selectedElementName} was bound to ${this.selectedFieldName} (previously bound to ${oldBinding.field})`)
       } else {
-        console.log(`${this.selectedFieldName} was bound to ${this.selectedShapeName}.${this.selectedElementName} (previously bound to ${oldElement})`)
+        console.log(`${this.selectedFieldName} was bound to ${this.selectedShapeName}.${this.selectedElementName} (previously bound to ${oldBinding.element})`)
       }
       this.rebinding = ''
+    },
+    applyUnbinding () { // unbinds element or feature
+      let oldBinding
+        oldBinding = this.bindings.find(
+                binding => binding.shape === this.selectedShapeName &&
+                        binding.field === this.selectedFieldName &&
+                        binding.element === this.selectedElementName
+        )
+      if (oldBinding) {
+        this.deleteElement(oldBinding)
+      }
+      this.reset()
     }
   },
   watch: {
@@ -297,7 +358,7 @@ export default {
       }
     },
     selectedWidth () {
-      if (this.numDisplayedGlyphs) {
+      if (this.numDisplayedGlyphs && Boolean(this.selectedElementName)) {
         this.setPathParameter({
           parameter: 'strokeWidth',
           value: this.selectedWidth,
@@ -307,7 +368,7 @@ export default {
       }
     },
     colorPick () {
-      if (this.numDisplayedGlyphs) {
+      if (this.numDisplayedGlyphs && Boolean(this.selectedElementName)) {
         this.setPathParameter({
           parameter: 'strokeColor',
           value: this.colorPick.hex,

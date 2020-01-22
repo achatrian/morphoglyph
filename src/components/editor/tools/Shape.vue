@@ -11,7 +11,7 @@
         flat
         block
         @click="setShapeManagerState(true)">
-        <v-icon light :color="color">circle</v-icon>
+        <v-icon light :color="color">adjust</v-icon>
         <!--TODO install shape icon-->
       </v-btn>
       <span> Draw shapes for use in glyphs </span>
