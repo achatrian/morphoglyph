@@ -281,12 +281,27 @@ export default {
     state.redrawing = redrawing
   }, // used in activateRedrawing action
 
+  deleteElement: (state, binding) => {
+    for (let glyph of state.project.glyphs) {
+      let targetGlyph = [...glyph.iter()].find(glyph => glyph.name === binding.shape)
+      if (targetGlyph.drawn) {
+        targetGlyph.activateLayer()
+        if (targetGlyph.itemIds[binding.element.toLowerCase()]) {
+          targetGlyph.deleteItem(binding.element.toLowerCase()) // paths have same name of elements in lower-case
+        }
+      }
+    }
+    state.project.bindings = state.project.bindings.filter(
+        binding_ => !(binding_.element === binding.element && binding_.shape === binding.shape)
+    )
+  },
+
   redrawElement: (state, {binding, normalizedData}) => {
     for (let [i, glyph] of state.project.glyphs.entries()) {
       let targetGlyph = [...glyph.iter()].find(glyph => glyph.name === binding.shape)
       if (targetGlyph.drawn) {
         targetGlyph.activateLayer()
-        if (targetGlyph.itemIds[binding.element]) {
+        if (targetGlyph.itemIds[binding.element.toLowerCase()]) {
           targetGlyph.deleteItem(binding.element.toLowerCase()) // paths have same name of elements in lower-case
         }
         targetGlyph['draw' + binding.element](normalizedData[i][binding.field]) // FIXME must look for datapoint with correct id
@@ -294,7 +309,7 @@ export default {
       }
     }
     // remove any binding with same element as in new assignment
-    state.project.bindings.filter(
+    state.project.bindings = state.project.bindings.filter(
         binding_ => !(binding_.element === binding.element && binding_.shape === binding.shape)
     )
     state.project.bindings.push(binding)

@@ -3,7 +3,7 @@
   <v-card class="light elevation-5">
     <v-layout v-if="!(!!fileName)" id="welcome-message">
       <v-card-text class="deep-purple--text font-weight-black">
-        Please upload a data file</v-card-text>
+        Upload a data file</v-card-text>
       <app-load-data unique-id="welcomeUpload"/>
     </v-layout>
     <v-layout v-else>

@@ -24,6 +24,7 @@
     </div>
     <!--because of flex, elements must be at either end or beginning, or they will change position if something is inserted on the right (e.g. the file name)-->
     <v-spacer/>
+    <app-save-templates/>
     <app-box-toggler/>
     <app-zoomer/>
     <!--<v-divider vertical/>-->
@@ -42,6 +43,7 @@ import LoadData from './buttons/LoadData'
 import ViewManager from './buttons/ViewManager'
 import Zoomer from './buttons/Zoomer'
 import BoxToggler from './buttons/BoxToggler'
+import SaveTemplates from "./buttons/SaveTemplates";
 
 export default {
   name: 'Toolbar',
@@ -50,7 +52,8 @@ export default {
     'app-load-data': LoadData, // TODO v-file-input not working in toolbar at time of writing? Wait until it is released in stable version?
     'app-view-manager': ViewManager,
     'app-zoomer': Zoomer,
-    'app-box-toggler': BoxToggler
+    'app-box-toggler': BoxToggler,
+    'app-save-templates': SaveTemplates
   },
   computed: {
     ...mapState({

@@ -15,12 +15,18 @@
         <div id="drawing-box" class="canvas-box" ref="drawingBox">
         </div>
 
-        <div class="text-fields btn">
+        <div class="text-field btn">
             <v-text-field
                     style="z-index: 4"
                     label="Enter glyph name"
                     v-model="newShapeName"
             />
+        </div>
+
+        <div class="explanation-out">
+            <div class="explanation-in">
+                Click on a shape and a categorical value in order to assign the shape to the value
+            </div>
         </div>
 
         <v-select class="btn variable-selector"
@@ -33,22 +39,17 @@
         <div class="buttons">
             <!--TODO remove draw button and always allow drawing (but remove tool when possible to save run-time)-->
             <v-btn class="btn white--text primary"
-                   v-show="!drawingMode"
+                   :disabled="drawingMode"
                    @click="drawPath">
                 Draw
             </v-btn>
-            <v-btn class="btn white--text dark"
-                   v-show="!drawingMode && loadedShape"
-                   @click="editPath">
-                Edit
-            </v-btn>
             <v-btn class="btn primary light--text"
-                   v-show="drawingMode"
+                   :disabled="!drawingMode"
                    @click="savePath">
                 Save
             </v-btn>
             <v-btn class="btn secondary dark--text"
-                   v-show="drawingMode"
+                   :disabled="!drawingMode"
                    @click="removePath">
                 Clear
             </v-btn>
@@ -264,11 +265,6 @@
                 this.loadedShape = ''
                 this.newShapeName = ''
             },
-            editPath () {
-                this.initialiseTool()
-                this.drawingMode = true
-                this.newShapeName = this.loadedShape
-            },
             endDrawing () {
                 this.drawGlyphTool.remove()
                 this.drawingMode = false
@@ -355,7 +351,7 @@
 <style scoped>
     /* can try to use grid area as well ? */
     #content{
-        width: 100%;
+        width: 90%;
         height: 80%;
         display: grid;
         grid-template-columns: repeat(4, 1fr);
@@ -373,37 +369,46 @@
     }
 
     #drawing-box{
-        width: 75%;
-        height: 0%;
-        padding-top: 75%;
+        width: 50%;
+        height: 0%;  /* needs to be zero in order for padding-top to keep the width and height equal */
+        padding-top: 50%;
         grid-column: 1 / 3;
-        grid-row: 1 / 5;
+        grid-row: 1 / 3;
+    }
+
+    .buttons{
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        max-width: 40%;
+        align-items: center;
+        grid-column: 1 / 2;
+        grid-row: 3 / 5;
+        margin: auto
+    }
+
+    .text-field{
+        grid-column: 2 / 3;
+        grid-row: 3 / 4;
+        margin: auto;
     }
 
     #shape-list{
         grid-column: 3 / 4;
-        grid-row: 3 / 5;
+        grid-row: 1 / 3;
         height: 100%;
-        margin: auto
     }
 
+    #value-list{
+        grid-column: 3 / 4;
+        grid-row: 3 / 5;
+        max-height: 100%;
+    }
 
     .btn{
         z-index: 4
         /*canvas is used. For input fields, need to put above canvas in z-stack
         btn class gives z-index value of 4 > 3, the canvas' value*/
-    }
-
-    .title{
-        grid-column: 3 / 4;
-        grid-row: 1 / 2
-    }
-
-    .text-fields{
-        grid-column: 3 / 4;
-        grid-row: 2 / 3;
-        margin: auto;
-        max-width: 200px
     }
 
     .close-button{
@@ -412,25 +417,29 @@
         margin: auto
     }
 
-    .buttons{
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        grid-column: 3 / 4;
-        grid-row: 1 / 2;
-        margin: auto
+    .explanation-out{
+        grid-column: 4 / 5;
+        grid-row: 2 / 4;
+        background-color: #D1C4E9;
+        border: 1px solid #424242;
+        color: white;
+        max-width: 80%;
+        margin: auto;
+        text-align: justify;
+        text-justify: inter-word;
     }
 
-    .variable-selector{
-        grid-column: 4 / 5;
-        grid-row: 2 / 3;
-        margin: auto
+    .explanation-in{
+        color: white;
+        max-width: 95%;
+        margin: auto;
+        text-align: justify;
+        text-justify: inter-word;
     }
 
-    #value-list{
+    .variable-selector {
         grid-column: 4 / 5;
-        grid-row: 3 / 5;
-        max-height: 100%;
+        grid-row: 4 / 5;
         margin: auto
     }
 </style>

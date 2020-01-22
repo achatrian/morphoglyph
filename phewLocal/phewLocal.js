@@ -1,6 +1,4 @@
 const express = require('express')
-const fsp = require('fs').promises
-const path = require('path')
 const ip = require('ip')
 const bodyParser = require('body-parser')
 const chalk = require('chalk')
@@ -9,38 +7,6 @@ const fsp = require('fs').promises
 const fs = require('fs');
 const ini = require('ini');
 
-<<<<<<< HEAD
-// Check for template files in data/templates
-async function checkForImages () {
-    const templates = await walk('data/templates')
-    const json = JSON.stringify(templates)
-    await fsp.writeFile('data/templates.json', json, 'utf8')
-}
-
-// Returns an array of available templates in the specified directory.
-async function walk (dir, fileList = []) {
-    const files = await fsp.readdir(dir)
-    for (const file of files) {
-        const stat = await fsp.stat(path.join(dir, file))
-
-        if (stat.isDirectory()) {
-            fileList.push({
-                name: path.basename(file),
-                children: []
-            })
-
-            const children = fileList[fileList.length - 1].children
-            await walk(path.join(dir, file), children)
-        } else if (file !== '.DS_Store') {
-            fileList.push({
-                name: file,
-                ext: path.extname(file),
-                path: path.join(dir, file).split(dir + '/')[1] // TODO test
-            })
-        }
-    }
-    return fileList
-=======
 
 const config = ini.parse(fs.readFileSync(path.join(__dirname, 'config.ini'), 'utf-8'));
 const templatesDir = path.isAbsolute(config.templates_dir) ? config.templates_dir : path.join(__dirname, config.templates_dir);
@@ -64,7 +30,6 @@ async function saveTemplates (data) {
             }
         }
     }
->>>>>>> branch_new
 }
 
 
@@ -86,12 +51,6 @@ async function startServer () {
         limit: '100mb'
     }))
 
-<<<<<<< HEAD
-
-    // Serve image files
-    app.use('/templates', express.static('data/templates', {})) // makes templates available at /template
-
-=======
     // Save template data
     app.post('/save', async function (req, res) {
         try {
@@ -108,7 +67,6 @@ async function startServer () {
     app.use('/templates', express.static('data/templates', {})) // makes templates available at /template
 
 
->>>>>>> branch_new
     // Serve the built application
     app.use(express.static('.'))
 

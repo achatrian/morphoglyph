@@ -63,6 +63,8 @@ export default {
     setTimeout(function () { commit('setRedrawing', false) }, 300)
   },
 
+  deleteElement: ({commit}, binding) => commit('deleteElement', binding),
+
   redrawElement: ({rootState, commit}, newBinding) => {
     const orderedData = [...rootState.backend.normalizedData]
     orderedData.sort((dp0, dp1) => {
