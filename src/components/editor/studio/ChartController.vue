@@ -17,12 +17,22 @@
                     label="y-axis"
                     v-model="yField"
             />
-            <v-btn small icon class="primary light--text" @click="drawChart_">
-                <v-icon>scatter_plot</v-icon>
-            </v-btn>
-            <v-btn small icon class="secondary dark--text" @click="destroyChart">
-                <v-icon>close</v-icon>
-            </v-btn>
+            <v-tooltip class="tooltip"
+                       open-delay="700"
+                       bottom>
+                <v-btn icon class="primary light--text" @click="drawChart_">
+                    <v-icon>scatter_plot</v-icon>
+                </v-btn>
+                <span>View scatterplot of selected features</span>
+            </v-tooltip>
+            <v-tooltip class="tooltip"
+                       open-delay="700"
+                       bottom>
+                <v-btn icon class="secondary dark--text" @click="setChartState(false)">
+                    <v-icon>close</v-icon>
+                </v-btn>
+                <span>Return to standard grid view</span>
+            </v-tooltip>
         </div>
         <v-divider/>
     </v-card>
@@ -61,7 +71,7 @@
             ...mapActions({
                 activateSnackbar: 'app/activateSnackbar',
                 drawChart: 'app/drawChart',
-                destroyChart: 'app/destroyChart'
+                setChartState: 'app/setChartState'
             }),
             drawChart_ () {
                 if (!this.xField || !this.yField) {

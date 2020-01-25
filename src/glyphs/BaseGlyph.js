@@ -478,11 +478,19 @@ class BaseGlyph {
       }, 400)
     })
     this.animations.add('shrink-regrow')
+    this.shirnkRegrowScaleFactor = scaleFactor // save for scaling glyphs up again!
   }
 
   removeShrinkRegrow () {
     this.group.off('mouseenter').off('mouseleave')
     this.animations.delete('shrink-regrow')
+    const group = this.group
+    const childrenGroups = this.children.map(glyph => glyph.group)
+    group.scale(1/this.shirnkRegrowScaleFactor)
+    for (let childGroup of childrenGroups) {
+      childGroup.scale(1/this.shirnkRegrowScaleFactor)
+    }
+    this.shirnkRegrowScaleFactor = null
   }
 }
 

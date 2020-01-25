@@ -1,59 +1,69 @@
 <template>
     <v-card id='content' class="light elevation-5" v-resize="updateBoxRects">
         <!--<v-card-title class="title">Add new shapes and assign shapes to variables</v-card-title>-->
-        <app-scroll-options id="shape-list" title="Saved shapes" :items="shapeNames"
-                            @change="loadShape" @buttonClick="removeShape"/>
+        <v-layout column justify-space-around>
+            <v-layout row>
+                <v-flex xs6 sm4>
+                    <div id="drawing-box" class="canvas-box" ref="drawingBox">
+                    </div>
+                </v-flex>
+                <v-flex xs6 sm4>
+                    <div class="buttons">
+                        <!--TODO remove draw button and always allow drawing (but remove tool when possible to save run-time)-->
+                        <v-btn class="btn white--text primary"
+                               :disabled="drawingMode"
+                               @click="drawPath">
+                            Draw
+                        </v-btn>
+                        <div class="text-field btn">
+                            <v-text-field
+                                    style="z-index: 4"
+                                    label="Enter glyph name"
+                                    v-model="newShapeName"
+                            />
+                        </div>
+                        <v-btn class="btn primary light--text"
+                               :disabled="!drawingMode"
+                               @click="savePath">
+                            Save
+                        </v-btn>
+                        <v-btn class="btn secondary dark--text"
+                               :disabled="!drawingMode"
+                               @click="removePath">
+                            Clear
+                        </v-btn>
+                    </div>
+                </v-flex>
+                <v-flex xs6 sm3>
+                    <div class="explanation-out">
+                        <div class="explanation-in">
+                            Click on a shape and a categorical value in order to assign the shape to the value
+                        </div>
+                    </div>
+                    <v-select class="btn variable-selector"
+                              outlined
+                              :items="categoricals"
+                              label="Choose feature for shape assignment"
+                              v-model="selectedCategorical"
+                    />
+                    <v-btn class="btn close-button" depressed @click="applyShapes">
+                        <v-icon color="primary">done</v-icon>
+                    </v-btn>
+                </v-flex>
+            </v-layout>
+            <v-layout>
+                <v-flex xs6 sm6 class="btn">
+                    <app-scroll-options id="shape-list" title="Saved shapes" :items="shapeNames"
+                                        @change="loadShape" @buttonClick="removeShape"/>
+                </v-flex>
+                <v-flex xs6 sm6 class="btn">
+                    <app-scroll-options id="value-list" title="Categorical values" :items="categoricalValues"
+                                        @change="assignShape" @buttonClick="unassignShape"/>
 
-
-        <app-scroll-options id="value-list" title="Categorical values" :items="categoricalValues"
-                            @change="assignShape" @buttonClick="unassignShape"/>
-
-        <v-btn class="btn close-button" round flat fab @click="setShapeManagerState(false)">
-            <v-icon color="primary">close</v-icon>
-        </v-btn>
+                </v-flex>
+            </v-layout>
+        </v-layout>
         <!-- drawingBounds where new shape can be drawn -->
-        <div id="drawing-box" class="canvas-box" ref="drawingBox">
-        </div>
-
-        <div class="text-field btn">
-            <v-text-field
-                    style="z-index: 4"
-                    label="Enter glyph name"
-                    v-model="newShapeName"
-            />
-        </div>
-
-        <div class="explanation-out">
-            <div class="explanation-in">
-                Click on a shape and a categorical value in order to assign the shape to the value
-            </div>
-        </div>
-
-        <v-select class="btn variable-selector"
-                  outlined
-                  :items="categoricals"
-                  label="Choose feature for shape assignment"
-                  v-model="selectedCategorical"
-        />
-
-        <div class="buttons">
-            <!--TODO remove draw button and always allow drawing (but remove tool when possible to save run-time)-->
-            <v-btn class="btn white--text primary"
-                   :disabled="drawingMode"
-                   @click="drawPath">
-                Draw
-            </v-btn>
-            <v-btn class="btn primary light--text"
-                   :disabled="!drawingMode"
-                   @click="savePath">
-                Save
-            </v-btn>
-            <v-btn class="btn secondary dark--text"
-                   :disabled="!drawingMode"
-                   @click="removePath">
-                Clear
-            </v-btn>
-        </div>
     </v-card>
 </template>
 
@@ -140,7 +150,8 @@
                 storeShapeJSON: 'backend/storeShapeJSON',
                 activateSnackbar: 'app/activateSnackbar',
                 removeShapeJSON: 'backend/removeShapeJSON',
-                setVarShapeAssignment: 'backend/setVarShapeAssignment'
+                setVarShapeAssignment: 'backend/setVarShapeAssignment',
+                activateRedrawing: 'glyph/activateRedrawing'
             }),
             initialiseTool () {
                 paper.PaperScope.get(0).activate()
@@ -181,6 +192,28 @@
                 }
                 const toolUp = () => {
                     if (this.path && this.drawingMode) {
+                        // if path was drawn counter-clockwise, rebuild it in a clockwise manner and save it
+                        let signedArea = 0
+                        for (let p = 0; p < this.path.segments.length - 2; p++) {
+                            let [x1, y1] = [this.path.segments[p].point.x, this.path.segments[p].point.y]
+                            let [x2, y2] = [this.path.segments[p+1].point.x, this.path.segments[p+1].point.y]
+                            signedArea += (x2 - x1) * (y2 + y1)
+                        }
+                        let [x1, y1] = [this.path.segments[this.path.segments.length - 1].point.x,
+                            this.path.segments[this.path.segments.length - 1].point.y]
+                        let [x2, y2] = [this.path.segments[0].point.x, this.path.segments[0].point.y]  // starting point
+                        signedArea += (x2 - x1) * (y2 + y1)
+                        if (signedArea > 0) {
+                            const clockwisePath = new paper.Path({
+                                segments: this.path.segments.reverse(),
+                                strokeColor: 'black',
+                                closed: true
+                            })
+                            this.path.replaceWith(clockwisePath)
+                            this.path = clockwisePath
+                            console.log("Replaced counter-clockwise path with clock-wise equivalent")
+                        }
+
                         // If user releases mouse near the first segment then close path
                         this.path.closed = true
 
@@ -338,6 +371,11 @@
                     assignment => !(assignment.categoricalValue === categoricalValue && assignment.field === this.selectedCategorical)
                 )
                 this.setVarShapeAssignment(varShapeAssignment)
+            },
+            applyShapes () {
+                this.setShapeManagerState(false)
+                setTimeout(function () {})
+                this.activateRedrawing()
             }
         },
         beforeDestroy () {
@@ -352,11 +390,6 @@
     /* can try to use grid area as well ? */
     #content{
         width: 90%;
-        height: 80%;
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        grid-template-rows: repeat(4, 1fr);
-        align-items: center;
         margin: auto
     }
 
@@ -372,8 +405,6 @@
         width: 50%;
         height: 0%;  /* needs to be zero in order for padding-top to keep the width and height equal */
         padding-top: 50%;
-        grid-column: 1 / 3;
-        grid-row: 1 / 3;
     }
 
     .buttons{
@@ -381,28 +412,17 @@
         justify-content: center;
         flex-wrap: wrap;
         max-width: 40%;
-        align-items: center;
-        grid-column: 1 / 2;
-        grid-row: 3 / 5;
         margin: auto
     }
 
     .text-field{
-        grid-column: 2 / 3;
-        grid-row: 3 / 4;
         margin: auto;
     }
 
     #shape-list{
-        grid-column: 3 / 4;
-        grid-row: 1 / 3;
-        height: 100%;
     }
 
     #value-list{
-        grid-column: 3 / 4;
-        grid-row: 3 / 5;
-        max-height: 100%;
     }
 
     .btn{
@@ -412,14 +432,11 @@
     }
 
     .close-button{
-        grid-column: 4 / 5;
-        grid-row: 1 / 2;
-        margin: auto
+        margin: auto;
+        margin-left: 50%
     }
 
     .explanation-out{
-        grid-column: 4 / 5;
-        grid-row: 2 / 4;
         background-color: #D1C4E9;
         border: 1px solid #424242;
         color: white;
@@ -438,8 +455,6 @@
     }
 
     .variable-selector {
-        grid-column: 4 / 5;
-        grid-row: 4 / 5;
         margin: auto
     }
 </style>

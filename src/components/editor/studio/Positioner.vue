@@ -53,12 +53,26 @@
       </v-slider>
       <div class="move-resize-commands move-options">
         <v-checkbox class="control-item" label="Children" color="secondary" v-model="changeChildren"/>
-        <v-btn class="control-item light primary--text" icon @click="planCentering">
-          <v-icon>adjust</v-icon>
-        </v-btn>
-        <v-btn class="control-item secondary dark--text" icon @click="resetOriginalPosition">
-          <v-icon>undo</v-icon>
-        </v-btn>
+        <v-tooltip
+                class="tooltip"
+                open-delay="700"
+                bottom
+        >
+          <v-btn class="control-item light primary--text" icon @click="planCentering">
+            <v-icon>adjust</v-icon>
+          </v-btn>
+          <span>Shift all glyphs back to their original drawing position</span>
+        </v-tooltip>
+        <v-tooltip
+                class="tooltip"
+                open-delay="700"
+                bottom
+        >
+          <v-btn class="control-item secondary dark--text" icon @click="resetOriginalPosition">
+            <v-icon>undo</v-icon>
+          </v-btn>
+          <span>Undo last glyph movement</span>
+        </v-tooltip>
       </div>
     </div>
     <v-divider/>

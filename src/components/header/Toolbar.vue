@@ -24,6 +24,9 @@
     </div>
     <!--because of flex, elements must be at either end or beginning, or they will change position if something is inserted on the right (e.g. the file name)-->
     <v-spacer/>
+    <div id="project-name">
+      <v-text-field placeholder="Project Name" @input="updateTemplateName_"/>
+    </div>
     <app-save-templates/>
     <app-box-toggler/>
     <app-zoomer/>
@@ -37,6 +40,7 @@
 
 <script>
 import {mapState, mapActions} from 'vuex'
+import debounce from 'debounce'
 
 //import Settings from './settings/Settings'
 import LoadData from './buttons/LoadData'
@@ -58,13 +62,15 @@ export default {
   computed: {
     ...mapState({
       fileName: state => state.backend.fileName,
-      numDisplayedGlyphs: state => state.glyph.numDisplayedGlyphs
+      numDisplayedGlyphs: state => state.glyph.numDisplayedGlyphs,
+      templateName: state => state.template.templateName
     })
   },
   methods: {
     ...mapActions({
       toggleToolsDrawer: 'app/toggleToolsDrawer',
-      toggleStudioDrawer: 'app/toggleStudioDrawer'//,
+      toggleStudioDrawer: 'app/toggleStudioDrawer',
+      updateTemplateName: 'template/updateTemplateName'
       //loadFeaturesFile: 'backend/loadFeaturesFile',
     }),
     onToolsClick () {
@@ -72,7 +78,13 @@ export default {
     },
     onStudioClick () {
       this.toggleStudioDrawer()
-    }
+    },
+    updateTemplateName_: debounce.call(
+            this, function (templateName) {
+              console.log(`Changing template name from ${this.templateName} to ${templateName}`)
+              this.updateTemplateName(templateName)
+            }, 500
+    )
   }
 }
 </script>
@@ -96,5 +108,9 @@ export default {
   #toolbar-toggle {
     margin-left: -30px;
     margin-right: 40px;
+  }
+
+  #project-name {
+    max-width: 150px
   }
 </style>

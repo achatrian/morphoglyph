@@ -81,49 +81,4 @@ export default {
   removeShapeJSON: ({commit}, name) => commit('removeShapeJSON', name),
 
   setVarShapeAssignment: ({commit}, varShapeAssignment) => commit('setVarShapeAssignment', varShapeAssignment),
-
-  async getArrayOfTemplates ({commit}) { // TODO finish / unused
-    try {
-      await axios.post(location.origin + '/checkForTemplates')
-      const pathToArrayOfTemplatesFile = location.origin + '/data/templates.json'
-      const arrayOfTemplatesFile = await axios.get(pathToArrayOfTemplatesFile)
-      commit('setAvailableTemplates', arrayOfTemplatesFile.data)
-    } catch (err) {
-      console.log(err)
-    }
-  },
-
-  async saveAnnotation ({ // TODO adapt and use!
-    dispatch,
-    rootState
-  }) {
-    try {
-      // Ensure all the paperJS items are included in the vuex state
-      // await dispatch('annotation/refreshAnnotationState', null, { root: true })
-
-      // Post API request.
-      const postUrl = location.origin + '/save'
-      await axios.post(
-        postUrl,
-        {
-          projectImageName: rootState.image.projectImageName,
-          annotationData: rootState.annotation.project
-        }
-      )
-
-      // Activate notification
-      // dispatch('app/activateSnackbar', {
-      //   text: 'Saved annotation data',
-      //   color: 'success'
-      // }, { root: true })
-
-      // Handle errors
-    } catch (err) {
-      console.log(err)
-      dispatch('app/activateSnackbar', {
-        text: 'Annotation data could not be saved',
-        color: 'error'
-      }, { root: true })
-    }
-  }
 }

@@ -37,9 +37,22 @@
                                     v-model="selectedOrderField"
                             />
                         </v-flex>
-                        <v-flex xs6 sm6>
-                            <v-btn round flat @click="setGlyphBinderState(false); setGlyphVisibility({value: true})"
-                            style="left: 50%">
+                        <v-flex xs3 sm3>
+                            <v-select
+                                class="selector"
+                                outlined
+                                label="Load a saved template"
+                                :items="templatesNames"
+                                v-model="selectedTemplateName"
+                            />
+                        </v-flex>
+                        <v-flex x2 sm2>
+                            <v-btn icon @click="getTemplate(selectedTemplateName)">
+                                <v-icon color="primary">check_circle</v-icon>
+                            </v-btn>
+                        </v-flex>
+                        <v-flex xs1 sm1>
+                            <v-btn icon @click="setGlyphBinderState(false); setGlyphVisibility({value: true})">
                                 <v-icon color="primary">close</v-icon>
                             </v-btn>
                         </v-flex>
@@ -93,7 +106,8 @@
                 selectedGlyphName: '',
                 selectedOrderField: '', // selected field of cluster names
                 selectedGlyphSetting: '',
-                lastUnboundField: '' // used to flag which field needs re-clicking to be bound again
+                lastUnboundField: '', // used to flag which field needs re-clicking to be bound again,
+                selectedTemplateName: ''
             }
         },
         computed: {
@@ -109,6 +123,9 @@
                 loadedBindingData: state => state.backend.loadedBindingData,
                 numDisplayedGlyphs: state => state.app.numDisplayedGlyphs,
                 maxDisplayedGlyphs: state => state.app.maxDisplayedGlyphs,
+                availableTemplates: state => state.template.availableTemplates,
+                currentTemplate: state => state.template.currentTemplate,
+                testTemplate: state => state.template.testTemplate
             }),
             glyphNames () { // names of glyph types for selection
                 let glyphNames = []
@@ -189,6 +206,9 @@
                     fields = this.dataFields // if no string fields are available, let user choose any field
                 }
                 return fields
+            },
+            templatesNames () {
+                return this.availableTemplates.map(templateItem => templateItem.name.slice(0, -5))
             }
         },
         methods: {
@@ -201,7 +221,8 @@
                 changeDisplayedGlyphNum: 'app/changeDisplayedGlyphNum',
                 setNamingField: 'backend/setNamingField',
                 normalizeFeatures: 'backend/normalizeFeatures',
-                setGlyphVisibility: 'glyph/setGlyphVisibility'
+                setGlyphVisibility: 'glyph/setGlyphVisibility',
+                getTemplate: 'template/getTemplate'
             }),
             bindFieldToElement (selectedField) { // function to turn element and feature selections into a binding object
                 if (this.selectedGlyphEl) {

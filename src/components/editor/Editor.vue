@@ -10,7 +10,7 @@
 </template>
 
 <script>
-import {mapState} from 'vuex'
+import {mapState, mapActions} from 'vuex'
 import Toolbar from '../header/Toolbar'
 import Tools from './tools/Tools'
 import View from './view/View'
@@ -34,6 +34,15 @@ export default {
       footer: state => state.app.footer,
       toolsDrawer: state => state.app.toolsDrawer
     })
+  },
+  methods: {
+    ...mapActions({
+      getArrayOfTemplates: 'template/getArrayOfTemplates'
+    })
+  },
+  mounted () {
+    console.log("loading array of templates ...")
+    this.getArrayOfTemplates() // call here to have available templates ready
   }
 }
 </script>

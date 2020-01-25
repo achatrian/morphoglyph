@@ -5,6 +5,8 @@ const darkColor = '#424242'
 const lighterColor = '#757575'
 
 export default function drawAxes(options = {
+    xRange: [0.0, 1.0], // NOT USED YET
+    yRange: [0.0, 1.0],
     offsetFraction: 0.1, // fractional space between canvas border and origin
     endFraction: 0.05, // fractional space added at the axes length
     strokeWidth: 1.5,
@@ -15,7 +17,7 @@ export default function drawAxes(options = {
 
     const chartLayer = new paper.Layer({name: 'chart'}) // TODO use this or temp layer ?
     chartLayer.activate()
-    const {offsetFraction, endFraction, strokeWidth, strokeColor, tickSpacing, minTickNumber} = options
+    const {xRange, yRange, offsetFraction, endFraction, strokeWidth, strokeColor, tickSpacing, minTickNumber} = options
     if (offsetFraction < endFraction) {
         throw Error('Cannot extend axis out of canvas (enforce offsetFraction < endFraction)')
     }
@@ -46,7 +48,7 @@ export default function drawAxes(options = {
         // write tick label
         let xPointText = new paper.PointText({
             point: [origin[0] + ix*xTickSpacing, origin[1] + distFromXAxis],
-            content: (1.0/(numXTicks - 1) * ix).toFixed(2), // converts into string
+            content: (xRange[1]/(numXTicks - 1) * ix + xRange[0]).toFixed(2), // converts into string
             fillColor: 'black',
             fontFamily: 'Courier New',
             fontWeight: 'bold',
@@ -69,7 +71,7 @@ export default function drawAxes(options = {
         // write tick label
         new paper.PointText({
             point: [origin[0] - distFromYAxis, origin[1] - iy*yTickSpacing],
-            content: (1.0/(numYTicks - 1) * iy).toFixed(2), // converts into string
+            content: (yRange[1]/(numYTicks - 1) * iy + yRange[0]).toFixed(2), // converts into string
             fillColor: 'black',
             fontFamily: 'Courier New',
             fontWeight: 'bold',

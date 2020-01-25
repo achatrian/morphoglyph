@@ -106,5 +106,7 @@ export default {
 
   setBoundingRectSizeFactor: ({commit}, sizeFactor) => commit('setBoundingRectSizeFactor', sizeFactor),
 
-  addShrinkRegrowAnimation: ({commit}) => commit('addShrinkRegrowAnimation')
+  addShrinkRegrowAnimation: ({commit}) => commit('addShrinkRegrowAnimation'),
+
+  removeShrinkRegrowAnimation: ({commit}) => commit('removeShrinkRegrowAnimation')
 }

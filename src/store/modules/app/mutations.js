@@ -229,6 +229,10 @@ export default {
     state.chartYField = yField
     // order data ...
     const orderedData = [...backend.normalizedData]
+    const xNormalizedMin = Math.min(...backend.normalizedData.map(dataPoint => dataPoint[state.chartXField]))
+    const xNormalizedMax = Math.max(...backend.normalizedData.map(dataPoint => dataPoint[state.chartXField]))
+    const yNormalizedMin = Math.min(...backend.normalizedData.map(dataPoint => dataPoint[state.chartYField]))
+    const yNormalizedMax = Math.max(...backend.normalizedData.map(dataPoint => dataPoint[state.chartYField]))
     orderedData.sort((dataPoint0, dataPoint1) =>
         backend.dataDisplayOrder.indexOf(dataPoint0[backend.orderField]) -
         backend.dataDisplayOrder.indexOf(dataPoint1[backend.orderField])
@@ -238,12 +242,15 @@ export default {
     if (state.numDisplayedGlyphs !== 0) {
       orderedData.splice(state.numDisplayedGlyphs, orderedData.length - state.numDisplayedGlyphs)
     }
+    // span of view coordinates that will be occupied by chart
     const xSpan = state.axesPoints.xSpanEnd - state.axesPoints.origin[0]
     const ySpan = state.axesPoints.origin[1] - state.axesPoints.ySpanEnd
     state.chartPoints = orderedData.map(dataPoint => {
+      const xNormalized01 = ((dataPoint[xField] - xNormalizedMin)/(xNormalizedMax - xNormalizedMin))
+      const yNormalized01 = ((dataPoint[yField] - yNormalizedMin)/(yNormalizedMax - yNormalizedMin))
       const point = [
-        dataPoint[xField]*xSpan + state.axesPoints.origin[0],
-        state.axesPoints.origin[1] - dataPoint[yField]*ySpan
+        xNormalized01 * xSpan + state.axesPoints.origin[0],
+        state.axesPoints.origin[1] - yNormalized01 * ySpan
       ]
       point.x = point[0]
       point.y = point[1]
@@ -251,7 +258,21 @@ export default {
     })
   },
 
-  drawAxes: state => state.axesPoints = drawAxes(),
+  drawAxes: (state, {featuresRanges, xField, yField}) => {
+    state.chartXfield = xField
+    state.chartYfield = yField
+    const darkColor = '#424242'
+    state.axesPoints = drawAxes({
+      xRange: featuresRanges[state.chartXfield],
+      yRange: featuresRanges[state.chartYfield],
+      offsetFraction: 0.1, // fractional space between canvas border and origin
+      endFraction: 0.05, // fractional space added at the axes length
+      strokeWidth: 1.5,
+      strokeColor: darkColor,
+      minTickNumber: 6, // tick number more important than tick spacing
+      tickSpacing: 100,
+    })
+  },
 
   destroyAxes: () => {
     const chartLayer = paper.project.getItem({name: 'chart'})

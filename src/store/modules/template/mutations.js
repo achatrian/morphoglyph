@@ -1,6 +1,8 @@
 
 
 export default {
+    updateTemplateName: (state, templateName) => state.templateName = templateName,
+
     updateGlyphInformation: (state, glyphs) => {
         const glyph = glyphs[0]
         if (typeof glyph !== 'undefined') {
@@ -67,5 +69,20 @@ export default {
         // UPDATE SHAPE ASSIGNMENT TO CATEGORICAL VARIABLES
         const newCurrentTemplate = Object.assign({}, state.currentTemplate)
         newCurrentTemplate.shapeAssignment = varShapeAssignment
+    },
+
+    updateDisplayOptions: (state, options) => {
+        const {displayOrderField, numDisplayedGlyphs, boundingRectSizeFactor, currentPage} = options
+        const newCurrentTemplate = Object.assign({
+            displayOrderField: displayOrderField,
+            numDisplayedGlyphs: numDisplayedGlyphs,
+            boundingRectSizeFactor: boundingRectSizeFactor,
+            currentPage: currentPage
+        }, state.currentTemplate)
+        state.currentTemplate = newCurrentTemplate
+    },
+
+    setAvailableTemplates: (state, availableTemplates) => {
+        state.availableTemplates = availableTemplates
     }
 }

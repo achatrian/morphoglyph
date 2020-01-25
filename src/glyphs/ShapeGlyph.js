@@ -176,6 +176,11 @@ class ShapeGlyph extends BaseGlyph {
               this.box.bounds.width / path.bounds.width,
               this.box.bounds.height / path.bounds.height
           )
+          Object.assign(path, {
+            strokeColor: this.parameters.strokeColor,
+            fillColor: this.parameters.lightColor,
+            strokeWidth: this.parameters.strokeWidth
+          })
           break
         } // if no shapes are given, falls through to ellipse drawing
       /* eslint-disable-next-line no-fallthrough */
@@ -382,16 +387,66 @@ class ShapeGlyph extends BaseGlyph {
   }
 
   drawProtrusion (protrusionFraction, subElements) { // eslint-disable-line no-unused-vars
-    let protrusionPath = this.cloneItem(this.name, this.parameters.numPoints)
+    let extrusionPath = this.cloneItem(this.name, this.parameters.numPoints)
     // compute min space available to draw protrusion. This corresponds to glyph with the same height as the box's height
     // this glyph will touch the lower boundary of the drawing box after being shifted and scaled.
     const upperEmptySpace = this.box.drawingBounds.height * this.parameters.protrusionProportion
-    for (let i = 0; i < protrusionPath.segments.length; i++) {
-      if (protrusionPath.segments[i].point.y < this.mainPath.position.y) {
+    for (let i = 0; i < extrusionPath.segments.length; i++) {
+      if (extrusionPath.segments[i].point.y < this.mainPath.position.y) {
         // shift up points in upper half of main path's clone - NB (y increases going down in screen)
         //protrusionPath.segments[i].point.y -= protrusionPath.segments[i].point.y * protrusionFraction
-        protrusionPath.segments[i].point.y -= upperEmptySpace * protrusionFraction
+        extrusionPath.segments[i].point.y -= upperEmptySpace * protrusionFraction
       }
+    }
+    const originalPath = this.cloneItem(this.name, this.parameters.numPoints)
+    const intersections = originalPath.getCrossings(extrusionPath)
+    let protrusionPath
+    const upperLeftCorner = [originalPath.bounds.x, originalPath.bounds.y]
+    const upperRightCorner = [originalPath.bounds.x + originalPath.bounds.width, originalPath.bounds.y]
+    if (intersections.length > 0) {
+      const intersectionPoints = intersections.map(intersection => originalPath.getLocationOf(intersection.point))
+      intersectionPoints.sort(
+          (loc1, loc2) => loc1.point.getDistance(upperLeftCorner) - loc2.point.getDistance(upperLeftCorner)
+      )
+      const leftUpperOffset = intersectionPoints[0].offset
+      intersectionPoints.sort(
+          (loc1, loc2) => loc1.point.getDistance(upperRightCorner) - loc2.point.getDistance(upperRightCorner)
+      )
+      const rightUpperOffset = intersectionPoints[0].offset
+      const protrusionSegments = []
+      // originalPath and extrusionPath have the same number of segments by construction
+      for (let j = 0; j < originalPath.segments.length; j++) {
+        let segmentOffset = originalPath.segments[j].location.offset
+        let extrusionPoint = extrusionPath.segments[j].point
+        if (leftUpperOffset < rightUpperOffset) {
+          if (segmentOffset > leftUpperOffset && segmentOffset < rightUpperOffset) {
+            if (extrusionPoint.getDistance(originalPath.getNearestPoint(extrusionPoint)) > 1 &&
+                !originalPath.contains(extrusionPoint)
+            ) {
+              protrusionSegments.push(extrusionPath.segments[j].clone())
+            } else {
+              protrusionSegments.push(originalPath.getNearestLocation(extrusionPoint).segment.clone())
+            }
+          } else {
+            protrusionSegments.push(originalPath.segments[j].clone())
+          }
+        } else {
+          if (segmentOffset > rightUpperOffset && segmentOffset < leftUpperOffset) {
+            protrusionSegments.push(originalPath.segments[j].clone())
+          } else {
+            if (extrusionPoint.getDistance(originalPath.getNearestPoint(extrusionPoint)) > 1 &&
+                !originalPath.contains(extrusionPoint)
+            ) {
+              protrusionSegments.push(extrusionPath.segments[j].clone())
+            } else {
+              protrusionSegments.push(originalPath.getNearestLocation(extrusionPoint).segment.clone())
+            }
+          }
+        }
+      }
+      protrusionPath = new paper.Path(protrusionSegments)
+    } else {
+      protrusionPath = extrusionPath
     }
     Object.assign(protrusionPath, {
       strokeWidth: this.parameters.strokeWidth,
@@ -400,7 +455,7 @@ class ShapeGlyph extends BaseGlyph {
       visible: true,
       closed: true
     })
-    protrusionPath.sendToBack() // not maintained when building group
+    protrusionPath.sendToBack()  // not maintained when building group
     this.zOrder['protrusion'] = -1
     this.registerItem(protrusionPath, 'protrusion')
   }

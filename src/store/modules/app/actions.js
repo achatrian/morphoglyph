@@ -32,6 +32,7 @@ export default {
     commit('setGlyphAdderState', false)
     commit('setWelcomeCardState', false)
     commit('setLegendViewerState', false)
+    commit('setChartState', false) // chart is like a different window
     // must remove temp layers that's used by some windows
     commit('glyph/removeTempLayer', null, {root: true})
     // more window togglers go here
@@ -126,26 +127,33 @@ export default {
   //   commit('updateGlyphArrangement')
   // },
 
-  setChartState: ({commit}, payload) => commit('setChartState', payload),
+  setChartState: ({commit, dispatch}, payload) => {
+    commit('setChartState', payload)
+    if (!payload) {
+      commit('destroyAxes')
+      commit('setGlyphArrangement', 'grid')
+      commit('updateGlyphArrangement')
+      dispatch('glyph/removeShrinkRegrowAnimation', null, {root: true})
+    }
+  },
 
   drawChart: ({rootState, state, dispatch, commit}, payload = { // defaults are for redrawing chart on resize of canvas component
     xField: state.chartXField,
     yField: state.chartYField
   }) => {
-    dispatch('destroyChart')
+    commit('setChartState', false)
     commit('setChartState', true)
-    commit('drawAxes') // must happen before setChartPoints
+    commit('drawAxes', {
+      featuresRanges: rootState.backend.featuresRanges,
+      xField: payload.xField,
+      yField: payload.yField
+    }) // must happen before setChartPoints
     payload.backend = rootState.backend
     commit('setChartPoints', payload)
     commit('setGlyphArrangement', 'chart')
     commit('updateGlyphArrangement')
     // need all glyphs to be in chart position before they're downscaled
     setTimeout(() => dispatch('glyph/addShrinkRegrowAnimation', null, {root: true}), 1000)
-  },
-
-  destroyChart: ({commit}) => {
-    commit('setChartState', false)
-    commit('destroyAxes')
   },
 
   setChartPoints: ({commit}, chartMetaData) => commit('setChartPoints', chartMetaData)
