@@ -1,6 +1,7 @@
 // import Vue from 'vue'
 import paper from 'paper'
 import Vue from 'vue'
+import DrawingBox from '../../../glyphs/DrawingBox';
 
 function glyphScope() {
   for (let i = 0; i < 3; i++) {
@@ -219,13 +220,13 @@ export default {
         targetGlyph = glyph.getChild(binding.shape)
       } // target is either main glyph or one of children
       if (typeof targetGlyph === 'undefined') {
-        throw Error(`Neither glyph ${glyphId} nor its children match shape '${binding.shape}' `)
+        throw new Error(`Neither glyph ${glyphId} nor its children match shape '${binding.shape}' `)
       }
       try {
         targetGlyph['draw' + binding.element](dataPoint[binding.field]) // get draw method for element and call it
       } catch (e) {
         if (typeof targetGlyph['draw' + binding.element] === 'undefined') {
-          throw Error(`Handler for element ${binding.element} not defined on glyph type ${targetGlyph.name}`)
+          throw new Error(`Handler for element ${binding.element} not defined on glyph type ${targetGlyph.name}`)
         } else {
           throw e
         }
@@ -380,11 +381,14 @@ export default {
   setGlyphParameters: (state, {parameters, shapeName}) => {
     let targetGlyph
     for (let glyph of state.project.glyphs) {
-      if (glyph.drawn && glyph.name === shapeName) {
+      if (glyph.name === shapeName) {
         targetGlyph = glyph
       } else {
         targetGlyph = glyph.getChild(shapeName)
       } // target is either main glyph or one of its children
+      if (!targetGlyph) {
+        throw new Error(`No glyph matching '${shapeName}'`)
+      }
       Object.assign(targetGlyph.parameters, parameters)
     }
   },
@@ -410,6 +414,37 @@ export default {
     let shapePositions = state.shapePositions
     shapePositions[shapeName] = position
     state.shapePositions = shapePositions // principle of rewriting object for vuex to react to it
+  },
+
+  setGlyphBox: (state, glyphBoxes) => { // one update for all glyphs
+    if (glyphBoxes.length !== state.project.glyphs.length) {
+      throw new Error("Passed box parameters do not match number of existing glyphs")
+    }
+    for (let glyph of state.project.glyphs) {
+      let glyphBox = glyphBoxes.find(glyphBox => glyphBox._id === glyph.id)
+      if (!glyphBox) {
+        throw new Error(`No glyph box matching name '${glyphBox._id}'. Boxes template might not match dataset`)  // TODO apply this anyway ?
+      }
+      let targetGlyph
+      for (let shapeName of Object.keys(glyphBox)) {
+        if (shapeName === '_id') {
+          continue // key that stores id of glyph corresponding to box
+        }
+        if (glyph.name === shapeName) {
+          targetGlyph = glyph
+        } else {
+          targetGlyph = glyph.getChild(shapeName)
+        }
+        targetGlyph.box = new DrawingBox(targetGlyph, {
+          boundingRect: glyphBox[shapeName].drawingBounds,
+          shapePositions: glyphBox[shapeName].shapePositions,
+          history: glyphBox[shapeName].history,
+          maxHistLength: glyphBox[shapeName].maxHistLength,
+          applyHistoryTransforms: false // save history but do not apply transforms on box creation. Use box info instead
+        })
+        targetGlyph.fitToBox()
+      }
+    }
   },
 
   selectGlyphEl: (state, selection) => { // for glyph selection tool
@@ -447,5 +482,14 @@ export default {
         glyph.removeShrinkRegrow()
       }
     }
+  },
+
+  saveAsSVG: (state, templateName) => {
+    const fileName = `${templateName}.svg`
+    const url = "data:image/svg+xml;utf8" + encodeURIComponent(paper.project.exportSVG({asString: true}))
+    const link = document.createElement('a')
+    link.download = fileName
+    link.href = url
+    link.click()
   }
 }

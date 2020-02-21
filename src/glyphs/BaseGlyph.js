@@ -114,7 +114,9 @@ class BaseGlyph {
   draw (options) {
     // method to draw myself -- must be called by subclasses before rest of drawing statements
     this.drawOptions = options
-    this.box = new DrawingBox(this, options) // adapt box to shapePosition instructions for self and children
+    if (!this.box) { // if box was preset (e.g. when loading template) there's no need for a new box
+      this.box = new DrawingBox(this, options) // adapt box to shapePosition instructions for self and children
+    }
     if (this.layer === null) {
       throw Error(`Cannot draw glyph ${this.id} with null layer`)
     }
@@ -122,7 +124,7 @@ class BaseGlyph {
     if (!Object.is(paper.project.layers[this.layer], paper.project.activeLayer)) {
       throw Error(`Cannot set glyph: Active layer '${paper.project.activeLayer.name}' differs from glyph layer '${paper.project.layers[this.layer].name}'`)
     }
-    if (!this.parent) {
+    if (!this.parent) { // register a visible black rectangle used for debugging purposes
       const drawingBox = paper.Path.Rectangle({
         center: [this.box.drawingCenter.x, this.box.drawingCenter.y],
         size: [this.box.drawingBounds.width, this.box.drawingBounds.height],
@@ -131,6 +133,11 @@ class BaseGlyph {
         visible: false
       })
       this.registerItem(drawingBox, 'drawingBox')
+      for (let childGlyph of this.children) {
+        childGlyph.registerItem(drawingBox, 'drawingBox')
+        // drawing box is registered in every child
+        // needed to move children relatively to it
+      }
     }
     this.drawn = true
   }
@@ -351,43 +358,45 @@ class BaseGlyph {
       selector ===  'glyph': only update glyph group (main + elements)
       selector === 'all' : update glyph and children
     */
-    let group
-    if (selector === 'layer') {
-      group = paper.project.layers[this.layer]
-    } else if (selector === 'glyph' || selector === 'all') {
-      group = this.group
-    }
-    // for transforms applied before element drawing: if group is empty target the main path
-    if (group.children.length === 0) {
-      group = this.mainPath
-    }
-    const updated = this.checkBoxUpdate()
-    if (selector === 'layer' && updated.box) {
-      const drawingBox = this.getItem('drawingBox')
-      group.translate(new paper.Point(
-          this.box.drawingBounds.x - drawingBox.bounds.x,
-          this.box.drawingBounds.y - drawingBox.bounds.y
-      ))
-      group.scale(
-          this.box.drawingBounds.width /  drawingBox.bounds.width,
-          this.box.drawingBounds.height /  drawingBox.bounds.height
-      )
-    } else if (updated.main) {
-      const mainPath = this.mainPath
-      group.translate(new paper.Point(
-          this.box.bounds.x - mainPath.bounds.x,
-          this.box.bounds.y - mainPath.bounds.y
-      ))
-      group.scale(
-          this.box.bounds.width / mainPath.bounds.width,
-          this.box.bounds.height / mainPath.bounds.height
-      )
-    } else {
-      console.warn('fitToBox did not update any path')
-    }
-    if (selector === 'all') {
-      for (let glyph of this.children) {
-        glyph.fitToBox('glyph')
+    if (this.drawn) {  // if glyph is not drawn do not do anything
+      let group
+      if (selector === 'layer') {
+        group = paper.project.layers[this.layer]
+      } else if (selector === 'glyph' || selector === 'all') {
+        group = this.group
+      }
+      // for transforms applied before element drawing: if group is empty target the main path
+      if (group.children.length === 0) {
+        group = this.mainPath
+      }
+      const updated = this.checkBoxUpdate()
+      if (selector === 'layer' && updated.box) {
+        const drawingBox = this.getItem('drawingBox')
+        group.translate(new paper.Point(
+            this.box.drawingBounds.x - drawingBox.bounds.x,
+            this.box.drawingBounds.y - drawingBox.bounds.y
+        ))
+        group.scale(
+            this.box.drawingBounds.width /  drawingBox.bounds.width,
+            this.box.drawingBounds.height /  drawingBox.bounds.height
+        )
+      } else if (updated.main) {
+        const mainPath = this.mainPath
+        group.translate(new paper.Point(
+            this.box.bounds.x - mainPath.bounds.x,
+            this.box.bounds.y - mainPath.bounds.y
+        ))
+        group.scale(
+            this.box.bounds.width / mainPath.bounds.width,
+            this.box.bounds.height / mainPath.bounds.height
+        )
+      } else {
+        console.warn('fitToBox did not update any path')
+      }
+      if (selector === 'all') {
+        for (let glyph of this.children) {
+          glyph.fitToBox('glyph')
+        }
       }
     }
   }

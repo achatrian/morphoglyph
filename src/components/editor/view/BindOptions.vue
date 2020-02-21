@@ -10,7 +10,7 @@
                         </v-flex>
                     </v-layout>
                     <v-layout row justify-space-around wrap>
-                        <v-flex xs6 sm2>
+                        <v-flex xs6 sm4>
                             <v-select
                                     class="selector"
                                     outlined
@@ -19,7 +19,7 @@
                                     v-model="selectedGlyphName"
                             />
                         </v-flex>
-                        <v-flex xs6 sm2>
+                        <v-flex xs6 sm4>
                             <v-select
                                     class="selector"
                                     outlined
@@ -28,22 +28,13 @@
                                     v-model="selectedGlyphSetting"
                             />
                         </v-flex>
-                        <v-flex xs6 sm2>
+                        <v-flex xs6 sm4>
                             <v-select
                                     class="selector"
                                     outlined
                                     :items="stringFields"
                                     label="Choose cluster names"
                                     v-model="selectedOrderField"
-                            />
-                        </v-flex>
-                        <v-flex xs3 sm3>
-                            <v-select
-                                class="selector"
-                                outlined
-                                label="Load a saved template"
-                                :items="templatesNames"
-                                v-model="selectedTemplateName"
                             />
                         </v-flex>
                         <v-flex x2 sm2>
@@ -258,23 +249,12 @@
                 // FIXME default shape selection for ShapeGlyph is broken
                 this.setNamingField(this.selectedOrderField)
                 this.setBindings(this.fieldBindings)
+                this.normalizeFeatures() // re-normalize features to fix spatial scale
                 if (this.glyphs.length > 0) {
                     this.discardGlyphs()
                 }
                 this.addDataBoundGlyphs() // uses store.glyph.glyphTypeName
                 this.setGlyphBinderState(false)
-                let coNormalizeGroups = []
-                let scaleNormalizeGroup = []
-                for (let binding of this.fieldBindings) {
-                    let element = this.glyphElements.find(element => element.name === binding.element)
-                    if (element.type === 'scale') {
-                        scaleNormalizeGroup.push(binding.field) // scale together all the features corresponding to scale-type elements
-                    }
-                }
-                if (scaleNormalizeGroup.length > 0) {
-                    coNormalizeGroups.push(scaleNormalizeGroup)
-                }
-                this.normalizeFeatures(coNormalizeGroups) // re-normalize features to fix spatial scale
                 // when first called, num displayed glyph is 0
                 this.changeDisplayedGlyphNum(this.numDisplayedGlyphs || this.maxDisplayedGlyphs) // FIXME first outcome is redundant
             },
@@ -291,18 +271,6 @@
                     item.selected = false
                 })
                 item.selected = true
-            },
-            applyConfig () { // apply bindings loaded from file
-                if (this.fileName === this.loadedBindingData.fileName && this.loadedBindingData.bindings.length > 0) {
-                    this.selectedOrderField = this.loadedBindingData.displayOrderField
-                    this.selectedGlyphName = this.loadedBindingData.glyphType
-                    this.selectedGlyphSetting = this.loadedBindingData.glyphSetting
-                    this.setGlyphType({glyphTypeName: this.selectedGlyphName, glyphSetting: this.selectedGlyphSetting})
-                    this.fieldBindings = this.loadedBindingData.bindings
-                    console.log("Using loaded glyph configuration")
-                } else {
-                    console.log("Invalid config file - cannot load")
-                }
             }
         },
         watch: {

@@ -25,7 +25,7 @@ export default {
     state.fileName = name
   },
 
-  normalizeFeatures: (state, coNormalizeGroups = [], normIntervalLength = 0.8) => {
+  normalizeFeatures: (state, {bindings, glyphElements, normIntervalLength = 0.8}, ) => {
     /* Compute normalized features used to plot glyphs
     First, find data fields and compute ranges of features, then normalize using field ranges.
     coNormalizeGroups: [ [ fieldName1, fieldName2 ], [ fieldName5, fieldName7 ], ... ]
@@ -34,6 +34,17 @@ export default {
     // update feature info
     if (normIntervalLength < 0.0 || normIntervalLength > 1.0) {
       throw Error(`Normalization scaling length must be within [0, 1] (value = ${normIntervalLength})`)
+    }
+    let coNormalizeGroups = []
+    let scaleNormalizeGroup = []
+    for (let binding of bindings) {
+      let element = glyphElements.find(element => element.name === binding.element)
+      if (element.type === 'scale') {
+        scaleNormalizeGroup.push(binding.field) // scale together all the features corresponding to scale-type elements
+      }
+    }
+    if (scaleNormalizeGroup.length > 0) {
+      coNormalizeGroups.push(scaleNormalizeGroup)
     }
     state.dataFields = Object.keys(state.parsedData[0]) // assuming all data points have same fields
     let fieldTypes = {}

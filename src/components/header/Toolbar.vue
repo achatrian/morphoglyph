@@ -25,9 +25,17 @@
     <!--because of flex, elements must be at either end or beginning, or they will change position if something is inserted on the right (e.g. the file name)-->
     <v-spacer/>
     <div id="project-name">
-      <v-text-field placeholder="Project Name" @input="updateTemplateName_"/>
+      <v-combobox :placeholder="Boolean(fileName) ? 'Project Name' : 'No data'"
+                  :items="templatesNames"
+                  v-model="currentTemplateName"
+                  @input="updateTemplateName_"
+                  @select="updateTemplateName_"
+                  :disabled="!Boolean(fileName)"
+      />
     </div>
+    <app-apply-template :templateName="this.currentTemplateName"/>
     <app-save-templates/>
+    <app-save-as-svg/>
     <app-box-toggler/>
     <app-zoomer/>
     <!--<v-divider vertical/>-->
@@ -47,7 +55,9 @@ import LoadData from './buttons/LoadData'
 import ViewManager from './buttons/ViewManager'
 import Zoomer from './buttons/Zoomer'
 import BoxToggler from './buttons/BoxToggler'
-import SaveTemplates from "./buttons/SaveTemplates";
+import SaveTemplates from "./buttons/SaveTemplates"
+import ApplyTemplate from "./buttons/ApplyTemplate"
+import SaveAsSVG from "./buttons/SaveAsSVG";
 
 export default {
   name: 'Toolbar',
@@ -57,14 +67,23 @@ export default {
     'app-view-manager': ViewManager,
     'app-zoomer': Zoomer,
     'app-box-toggler': BoxToggler,
-    'app-save-templates': SaveTemplates
+    'app-save-templates': SaveTemplates,
+    'app-apply-template': ApplyTemplate,
+    'app-save-as-svg': SaveAsSVG
+  },
+  data () {
+    return {currentTemplateName: ''}
   },
   computed: {
     ...mapState({
       fileName: state => state.backend.fileName,
       numDisplayedGlyphs: state => state.glyph.numDisplayedGlyphs,
-      templateName: state => state.template.templateName
-    })
+      templateName: state => state.template.templateName,
+      availableTemplates: state => state.template.availableTemplates
+    }),
+    templatesNames () {
+      return this.availableTemplates.map(templateItem => templateItem.name.slice(0, -5))
+    }
   },
   methods: {
     ...mapActions({

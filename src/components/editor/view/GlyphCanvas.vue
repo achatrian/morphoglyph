@@ -67,10 +67,11 @@ export default {
         const numDrawnGlyphs = this.glyphs.reduce((drawing, nextGlyph) => drawing + Number(nextGlyph.drawn), 0)
         if (numDrawnGlyphs < this.numDisplayedGlyphs) {
           // it either draws glyphs out ...
-          this.boundingRects.forEach((boundingRect, idx) => {
+          for (let [idx, boundingRect] of Object.entries(this.boundingRects)) {
+            idx = Number(idx)
             let glyphIndex = (this.currentPage - 1) * this.numDisplayedGlyphs + idx // idx is relative to glyph position in page
             if (glyphIndex < this.glyphs.length && boundingRect.width > 0 && boundingRect.height > 0 &&
-               !(this.glyphs[glyphIndex].drawn)) {
+                    !(this.glyphs[glyphIndex].drawn)) {
               this.drawGlyph({
                 glyphIndex: glyphIndex,
                 boundingRect: boundingRect
@@ -81,13 +82,16 @@ export default {
               })
               numDrawn++
             }
-          })
-          if (numDrawn > 0) { console.log(`${numDrawn} glyphs were drawn`) }
+          }
+          if (numDrawn > 0) {
+            console.log(`${numDrawn} glyphs were drawn`)
+          }
           this.$emit('update:drawing', false)
         } else {
           this.$emit('update:drawing', false)
           // ... or moves them the rectangles' position has changed
-          this.boundingRects.forEach((boundingRect, idx) => {
+          for (let [idx, boundingRect] of Object.entries(this.boundingRects)) {
+            idx = Number(idx)
             let glyphIndex = (this.currentPage - 1) * this.numDisplayedGlyphs + idx // idx is relative to glyph position in page
             if (glyphIndex < this.glyphs.length
                     && boundingRect.width > 0
@@ -100,8 +104,10 @@ export default {
               })
               numMoved++
             }
-          })
-          if (numMoved > 0) { console.log(`${numMoved} glyphs were moved`) }
+          }
+          if (numMoved > 0) {
+            console.log(`${numMoved} glyphs were moved`)
+          }
         }
       },
       800
@@ -111,7 +117,7 @@ export default {
       let rectGenIds = []
       this.boundingRects.forEach(({generator}) => rectGenIds.push(generator.id))
       const allEqual = arr => arr.every(v => v === arr[0])
-      if (!allEqual(rectGenIds)) { throw Error("Glyph come from mismatching generators") }
+      if (!allEqual(rectGenIds)) { throw new Error("Glyph come from mismatching generators") }
       this.glyphs.forEach((glyph, glyphIndex) => this.resetGlyph(glyphIndex)) // reset all glyphs
       let numRedrawn = 0
       this.boundingRects.forEach((boundingRect, idx) => {

@@ -13,7 +13,7 @@ class DrawingBox {
                     shapePositions = {leftShift: 0, topShift: 0, widthProportion: 1, heightProportion: 1},
                     history = [],
                     maxHistLength = 20,
-                    applyTransforms = false
+                    applyTransformsFlag: applyHistoryTransforms = false
                  },
     ) {
         this.glyph = glyph
@@ -23,7 +23,7 @@ class DrawingBox {
             y: boundingRect.top + boundingRect.height / 2
         }
         this.applyPositioning(shapePositions)
-        if (applyTransforms) {
+        if (applyHistoryTransforms) {
             this.applyTransforms(history) // also stories history
         }
         if (history.length > 0) {
@@ -31,6 +31,8 @@ class DrawingBox {
         }
         this.drawingTransforms = this.history.filter(step => step.parameters[2].drawing)
         this.maxHistLength = maxHistLength
+        this.applyTransformsFlag = applyHistoryTransforms
+        this.glyph.box = this
     }
 
     copyTo (glyph) {

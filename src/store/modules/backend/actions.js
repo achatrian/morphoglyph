@@ -54,7 +54,10 @@ export default {
     }
   },
 
-  normalizeFeatures: ({commit}, coNormalizeGroups) => commit('normalizeFeatures', coNormalizeGroups),
+  normalizeFeatures: ({commit, rootState}) => commit('normalizeFeatures', {
+    bindings: rootState.glyph.project.bindings,
+    glyphElements: rootState.glyph.glyphElements
+  }),
 
   setNamingField: ({commit}, namingField) => commit('setNamingField', namingField),
 

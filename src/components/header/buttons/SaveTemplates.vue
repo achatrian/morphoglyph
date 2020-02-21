@@ -4,7 +4,9 @@
             open-delay="700"
             bottom
     >
-        <v-btn icon slot="activator" @click="saveCurrentTemplateWithNameCheck">
+        <v-btn icon slot="activator"
+               @click="saveCurrentTemplateWithNameCheck"
+               :disabled="!Boolean(fileName)">
             <v-icon color="primary">save</v-icon>
         </v-btn>
         <span>Save current glyphs configuration</span>
@@ -17,6 +19,7 @@
     export default {
         name: "SaveTemplates",
         computed: {...mapState({
+                fileName: state => state.backend.fileName,
             templateName: state => state.template.templateName,
         })},
         methods: {

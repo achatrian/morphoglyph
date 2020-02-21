@@ -32,6 +32,24 @@ class CellGlyph extends ShapeGlyph {
       protrusion: null,
       mesh: null
     }
+    // make nucleus glyph
+    const nucleusOptions = {
+          backend: 'paper',
+          strokeColor: '#283593',
+          primaryColor: '#AB47BC',
+          secondaryColor: '#D4E157',
+          lightColor: '#1E88E5',
+          darkColor: '#B71C1C',
+          strokeWidth: 2,
+          thickPathSize: 7,
+          narrowPathSize: 4,
+          numSides: 6, // for RegularPolygon: defaults to hexagon
+          numPoints: 250, // for drawing Membrane and Spikes
+          spikeHeight: 0.3,
+          meshType: 'grid',
+    }
+    const nucleus = new ShapeGlyph(this.layer, '0', 'Nucleus', nucleusOptions, this)
+    this.registerChild(nucleus)
   }
 
   static get type () {
@@ -67,28 +85,12 @@ class CellGlyph extends ShapeGlyph {
 
   draw (options) {
     super.draw(options) // draws cell
-    const nucleusOptions = {
-        backend: 'paper',
-        strokeColor: '#283593',
-        primaryColor: '#AB47BC',
-        secondaryColor: '#D4E157',
-        lightColor: '#1E88E5',
-        darkColor: '#B71C1C',
-        strokeWidth: 2,
-        thickPathSize: 7,
-        narrowPathSize: 4,
-        numSides: 6, // for RegularPolygon: defaults to hexagon
-        numPoints: 250, // for drawing Membrane and Spikes
-        spikeHeight: 0.3,
-        meshType: 'grid',
-    }
-    const nucleus = new ShapeGlyph(this.layer, '0', 'Nucleus', nucleusOptions, this)
+    const nucleus = this.children[0]
     nucleus.draw(Object.assign(options, {shapeType: 'ellipse'}))
     const shiftToMainCenter = this.box.shapePositions.topShift + this.box.shapePositions.heightProportion / 2 -
         nucleus.box.shapePositions.heightProportion / 2 - nucleus.box.shapePositions.topShift
     nucleus.box.shift(null, shiftToMainCenter, {setValues: false, drawing: true, scale: false, children: false})
     nucleus.fitToBox('glyph')
-    this.registerChild(nucleus)
   }
 }
 

@@ -1,0 +1,3206 @@
+{
+  "displayOrderField": "file entries",
+  "namingField": "Cell line",
+  "numDisplayedGlyphs": 19,
+  "boundingRectSizeFactor": 1,
+  "currentPage": 1,
+  "originalFileName": "BCL_data.csv",
+  "topGlyph": {
+    "name": "Cell",
+    "children": [
+      {
+        "name": "Nucleus",
+        "children": []
+      }
+    ]
+  },
+  "glyphParameters": {
+    "Cell": {
+      "backend": "paper",
+      "strokeColor": "#78909C",
+      "primaryColor": "#00897B",
+      "secondaryColor": "#F50057",
+      "lightColor": "#E1F5FE",
+      "darkColor": "#880E4F",
+      "strokeWidth": 1,
+      "thickPathSize": 6,
+      "narrowPathSize": 3,
+      "membraneFraction": 0.5,
+      "membraneSize": "",
+      "numPoints": 200,
+      "spikeHeight": 0.3,
+      "meshType": "grid",
+      "spikeSize": 0.4,
+      "decorationSize": 5,
+      "decorationType": "circle",
+      "protrusionProportion": 0.15,
+      "protrusionBackgroundColor": "#F5F5F5",
+      "protrusionStrokeColor": "#212121",
+      "islandsType": "circle",
+      "islandsSize": 10,
+      "maxNumIslands": 55
+    },
+    "Nucleus": {
+      "backend": "paper",
+      "strokeColor": "#283593",
+      "primaryColor": "#AB47BC",
+      "secondaryColor": "#D4E157",
+      "lightColor": "#1E88E5",
+      "darkColor": "#B71C1C",
+      "strokeWidth": 2,
+      "thickPathSize": 7,
+      "narrowPathSize": 4,
+      "numSides": 6,
+      "numPoints": 250,
+      "spikeHeight": 0.3,
+      "meshType": "grid"
+    }
+  },
+  "glyphBoxes": [
+    {
+      "_id": "hs578T",
+      "Cell": {
+        "drawingBounds": {
+          "width": 178.25,
+          "height": 178.25,
+          "left": 53.625,
+          "top": 57.074999999999996,
+          "x": 53.625,
+          "y": 57.074999999999996,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "drawingCenter": {
+          "x": 142.75,
+          "y": 146.2
+        },
+        "bounds": {
+          "width": 80.67324673880462,
+          "height": 142.85359925002294,
+          "left": 102.4133766305977,
+          "top": 88.90597102939827,
+          "x": 102.4133766305977,
+          "y": 88.90597102939827,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "center": {
+          "x": 142.75,
+          "y": 160.33277065440973
+        },
+        "shapePositions": {
+          "leftShift": 0.2737075827803517,
+          "topShift": 0.1785748725351937,
+          "widthProportion": 0.4525848344392966,
+          "heightProportion": 0.8014227166901707
+        },
+        "history": [
+          {
+            "transform": "resize",
+            "parameters": [
+              0.4525848344392966,
+              null,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "resize",
+            "parameters": [
+              null,
+              0.9428502549296126,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "shift",
+            "parameters": [
+              null,
+              0.15,
+              {
+                "drawing": true,
+                "scale": true,
+                "children": true
+              }
+            ]
+          }
+        ],
+        "maxHistLength": 20,
+        "applyTransformsFlag": false
+      },
+      "Nucleus": {
+        "drawingBounds": {
+          "width": 178.25,
+          "height": 178.25,
+          "left": 53.625,
+          "top": 57.074999999999996,
+          "x": 53.625,
+          "y": 57.074999999999996,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "drawingCenter": {
+          "x": 142.75,
+          "y": 146.2
+        },
+        "bounds": {
+          "width": 80.67324673880462,
+          "height": 142.85359925002294,
+          "left": 102.4133766305977,
+          "top": 88.90597102939827,
+          "x": 102.4133766305977,
+          "y": 88.90597102939827,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "center": {
+          "x": 142.75,
+          "y": 160.33277065440973
+        },
+        "shapePositions": {
+          "leftShift": 0.2737075827803517,
+          "topShift": 0.1785748725351937,
+          "widthProportion": 0.4525848344392966,
+          "heightProportion": 0.8014227166901707
+        },
+        "history": [
+          {
+            "transform": "resize",
+            "parameters": [
+              0.4525848344392966,
+              null,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "resize",
+            "parameters": [
+              null,
+              0.9428502549296126,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "shift",
+            "parameters": [
+              null,
+              0.15,
+              {
+                "drawing": true,
+                "scale": true,
+                "children": true
+              }
+            ]
+          }
+        ],
+        "maxHistLength": 20,
+        "applyTransformsFlag": false
+      }
+    },
+    {
+      "_id": "T74D",
+      "Cell": {
+        "drawingBounds": {
+          "width": 178.25,
+          "height": 178.25,
+          "left": 232.375,
+          "top": 57.074999999999996,
+          "x": 232.375,
+          "y": 57.074999999999996,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "drawingCenter": {
+          "x": 321.5,
+          "y": 146.2
+        },
+        "bounds": {
+          "width": 75.13880530477846,
+          "height": 116.2098507492907,
+          "left": 283.9305973476108,
+          "top": 104.57876426512311,
+          "x": 283.9305973476108,
+          "y": 104.57876426512311,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "center": {
+          "x": 321.5,
+          "y": 162.68368963976846
+        },
+        "shapePositions": {
+          "leftShift": 0.2892319626794433,
+          "topShift": 0.2665007812910133,
+          "widthProportion": 0.42153607464111337,
+          "heightProportion": 0.6519486718052774
+        },
+        "history": [
+          {
+            "transform": "resize",
+            "parameters": [
+              0.42153607464111337,
+              null,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "resize",
+            "parameters": [
+              null,
+              0.7669984374179734,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "shift",
+            "parameters": [
+              null,
+              0.15,
+              {
+                "drawing": true,
+                "scale": true,
+                "children": true
+              }
+            ]
+          }
+        ],
+        "maxHistLength": 20,
+        "applyTransformsFlag": false
+      },
+      "Nucleus": {
+        "drawingBounds": {
+          "width": 178.25,
+          "height": 178.25,
+          "left": 232.375,
+          "top": 57.074999999999996,
+          "x": 232.375,
+          "y": 57.074999999999996,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "drawingCenter": {
+          "x": 321.5,
+          "y": 146.2
+        },
+        "bounds": {
+          "width": 75.13880530477846,
+          "height": 116.2098507492907,
+          "left": 283.9305973476108,
+          "top": 104.57876426512311,
+          "x": 283.9305973476108,
+          "y": 104.57876426512311,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "center": {
+          "x": 321.5,
+          "y": 162.68368963976846
+        },
+        "shapePositions": {
+          "leftShift": 0.2892319626794433,
+          "topShift": 0.2665007812910133,
+          "widthProportion": 0.42153607464111337,
+          "heightProportion": 0.6519486718052774
+        },
+        "history": [
+          {
+            "transform": "resize",
+            "parameters": [
+              0.42153607464111337,
+              null,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "resize",
+            "parameters": [
+              null,
+              0.7669984374179734,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "shift",
+            "parameters": [
+              null,
+              0.15,
+              {
+                "drawing": true,
+                "scale": true,
+                "children": true
+              }
+            ]
+          }
+        ],
+        "maxHistLength": 20,
+        "applyTransformsFlag": false
+      }
+    },
+    {
+      "_id": "MDA-MB-157",
+      "Cell": {
+        "drawingBounds": {
+          "width": 178.25,
+          "height": 178.25,
+          "left": 411.12499999999994,
+          "top": 57.074999999999996,
+          "x": 411.12499999999994,
+          "y": 57.074999999999996,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "drawingCenter": {
+          "x": 500.24999999999994,
+          "y": 146.2
+        },
+        "bounds": {
+          "width": 93.2552160031925,
+          "height": 151.5125,
+          "left": 453.6223919984037,
+          "top": 83.8125,
+          "x": 453.6223919984037,
+          "y": 83.8125,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "center": {
+          "x": 500.24999999999994,
+          "y": 159.56875
+        },
+        "shapePositions": {
+          "leftShift": 0.23841454136551893,
+          "topShift": 0.15,
+          "widthProportion": 0.5231709172689621,
+          "heightProportion": 0.85
+        },
+        "history": [
+          {
+            "transform": "resize",
+            "parameters": [
+              0.5231709172689621,
+              null,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "resize",
+            "parameters": [
+              null,
+              1,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "shift",
+            "parameters": [
+              null,
+              0.15,
+              {
+                "drawing": true,
+                "scale": true,
+                "children": true
+              }
+            ]
+          }
+        ],
+        "maxHistLength": 20,
+        "applyTransformsFlag": false
+      },
+      "Nucleus": {
+        "drawingBounds": {
+          "width": 178.25,
+          "height": 178.25,
+          "left": 411.12499999999994,
+          "top": 57.074999999999996,
+          "x": 411.12499999999994,
+          "y": 57.074999999999996,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "drawingCenter": {
+          "x": 500.24999999999994,
+          "y": 146.2
+        },
+        "bounds": {
+          "width": 93.2552160031925,
+          "height": 151.5125,
+          "left": 453.6223919984037,
+          "top": 83.8125,
+          "x": 453.6223919984037,
+          "y": 83.8125,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "center": {
+          "x": 500.24999999999994,
+          "y": 159.56875
+        },
+        "shapePositions": {
+          "leftShift": 0.23841454136551893,
+          "topShift": 0.15,
+          "widthProportion": 0.5231709172689621,
+          "heightProportion": 0.85
+        },
+        "history": [
+          {
+            "transform": "resize",
+            "parameters": [
+              0.5231709172689621,
+              null,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "resize",
+            "parameters": [
+              null,
+              1,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "shift",
+            "parameters": [
+              null,
+              0.15,
+              {
+                "drawing": true,
+                "scale": true,
+                "children": true
+              }
+            ]
+          }
+        ],
+        "maxHistLength": 20,
+        "applyTransformsFlag": false
+      }
+    },
+    {
+      "_id": "HCC1143",
+      "Cell": {
+        "drawingBounds": {
+          "width": 178.25,
+          "height": 178.25,
+          "left": 589.875,
+          "top": 57.074999999999996,
+          "x": 589.875,
+          "y": 57.074999999999996,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "drawingCenter": {
+          "x": 679,
+          "y": 146.2
+        },
+        "bounds": {
+          "width": 75.61329575352197,
+          "height": 130.10793188420053,
+          "left": 641.193352123239,
+          "top": 96.40342242105851,
+          "x": 641.193352123239,
+          "y": 96.40342242105851,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "center": {
+          "x": 679,
+          "y": 161.45738836315877
+        },
+        "shapePositions": {
+          "leftShift": 0.28790099367876026,
+          "topShift": 0.22063631091757932,
+          "widthProportion": 0.42419801264247947,
+          "heightProportion": 0.7299182714401151
+        },
+        "history": [
+          {
+            "transform": "resize",
+            "parameters": [
+              0.42419801264247947,
+              null,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "resize",
+            "parameters": [
+              null,
+              0.8587273781648413,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "shift",
+            "parameters": [
+              null,
+              0.15,
+              {
+                "drawing": true,
+                "scale": true,
+                "children": true
+              }
+            ]
+          }
+        ],
+        "maxHistLength": 20,
+        "applyTransformsFlag": false
+      },
+      "Nucleus": {
+        "drawingBounds": {
+          "width": 178.25,
+          "height": 178.25,
+          "left": 589.875,
+          "top": 57.074999999999996,
+          "x": 589.875,
+          "y": 57.074999999999996,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "drawingCenter": {
+          "x": 679,
+          "y": 146.2
+        },
+        "bounds": {
+          "width": 75.61329575352197,
+          "height": 130.10793188420053,
+          "left": 641.193352123239,
+          "top": 96.40342242105851,
+          "x": 641.193352123239,
+          "y": 96.40342242105851,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "center": {
+          "x": 679,
+          "y": 161.45738836315877
+        },
+        "shapePositions": {
+          "leftShift": 0.28790099367876026,
+          "topShift": 0.22063631091757932,
+          "widthProportion": 0.42419801264247947,
+          "heightProportion": 0.7299182714401151
+        },
+        "history": [
+          {
+            "transform": "resize",
+            "parameters": [
+              0.42419801264247947,
+              null,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "resize",
+            "parameters": [
+              null,
+              0.8587273781648413,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "shift",
+            "parameters": [
+              null,
+              0.15,
+              {
+                "drawing": true,
+                "scale": true,
+                "children": true
+              }
+            ]
+          }
+        ],
+        "maxHistLength": 20,
+        "applyTransformsFlag": false
+      }
+    },
+    {
+      "_id": "AU565",
+      "Cell": {
+        "drawingBounds": {
+          "width": 178.25,
+          "height": 178.25,
+          "left": 768.625,
+          "top": 57.074999999999996,
+          "x": 768.625,
+          "y": 57.074999999999996,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "drawingCenter": {
+          "x": 857.75,
+          "y": 146.2
+        },
+        "bounds": {
+          "width": 57.74747769868679,
+          "height": 80.62885517854359,
+          "left": 828.8762611506565,
+          "top": 125.50876165968023,
+          "x": 828.8762611506565,
+          "y": 125.50876165968023,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "center": {
+          "x": 857.7499999999999,
+          "y": 165.82318924895202
+        },
+        "shapePositions": {
+          "leftShift": 0.33801549032626427,
+          "topShift": 0.38392012151293264,
+          "widthProportion": 0.32396901934747147,
+          "heightProportion": 0.45233579342801455
+        },
+        "history": [
+          {
+            "transform": "resize",
+            "parameters": [
+              0.32396901934747147,
+              null,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "resize",
+            "parameters": [
+              null,
+              0.5321597569741348,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "shift",
+            "parameters": [
+              null,
+              0.15,
+              {
+                "drawing": true,
+                "scale": true,
+                "children": true
+              }
+            ]
+          }
+        ],
+        "maxHistLength": 20,
+        "applyTransformsFlag": false
+      },
+      "Nucleus": {
+        "drawingBounds": {
+          "width": 178.25,
+          "height": 178.25,
+          "left": 768.625,
+          "top": 57.074999999999996,
+          "x": 768.625,
+          "y": 57.074999999999996,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "drawingCenter": {
+          "x": 857.75,
+          "y": 146.2
+        },
+        "bounds": {
+          "width": 57.74747769868679,
+          "height": 80.62885517854359,
+          "left": 828.8762611506565,
+          "top": 125.50876165968023,
+          "x": 828.8762611506565,
+          "y": 125.50876165968023,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "center": {
+          "x": 857.7499999999999,
+          "y": 165.82318924895202
+        },
+        "shapePositions": {
+          "leftShift": 0.33801549032626427,
+          "topShift": 0.38392012151293264,
+          "widthProportion": 0.32396901934747147,
+          "heightProportion": 0.45233579342801455
+        },
+        "history": [
+          {
+            "transform": "resize",
+            "parameters": [
+              0.32396901934747147,
+              null,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "resize",
+            "parameters": [
+              null,
+              0.5321597569741348,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "shift",
+            "parameters": [
+              null,
+              0.15,
+              {
+                "drawing": true,
+                "scale": true,
+                "children": true
+              }
+            ]
+          }
+        ],
+        "maxHistLength": 20,
+        "applyTransformsFlag": false
+      }
+    },
+    {
+      "_id": "ZR75.1",
+      "Cell": {
+        "drawingBounds": {
+          "width": 178.25,
+          "height": 178.25,
+          "left": 947.375,
+          "top": 57.074999999999996,
+          "x": 947.375,
+          "y": 57.074999999999996,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "drawingCenter": {
+          "x": 1036.5,
+          "y": 146.2
+        },
+        "bounds": {
+          "width": 51.40100433679468,
+          "height": 74.57317101618949,
+          "left": 1010.7994978316027,
+          "top": 129.07092881400618,
+          "x": 1010.7994978316027,
+          "y": 129.07092881400618,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "center": {
+          "x": 1036.5,
+          "y": 166.35751432210094
+        },
+        "shapePositions": {
+          "leftShift": 0.3558176596443347,
+          "topShift": 0.40390422897058165,
+          "widthProportion": 0.2883646807113306,
+          "heightProportion": 0.41836281075001114
+        },
+        "history": [
+          {
+            "transform": "resize",
+            "parameters": [
+              0.2883646807113306,
+              null,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "resize",
+            "parameters": [
+              null,
+              0.49219154205883664,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "shift",
+            "parameters": [
+              null,
+              0.15,
+              {
+                "drawing": true,
+                "scale": true,
+                "children": true
+              }
+            ]
+          }
+        ],
+        "maxHistLength": 20,
+        "applyTransformsFlag": false
+      },
+      "Nucleus": {
+        "drawingBounds": {
+          "width": 178.25,
+          "height": 178.25,
+          "left": 947.375,
+          "top": 57.074999999999996,
+          "x": 947.375,
+          "y": 57.074999999999996,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "drawingCenter": {
+          "x": 1036.5,
+          "y": 146.2
+        },
+        "bounds": {
+          "width": 51.40100433679468,
+          "height": 74.57317101618949,
+          "left": 1010.7994978316027,
+          "top": 129.07092881400618,
+          "x": 1010.7994978316027,
+          "y": 129.07092881400618,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "center": {
+          "x": 1036.5,
+          "y": 166.35751432210094
+        },
+        "shapePositions": {
+          "leftShift": 0.3558176596443347,
+          "topShift": 0.40390422897058165,
+          "widthProportion": 0.2883646807113306,
+          "heightProportion": 0.41836281075001114
+        },
+        "history": [
+          {
+            "transform": "resize",
+            "parameters": [
+              0.2883646807113306,
+              null,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "resize",
+            "parameters": [
+              null,
+              0.49219154205883664,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "shift",
+            "parameters": [
+              null,
+              0.15,
+              {
+                "drawing": true,
+                "scale": true,
+                "children": true
+              }
+            ]
+          }
+        ],
+        "maxHistLength": 20,
+        "applyTransformsFlag": false
+      }
+    },
+    {
+      "_id": "CAMA1",
+      "Cell": {
+        "drawingBounds": {
+          "width": 178.25,
+          "height": 178.25,
+          "left": 1126.125,
+          "top": 57.074999999999996,
+          "x": 1126.125,
+          "y": 57.074999999999996,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "drawingCenter": {
+          "x": 1215.25,
+          "y": 146.2
+        },
+        "bounds": {
+          "width": 57.63079417817289,
+          "height": 80.69445727982563,
+          "left": 1186.4346029109136,
+          "top": 125.47017218833787,
+          "x": 1186.4346029109136,
+          "y": 125.47017218833787,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "center": {
+          "x": 1215.25,
+          "y": 165.8174008282507
+        },
+        "shapePositions": {
+          "leftShift": 0.3383427933291083,
+          "topShift": 0.38370363079011427,
+          "widthProportion": 0.3233144133417834,
+          "heightProportion": 0.4527038276568058
+        },
+        "history": [
+          {
+            "transform": "resize",
+            "parameters": [
+              0.3233144133417834,
+              null,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "resize",
+            "parameters": [
+              null,
+              0.5325927384197715,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "shift",
+            "parameters": [
+              null,
+              0.15,
+              {
+                "drawing": true,
+                "scale": true,
+                "children": true
+              }
+            ]
+          }
+        ],
+        "maxHistLength": 20,
+        "applyTransformsFlag": false
+      },
+      "Nucleus": {
+        "drawingBounds": {
+          "width": 178.25,
+          "height": 178.25,
+          "left": 1126.125,
+          "top": 57.074999999999996,
+          "x": 1126.125,
+          "y": 57.074999999999996,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "drawingCenter": {
+          "x": 1215.25,
+          "y": 146.2
+        },
+        "bounds": {
+          "width": 57.63079417817289,
+          "height": 80.69445727982563,
+          "left": 1186.4346029109136,
+          "top": 125.47017218833787,
+          "x": 1186.4346029109136,
+          "y": 125.47017218833787,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "center": {
+          "x": 1215.25,
+          "y": 165.8174008282507
+        },
+        "shapePositions": {
+          "leftShift": 0.3383427933291083,
+          "topShift": 0.38370363079011427,
+          "widthProportion": 0.3233144133417834,
+          "heightProportion": 0.4527038276568058
+        },
+        "history": [
+          {
+            "transform": "resize",
+            "parameters": [
+              0.3233144133417834,
+              null,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "resize",
+            "parameters": [
+              null,
+              0.5325927384197715,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "shift",
+            "parameters": [
+              null,
+              0.15,
+              {
+                "drawing": true,
+                "scale": true,
+                "children": true
+              }
+            ]
+          }
+        ],
+        "maxHistLength": 20,
+        "applyTransformsFlag": false
+      }
+    },
+    {
+      "_id": "BT474",
+      "Cell": {
+        "drawingBounds": {
+          "width": 178.25,
+          "height": 178.25,
+          "left": 53.625,
+          "top": 247.32500000000002,
+          "x": 53.625,
+          "y": 247.32500000000002,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "drawingCenter": {
+          "x": 142.75,
+          "y": 336.45000000000005
+        },
+        "bounds": {
+          "width": 52.65982482000445,
+          "height": 77.27275844579988,
+          "left": 116.42008758999778,
+          "top": 317.73293620835307,
+          "x": 116.42008758999778,
+          "y": 317.73293620835307,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "center": {
+          "x": 142.75,
+          "y": 356.369315431253
+        },
+        "shapePositions": {
+          "leftShift": 0.35228660639549947,
+          "topShift": 0.394995434548965,
+          "widthProportion": 0.2954267872090011,
+          "heightProportion": 0.4335077612667595
+        },
+        "history": [
+          {
+            "transform": "resize",
+            "parameters": [
+              0.2954267872090011,
+              null,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "resize",
+            "parameters": [
+              null,
+              0.51000913090207,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "shift",
+            "parameters": [
+              null,
+              0.15,
+              {
+                "drawing": true,
+                "scale": true,
+                "children": true
+              }
+            ]
+          }
+        ],
+        "maxHistLength": 20,
+        "applyTransformsFlag": false
+      },
+      "Nucleus": {
+        "drawingBounds": {
+          "width": 178.25,
+          "height": 178.25,
+          "left": 53.625,
+          "top": 247.32500000000002,
+          "x": 53.625,
+          "y": 247.32500000000002,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "drawingCenter": {
+          "x": 142.75,
+          "y": 336.45000000000005
+        },
+        "bounds": {
+          "width": 52.65982482000445,
+          "height": 77.27275844579988,
+          "left": 116.42008758999778,
+          "top": 317.73293620835307,
+          "x": 116.42008758999778,
+          "y": 317.73293620835307,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "center": {
+          "x": 142.75,
+          "y": 356.369315431253
+        },
+        "shapePositions": {
+          "leftShift": 0.35228660639549947,
+          "topShift": 0.394995434548965,
+          "widthProportion": 0.2954267872090011,
+          "heightProportion": 0.4335077612667595
+        },
+        "history": [
+          {
+            "transform": "resize",
+            "parameters": [
+              0.2954267872090011,
+              null,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "resize",
+            "parameters": [
+              null,
+              0.51000913090207,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "shift",
+            "parameters": [
+              null,
+              0.15,
+              {
+                "drawing": true,
+                "scale": true,
+                "children": true
+              }
+            ]
+          }
+        ],
+        "maxHistLength": 20,
+        "applyTransformsFlag": false
+      }
+    },
+    {
+      "_id": "MDA-MB-231",
+      "Cell": {
+        "drawingBounds": {
+          "width": 178.25,
+          "height": 178.25,
+          "left": 232.375,
+          "top": 247.32500000000002,
+          "x": 232.375,
+          "y": 247.32500000000002,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "drawingCenter": {
+          "x": 321.5,
+          "y": 336.45000000000005
+        },
+        "bounds": {
+          "width": 57.682326787228234,
+          "height": 94.35215666652898,
+          "left": 292.6588366063859,
+          "top": 307.68623137263,
+          "x": 292.6588366063859,
+          "y": 307.68623137263,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "center": {
+          "x": 321.5,
+          "y": 354.8623097058945
+        },
+        "shapePositions": {
+          "leftShift": 0.33819824183105685,
+          "topShift": 0.33863243406805055,
+          "widthProportion": 0.3236035163378863,
+          "heightProportion": 0.5293248620843141
+        },
+        "history": [
+          {
+            "transform": "resize",
+            "parameters": [
+              0.3236035163378863,
+              null,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "resize",
+            "parameters": [
+              null,
+              0.622735131863899,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "shift",
+            "parameters": [
+              null,
+              0.15,
+              {
+                "drawing": true,
+                "scale": true,
+                "children": true
+              }
+            ]
+          }
+        ],
+        "maxHistLength": 20,
+        "applyTransformsFlag": false
+      },
+      "Nucleus": {
+        "drawingBounds": {
+          "width": 178.25,
+          "height": 178.25,
+          "left": 232.375,
+          "top": 247.32500000000002,
+          "x": 232.375,
+          "y": 247.32500000000002,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "drawingCenter": {
+          "x": 321.5,
+          "y": 336.45000000000005
+        },
+        "bounds": {
+          "width": 57.682326787228234,
+          "height": 94.35215666652898,
+          "left": 292.6588366063859,
+          "top": 307.68623137263,
+          "x": 292.6588366063859,
+          "y": 307.68623137263,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "center": {
+          "x": 321.5,
+          "y": 354.8623097058945
+        },
+        "shapePositions": {
+          "leftShift": 0.33819824183105685,
+          "topShift": 0.33863243406805055,
+          "widthProportion": 0.3236035163378863,
+          "heightProportion": 0.5293248620843141
+        },
+        "history": [
+          {
+            "transform": "resize",
+            "parameters": [
+              0.3236035163378863,
+              null,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "resize",
+            "parameters": [
+              null,
+              0.622735131863899,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "shift",
+            "parameters": [
+              null,
+              0.15,
+              {
+                "drawing": true,
+                "scale": true,
+                "children": true
+              }
+            ]
+          }
+        ],
+        "maxHistLength": 20,
+        "applyTransformsFlag": false
+      }
+    },
+    {
+      "_id": "SKBR3",
+      "Cell": {
+        "drawingBounds": {
+          "width": 178.25,
+          "height": 178.25,
+          "left": 411.12499999999994,
+          "top": 247.32500000000002,
+          "x": 411.12499999999994,
+          "y": 247.32500000000002,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "drawingCenter": {
+          "x": 500.24999999999994,
+          "y": 336.45000000000005
+        },
+        "bounds": {
+          "width": 84.61861261819325,
+          "height": 130.77602666897639,
+          "left": 457.94069369090334,
+          "top": 286.2604254888374,
+          "x": 457.94069369090334,
+          "y": 286.2604254888374,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "center": {
+          "x": 500.25,
+          "y": 351.6484388233256
+        },
+        "shapePositions": {
+          "leftShift": 0.26264063781712976,
+          "topShift": 0.2184315595446699,
+          "widthProportion": 0.47471872436574053,
+          "heightProportion": 0.7336663487740611
+        },
+        "history": [
+          {
+            "transform": "resize",
+            "parameters": [
+              0.47471872436574053,
+              null,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "resize",
+            "parameters": [
+              null,
+              0.8631368809106602,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "shift",
+            "parameters": [
+              null,
+              0.15,
+              {
+                "drawing": true,
+                "scale": true,
+                "children": true
+              }
+            ]
+          }
+        ],
+        "maxHistLength": 20,
+        "applyTransformsFlag": false
+      },
+      "Nucleus": {
+        "drawingBounds": {
+          "width": 178.25,
+          "height": 178.25,
+          "left": 411.12499999999994,
+          "top": 247.32500000000002,
+          "x": 411.12499999999994,
+          "y": 247.32500000000002,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "drawingCenter": {
+          "x": 500.24999999999994,
+          "y": 336.45000000000005
+        },
+        "bounds": {
+          "width": 84.61861261819325,
+          "height": 130.77602666897639,
+          "left": 457.94069369090334,
+          "top": 286.2604254888374,
+          "x": 457.94069369090334,
+          "y": 286.2604254888374,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "center": {
+          "x": 500.25,
+          "y": 351.6484388233256
+        },
+        "shapePositions": {
+          "leftShift": 0.26264063781712976,
+          "topShift": 0.2184315595446699,
+          "widthProportion": 0.47471872436574053,
+          "heightProportion": 0.7336663487740611
+        },
+        "history": [
+          {
+            "transform": "resize",
+            "parameters": [
+              0.47471872436574053,
+              null,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "resize",
+            "parameters": [
+              null,
+              0.8631368809106602,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "shift",
+            "parameters": [
+              null,
+              0.15,
+              {
+                "drawing": true,
+                "scale": true,
+                "children": true
+              }
+            ]
+          }
+        ],
+        "maxHistLength": 20,
+        "applyTransformsFlag": false
+      }
+    },
+    {
+      "_id": "JIMT1",
+      "Cell": {
+        "drawingBounds": {
+          "width": 178.25,
+          "height": 178.25,
+          "left": 589.875,
+          "top": 247.32500000000002,
+          "x": 589.875,
+          "y": 247.32500000000002,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "drawingCenter": {
+          "x": 679,
+          "y": 336.45000000000005
+        },
+        "bounds": {
+          "width": 66.54162418180954,
+          "height": 102.0304037348367,
+          "left": 645.7291879090952,
+          "top": 303.1696154500961,
+          "x": 645.7291879090952,
+          "y": 303.1696154500961,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "center": {
+          "x": 679,
+          "y": 354.18481731751444
+        },
+        "shapePositions": {
+          "leftShift": 0.3133474777508849,
+          "topShift": 0.3132937753161069,
+          "widthProportion": 0.3733050444982302,
+          "heightProportion": 0.5724005819626182
+        },
+        "history": [
+          {
+            "transform": "resize",
+            "parameters": [
+              0.3733050444982302,
+              null,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "resize",
+            "parameters": [
+              null,
+              0.6734124493677861,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "shift",
+            "parameters": [
+              null,
+              0.15,
+              {
+                "drawing": true,
+                "scale": true,
+                "children": true
+              }
+            ]
+          }
+        ],
+        "maxHistLength": 20,
+        "applyTransformsFlag": false
+      },
+      "Nucleus": {
+        "drawingBounds": {
+          "width": 178.25,
+          "height": 178.25,
+          "left": 589.875,
+          "top": 247.32500000000002,
+          "x": 589.875,
+          "y": 247.32500000000002,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "drawingCenter": {
+          "x": 679,
+          "y": 336.45000000000005
+        },
+        "bounds": {
+          "width": 66.54162418180954,
+          "height": 102.0304037348367,
+          "left": 645.7291879090952,
+          "top": 303.1696154500961,
+          "x": 645.7291879090952,
+          "y": 303.1696154500961,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "center": {
+          "x": 679,
+          "y": 354.18481731751444
+        },
+        "shapePositions": {
+          "leftShift": 0.3133474777508849,
+          "topShift": 0.3132937753161069,
+          "widthProportion": 0.3733050444982302,
+          "heightProportion": 0.5724005819626182
+        },
+        "history": [
+          {
+            "transform": "resize",
+            "parameters": [
+              0.3733050444982302,
+              null,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "resize",
+            "parameters": [
+              null,
+              0.6734124493677861,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "shift",
+            "parameters": [
+              null,
+              0.15,
+              {
+                "drawing": true,
+                "scale": true,
+                "children": true
+              }
+            ]
+          }
+        ],
+        "maxHistLength": 20,
+        "applyTransformsFlag": false
+      }
+    },
+    {
+      "_id": "MCF7",
+      "Cell": {
+        "drawingBounds": {
+          "width": 178.25,
+          "height": 178.25,
+          "left": 768.625,
+          "top": 247.32500000000002,
+          "x": 768.625,
+          "y": 247.32500000000002,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "drawingCenter": {
+          "x": 857.75,
+          "y": 336.45000000000005
+        },
+        "bounds": {
+          "width": 62.45077009032323,
+          "height": 101.71314405122115,
+          "left": 826.5246149548384,
+          "top": 303.35623879339937,
+          "x": 826.5246149548384,
+          "y": 303.35623879339937,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "center": {
+          "x": 857.75,
+          "y": 354.21281081901
+        },
+        "shapePositions": {
+          "leftShift": 0.3248225242908184,
+          "topShift": 0.3143407505941056,
+          "widthProportion": 0.35035495141836315,
+          "heightProportion": 0.5706207239900205
+        },
+        "history": [
+          {
+            "transform": "resize",
+            "parameters": [
+              0.35035495141836315,
+              null,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "resize",
+            "parameters": [
+              null,
+              0.6713184988117888,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "shift",
+            "parameters": [
+              null,
+              0.15,
+              {
+                "drawing": true,
+                "scale": true,
+                "children": true
+              }
+            ]
+          }
+        ],
+        "maxHistLength": 20,
+        "applyTransformsFlag": false
+      },
+      "Nucleus": {
+        "drawingBounds": {
+          "width": 178.25,
+          "height": 178.25,
+          "left": 768.625,
+          "top": 247.32500000000002,
+          "x": 768.625,
+          "y": 247.32500000000002,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "drawingCenter": {
+          "x": 857.75,
+          "y": 336.45000000000005
+        },
+        "bounds": {
+          "width": 62.45077009032323,
+          "height": 101.71314405122115,
+          "left": 826.5246149548384,
+          "top": 303.35623879339937,
+          "x": 826.5246149548384,
+          "y": 303.35623879339937,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "center": {
+          "x": 857.75,
+          "y": 354.21281081901
+        },
+        "shapePositions": {
+          "leftShift": 0.3248225242908184,
+          "topShift": 0.3143407505941056,
+          "widthProportion": 0.35035495141836315,
+          "heightProportion": 0.5706207239900205
+        },
+        "history": [
+          {
+            "transform": "resize",
+            "parameters": [
+              0.35035495141836315,
+              null,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "resize",
+            "parameters": [
+              null,
+              0.6713184988117888,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "shift",
+            "parameters": [
+              null,
+              0.15,
+              {
+                "drawing": true,
+                "scale": true,
+                "children": true
+              }
+            ]
+          }
+        ],
+        "maxHistLength": 20,
+        "applyTransformsFlag": false
+      }
+    },
+    {
+      "_id": "MDA-MB-453",
+      "Cell": {
+        "drawingBounds": {
+          "width": 178.25,
+          "height": 178.25,
+          "left": 947.375,
+          "top": 247.32500000000002,
+          "x": 947.375,
+          "y": 247.32500000000002,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "drawingCenter": {
+          "x": 1036.5,
+          "y": 336.45000000000005
+        },
+        "bounds": {
+          "width": 46.147900789103126,
+          "height": 52.53693338200776,
+          "left": 1013.4260496054485,
+          "top": 332.28342153999546,
+          "x": 1013.4260496054485,
+          "y": 332.28342153999546,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "center": {
+          "x": 1036.5,
+          "y": 358.55188823099934
+        },
+        "shapePositions": {
+          "leftShift": 0.3705528729618426,
+          "topShift": 0.4766250857783755,
+          "widthProportion": 0.2588942540763149,
+          "heightProportion": 0.2947373541767616
+        },
+        "history": [
+          {
+            "transform": "resize",
+            "parameters": [
+              0.2588942540763149,
+              null,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "resize",
+            "parameters": [
+              null,
+              0.346749828443249,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "shift",
+            "parameters": [
+              null,
+              0.15,
+              {
+                "drawing": true,
+                "scale": true,
+                "children": true
+              }
+            ]
+          }
+        ],
+        "maxHistLength": 20,
+        "applyTransformsFlag": false
+      },
+      "Nucleus": {
+        "drawingBounds": {
+          "width": 178.25,
+          "height": 178.25,
+          "left": 947.375,
+          "top": 247.32500000000002,
+          "x": 947.375,
+          "y": 247.32500000000002,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "drawingCenter": {
+          "x": 1036.5,
+          "y": 336.45000000000005
+        },
+        "bounds": {
+          "width": 46.147900789103126,
+          "height": 52.53693338200776,
+          "left": 1013.4260496054485,
+          "top": 332.28342153999546,
+          "x": 1013.4260496054485,
+          "y": 332.28342153999546,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "center": {
+          "x": 1036.5,
+          "y": 358.55188823099934
+        },
+        "shapePositions": {
+          "leftShift": 0.3705528729618426,
+          "topShift": 0.4766250857783755,
+          "widthProportion": 0.2588942540763149,
+          "heightProportion": 0.2947373541767616
+        },
+        "history": [
+          {
+            "transform": "resize",
+            "parameters": [
+              0.2588942540763149,
+              null,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "resize",
+            "parameters": [
+              null,
+              0.346749828443249,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "shift",
+            "parameters": [
+              null,
+              0.15,
+              {
+                "drawing": true,
+                "scale": true,
+                "children": true
+              }
+            ]
+          }
+        ],
+        "maxHistLength": 20,
+        "applyTransformsFlag": false
+      }
+    },
+    {
+      "_id": "HCC1954",
+      "Cell": {
+        "drawingBounds": {
+          "width": 178.25,
+          "height": 178.25,
+          "left": 1126.125,
+          "top": 247.32500000000002,
+          "x": 1126.125,
+          "y": 247.32500000000002,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "drawingCenter": {
+          "x": 1215.25,
+          "y": 336.45000000000005
+        },
+        "bounds": {
+          "width": 71.77021688685527,
+          "height": 111.96843802602,
+          "left": 1179.3648915565723,
+          "top": 297.3237129258706,
+          "x": 1179.3648915565723,
+          "y": 297.3237129258706,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "center": {
+          "x": 1215.25,
+          "y": 353.3079319388806
+        },
+        "shapePositions": {
+          "leftShift": 0.2986810185501956,
+          "topShift": 0.28049768822367793,
+          "widthProportion": 0.4026379628996088,
+          "heightProportion": 0.6281539300197475
+        },
+        "history": [
+          {
+            "transform": "resize",
+            "parameters": [
+              0.4026379628996088,
+              null,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "resize",
+            "parameters": [
+              null,
+              0.7390046235526442,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "shift",
+            "parameters": [
+              null,
+              0.15,
+              {
+                "drawing": true,
+                "scale": true,
+                "children": true
+              }
+            ]
+          }
+        ],
+        "maxHistLength": 20,
+        "applyTransformsFlag": false
+      },
+      "Nucleus": {
+        "drawingBounds": {
+          "width": 178.25,
+          "height": 178.25,
+          "left": 1126.125,
+          "top": 247.32500000000002,
+          "x": 1126.125,
+          "y": 247.32500000000002,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "drawingCenter": {
+          "x": 1215.25,
+          "y": 336.45000000000005
+        },
+        "bounds": {
+          "width": 71.77021688685527,
+          "height": 111.96843802602,
+          "left": 1179.3648915565723,
+          "top": 297.3237129258706,
+          "x": 1179.3648915565723,
+          "y": 297.3237129258706,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "center": {
+          "x": 1215.25,
+          "y": 353.3079319388806
+        },
+        "shapePositions": {
+          "leftShift": 0.2986810185501956,
+          "topShift": 0.28049768822367793,
+          "widthProportion": 0.4026379628996088,
+          "heightProportion": 0.6281539300197475
+        },
+        "history": [
+          {
+            "transform": "resize",
+            "parameters": [
+              0.4026379628996088,
+              null,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "resize",
+            "parameters": [
+              null,
+              0.7390046235526442,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "shift",
+            "parameters": [
+              null,
+              0.15,
+              {
+                "drawing": true,
+                "scale": true,
+                "children": true
+              }
+            ]
+          }
+        ],
+        "maxHistLength": 20,
+        "applyTransformsFlag": false
+      }
+    },
+    {
+      "_id": "HCC70",
+      "Cell": {
+        "drawingBounds": {
+          "width": 178.25,
+          "height": 178.25,
+          "left": 53.625,
+          "top": 437.575,
+          "x": 53.625,
+          "y": 437.575,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "drawingCenter": {
+          "x": 142.75,
+          "y": 526.7
+        },
+        "bounds": {
+          "width": 53.943091344060974,
+          "height": 85.40184088342292,
+          "left": 115.77845432796951,
+          "top": 503.2011230097512,
+          "x": 115.77845432796951,
+          "y": 503.2011230097512,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "center": {
+          "x": 142.75,
+          "y": 545.9020434514626
+        },
+        "shapePositions": {
+          "leftShift": 0.348686980802073,
+          "topShift": 0.3681689930420826,
+          "widthProportion": 0.302626038395854,
+          "heightProportion": 0.4791127118284596
+        },
+        "history": [
+          {
+            "transform": "resize",
+            "parameters": [
+              0.302626038395854,
+              null,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "resize",
+            "parameters": [
+              null,
+              0.5636620139158348,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "shift",
+            "parameters": [
+              null,
+              0.15,
+              {
+                "drawing": true,
+                "scale": true,
+                "children": true
+              }
+            ]
+          }
+        ],
+        "maxHistLength": 20,
+        "applyTransformsFlag": false
+      },
+      "Nucleus": {
+        "drawingBounds": {
+          "width": 178.25,
+          "height": 178.25,
+          "left": 53.625,
+          "top": 437.575,
+          "x": 53.625,
+          "y": 437.575,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "drawingCenter": {
+          "x": 142.75,
+          "y": 526.7
+        },
+        "bounds": {
+          "width": 53.943091344060974,
+          "height": 85.40184088342292,
+          "left": 115.77845432796951,
+          "top": 503.2011230097512,
+          "x": 115.77845432796951,
+          "y": 503.2011230097512,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "center": {
+          "x": 142.75,
+          "y": 545.9020434514626
+        },
+        "shapePositions": {
+          "leftShift": 0.348686980802073,
+          "topShift": 0.3681689930420826,
+          "widthProportion": 0.302626038395854,
+          "heightProportion": 0.4791127118284596
+        },
+        "history": [
+          {
+            "transform": "resize",
+            "parameters": [
+              0.302626038395854,
+              null,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "resize",
+            "parameters": [
+              null,
+              0.5636620139158348,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "shift",
+            "parameters": [
+              null,
+              0.15,
+              {
+                "drawing": true,
+                "scale": true,
+                "children": true
+              }
+            ]
+          }
+        ],
+        "maxHistLength": 20,
+        "applyTransformsFlag": false
+      }
+    },
+    {
+      "_id": "SUM149",
+      "Cell": {
+        "drawingBounds": {
+          "width": 178.25,
+          "height": 178.25,
+          "left": 232.375,
+          "top": 437.575,
+          "x": 232.375,
+          "y": 437.575,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "drawingCenter": {
+          "x": 321.5,
+          "y": 526.7
+        },
+        "bounds": {
+          "width": 82.06326342651859,
+          "height": 119.99296281923395,
+          "left": 280.4683682867407,
+          "top": 482.85340422398,
+          "x": 280.4683682867407,
+          "y": 482.85340422398,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "center": {
+          "x": 321.5,
+          "y": 542.849885633597
+        },
+        "shapePositions": {
+          "leftShift": 0.2698085177376758,
+          "topShift": 0.2540162929816552,
+          "widthProportion": 0.46038296452464844,
+          "heightProportion": 0.6731723019311863
+        },
+        "history": [
+          {
+            "transform": "resize",
+            "parameters": [
+              0.46038296452464844,
+              null,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "resize",
+            "parameters": [
+              null,
+              0.7919674140366897,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "shift",
+            "parameters": [
+              null,
+              0.15,
+              {
+                "drawing": true,
+                "scale": true,
+                "children": true
+              }
+            ]
+          }
+        ],
+        "maxHistLength": 20,
+        "applyTransformsFlag": false
+      },
+      "Nucleus": {
+        "drawingBounds": {
+          "width": 178.25,
+          "height": 178.25,
+          "left": 232.375,
+          "top": 437.575,
+          "x": 232.375,
+          "y": 437.575,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "drawingCenter": {
+          "x": 321.5,
+          "y": 526.7
+        },
+        "bounds": {
+          "width": 82.06326342651859,
+          "height": 119.99296281923395,
+          "left": 280.4683682867407,
+          "top": 482.85340422398,
+          "x": 280.4683682867407,
+          "y": 482.85340422398,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "center": {
+          "x": 321.5,
+          "y": 542.849885633597
+        },
+        "shapePositions": {
+          "leftShift": 0.2698085177376758,
+          "topShift": 0.2540162929816552,
+          "widthProportion": 0.46038296452464844,
+          "heightProportion": 0.6731723019311863
+        },
+        "history": [
+          {
+            "transform": "resize",
+            "parameters": [
+              0.46038296452464844,
+              null,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "resize",
+            "parameters": [
+              null,
+              0.7919674140366897,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "shift",
+            "parameters": [
+              null,
+              0.15,
+              {
+                "drawing": true,
+                "scale": true,
+                "children": true
+              }
+            ]
+          }
+        ],
+        "maxHistLength": 20,
+        "applyTransformsFlag": false
+      }
+    },
+    {
+      "_id": "SUM159",
+      "Cell": {
+        "drawingBounds": {
+          "width": 178.25,
+          "height": 178.25,
+          "left": 411.12499999999994,
+          "top": 437.575,
+          "x": 411.12499999999994,
+          "y": 437.575,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "drawingCenter": {
+          "x": 500.24999999999994,
+          "y": 526.7
+        },
+        "bounds": {
+          "width": 54.70262272248558,
+          "height": 98.15246509064373,
+          "left": 472.89868863875716,
+          "top": 495.7007558290331,
+          "x": 472.89868863875716,
+          "y": 495.7007558290331,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "center": {
+          "x": 500.24999999999994,
+          "y": 544.7769883743549
+        },
+        "shapePositions": {
+          "leftShift": 0.34655645800144297,
+          "topShift": 0.32609119679681964,
+          "widthProportion": 0.30688708399711406,
+          "heightProportion": 0.5506449654454066
+        },
+        "history": [
+          {
+            "transform": "resize",
+            "parameters": [
+              0.30688708399711406,
+              null,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "resize",
+            "parameters": [
+              null,
+              0.6478176064063608,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "shift",
+            "parameters": [
+              null,
+              0.15,
+              {
+                "drawing": true,
+                "scale": true,
+                "children": true
+              }
+            ]
+          }
+        ],
+        "maxHistLength": 20,
+        "applyTransformsFlag": false
+      },
+      "Nucleus": {
+        "drawingBounds": {
+          "width": 178.25,
+          "height": 178.25,
+          "left": 411.12499999999994,
+          "top": 437.575,
+          "x": 411.12499999999994,
+          "y": 437.575,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "drawingCenter": {
+          "x": 500.24999999999994,
+          "y": 526.7
+        },
+        "bounds": {
+          "width": 54.70262272248558,
+          "height": 98.15246509064373,
+          "left": 472.89868863875716,
+          "top": 495.7007558290331,
+          "x": 472.89868863875716,
+          "y": 495.7007558290331,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "center": {
+          "x": 500.24999999999994,
+          "y": 544.7769883743549
+        },
+        "shapePositions": {
+          "leftShift": 0.34655645800144297,
+          "topShift": 0.32609119679681964,
+          "widthProportion": 0.30688708399711406,
+          "heightProportion": 0.5506449654454066
+        },
+        "history": [
+          {
+            "transform": "resize",
+            "parameters": [
+              0.30688708399711406,
+              null,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "resize",
+            "parameters": [
+              null,
+              0.6478176064063608,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "shift",
+            "parameters": [
+              null,
+              0.15,
+              {
+                "drawing": true,
+                "scale": true,
+                "children": true
+              }
+            ]
+          }
+        ],
+        "maxHistLength": 20,
+        "applyTransformsFlag": false
+      }
+    },
+    {
+      "_id": "MCF10A",
+      "Cell": {
+        "drawingBounds": {
+          "width": 178.25,
+          "height": 178.25,
+          "left": 589.875,
+          "top": 437.575,
+          "x": 589.875,
+          "y": 437.575,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "drawingCenter": {
+          "x": 679,
+          "y": 526.7
+        },
+        "bounds": {
+          "width": 62.034723274935196,
+          "height": 87.20006771814818,
+          "left": 647.9826383625324,
+          "top": 502.14334251873635,
+          "x": 647.9826383625324,
+          "y": 502.14334251873635,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "center": {
+          "x": 679,
+          "y": 545.7433763778105
+        },
+        "shapePositions": {
+          "leftShift": 0.3259895560310373,
+          "topShift": 0.36223474063807215,
+          "widthProportion": 0.34802088793792535,
+          "heightProportion": 0.48920094091527727
+        },
+        "history": [
+          {
+            "transform": "resize",
+            "parameters": [
+              0.34802088793792535,
+              null,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "resize",
+            "parameters": [
+              null,
+              0.5755305187238556,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "shift",
+            "parameters": [
+              null,
+              0.15,
+              {
+                "drawing": true,
+                "scale": true,
+                "children": true
+              }
+            ]
+          }
+        ],
+        "maxHistLength": 20,
+        "applyTransformsFlag": false
+      },
+      "Nucleus": {
+        "drawingBounds": {
+          "width": 178.25,
+          "height": 178.25,
+          "left": 589.875,
+          "top": 437.575,
+          "x": 589.875,
+          "y": 437.575,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "drawingCenter": {
+          "x": 679,
+          "y": 526.7
+        },
+        "bounds": {
+          "width": 62.034723274935196,
+          "height": 87.20006771814818,
+          "left": 647.9826383625324,
+          "top": 502.14334251873635,
+          "x": 647.9826383625324,
+          "y": 502.14334251873635,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "center": {
+          "x": 679,
+          "y": 545.7433763778105
+        },
+        "shapePositions": {
+          "leftShift": 0.3259895560310373,
+          "topShift": 0.36223474063807215,
+          "widthProportion": 0.34802088793792535,
+          "heightProportion": 0.48920094091527727
+        },
+        "history": [
+          {
+            "transform": "resize",
+            "parameters": [
+              0.34802088793792535,
+              null,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "resize",
+            "parameters": [
+              null,
+              0.5755305187238556,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "shift",
+            "parameters": [
+              null,
+              0.15,
+              {
+                "drawing": true,
+                "scale": true,
+                "children": true
+              }
+            ]
+          }
+        ],
+        "maxHistLength": 20,
+        "applyTransformsFlag": false
+      }
+    },
+    {
+      "_id": "MCF12A",
+      "Cell": {
+        "drawingBounds": {
+          "width": 178.25,
+          "height": 178.25,
+          "left": 768.625,
+          "top": 437.575,
+          "x": 768.625,
+          "y": 437.575,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "drawingCenter": {
+          "x": 857.75,
+          "y": 526.7
+        },
+        "bounds": {
+          "width": 72.44951429723928,
+          "height": 115.17607118081902,
+          "left": 821.5252428513803,
+          "top": 485.68686989363584,
+          "x": 821.5252428513803,
+          "y": 485.68686989363584,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "center": {
+          "x": 857.75,
+          "y": 543.2749054840453
+        },
+        "shapePositions": {
+          "leftShift": 0.29677555596847327,
+          "topShift": 0.26991231356878465,
+          "widthProportion": 0.40644888806305346,
+          "heightProportion": 0.6461490669330661
+        },
+        "history": [
+          {
+            "transform": "resize",
+            "parameters": [
+              0.40644888806305346,
+              null,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "resize",
+            "parameters": [
+              null,
+              0.7601753728624306,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "shift",
+            "parameters": [
+              null,
+              0.15,
+              {
+                "drawing": true,
+                "scale": true,
+                "children": true
+              }
+            ]
+          }
+        ],
+        "maxHistLength": 20,
+        "applyTransformsFlag": false
+      },
+      "Nucleus": {
+        "drawingBounds": {
+          "width": 178.25,
+          "height": 178.25,
+          "left": 768.625,
+          "top": 437.575,
+          "x": 768.625,
+          "y": 437.575,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "drawingCenter": {
+          "x": 857.75,
+          "y": 526.7
+        },
+        "bounds": {
+          "width": 72.44951429723928,
+          "height": 115.17607118081902,
+          "left": 821.5252428513803,
+          "top": 485.68686989363584,
+          "x": 821.5252428513803,
+          "y": 485.68686989363584,
+          "generator": {
+            "type": "grid",
+            "id": "x-offset: 178.75; y-offset: 190.25; width: 178.25; height: 178.25"
+          }
+        },
+        "center": {
+          "x": 857.75,
+          "y": 543.2749054840453
+        },
+        "shapePositions": {
+          "leftShift": 0.29677555596847327,
+          "topShift": 0.26991231356878465,
+          "widthProportion": 0.40644888806305346,
+          "heightProportion": 0.6461490669330661
+        },
+        "history": [
+          {
+            "transform": "resize",
+            "parameters": [
+              0.40644888806305346,
+              null,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "resize",
+            "parameters": [
+              null,
+              0.7601753728624306,
+              {
+                "drawing": true,
+                "center": true,
+                "children": true
+              }
+            ]
+          },
+          {
+            "transform": "shift",
+            "parameters": [
+              null,
+              0.15,
+              {
+                "drawing": true,
+                "scale": true,
+                "children": true
+              }
+            ]
+          }
+        ],
+        "maxHistLength": 20,
+        "applyTransformsFlag": false
+      }
+    }
+  ],
+  "elementFeatureBindings": [
+    {
+      "element": "Height",
+      "field": "Length",
+      "shape": "Cell"
+    },
+    {
+      "element": "Width",
+      "field": "Width",
+      "shape": "Cell"
+    },
+    {
+      "element": "Membrane",
+      "field": "Ruffliness",
+      "shape": "Cell"
+    },
+    {
+      "element": "Protrusion",
+      "field": "Protrusions",
+      "shape": "Cell"
+    },
+    {
+      "element": "Decoration",
+      "field": "Ruffliness",
+      "shape": "Cell"
+    },
+    {
+      "element": "Height",
+      "field": "Nuc Length",
+      "shape": "Nucleus"
+    },
+    {
+      "element": "Width",
+      "field": "Nuc Width",
+      "shape": "Nucleus"
+    },
+    {
+      "element": "Membrane",
+      "field": "NF",
+      "shape": "Nucleus"
+    },
+    {
+      "element": "Mesh",
+      "field": "Nuc Text",
+      "shape": "Nucleus"
+    }
+  ],
+  "shapes": {}
+}

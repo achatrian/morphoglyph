@@ -3,6 +3,14 @@
 export default {
     updateTemplateName: (state, templateName) => state.templateName = templateName,
 
+    updateOriginalFileName: (state, originalFileName) => {
+        const newCurrentTemplate = Object.assign(
+            {originalFileName: originalFileName},
+            state.currentTemplate
+        )
+        state.currentTemplate = newCurrentTemplate
+    },
+
     updateGlyphInformation: (state, glyphs) => {
         const glyph = glyphs[0]
         if (typeof glyph !== 'undefined') {
@@ -34,18 +42,24 @@ export default {
             newCurrentTemplate.glyphParameters = glyphParameters
 
             // UPDATE GLYPH POSITIONS
-            const glyphBoxes = []
-            for (let glyph_ of glyph.iter()) {
-                glyphBoxes.push({
-                    drawingBounds: glyph_.box.drawingBounds,
-                    drawingCenter: glyph_.box.drawingCenter,
-                    bounds: glyph_.box.bounds,
-                    center: glyph_.box.center,
-                    shapePositions: glyph_.box.shapePositions
-                })
+            const glyphsBoxes = []
+            for (let glyph_ of glyphs) {
+                let boxesPerGlyph = {_id: glyph_.id}  // save id so that glyph box can be matched with correct glyph
+                for (let childGlyph of glyph_.iter()) {
+                    boxesPerGlyph[childGlyph.name] = {
+                        drawingBounds: glyph_.box.drawingBounds,
+                        drawingCenter: glyph_.box.drawingCenter,
+                        bounds: glyph_.box.bounds,
+                        center: glyph_.box.center,
+                        shapePositions: glyph_.box.shapePositions,
+                        history: glyph_.box.history,
+                        maxHistLength: glyph_.box.maxHistLength,
+                        applyTransformsFlag: glyph_.box.applyTransformsFlag
+                    }
+                }
+                glyphsBoxes.push(boxesPerGlyph)
             }
-            newCurrentTemplate.glyphBoxes = glyphBoxes
-
+            newCurrentTemplate.glyphBoxes = glyphsBoxes  // FIXME change attribute or name
             state.currentTemplate = newCurrentTemplate
         }
     },
@@ -84,5 +98,7 @@ export default {
 
     setAvailableTemplates: (state, availableTemplates) => {
         state.availableTemplates = availableTemplates
-    }
+    },
+
+    setCurrentTemplate: (state, newTemplate) => state.currentTemplate = newTemplate
 }

@@ -92,6 +92,7 @@ export default {
   },
 
   setGlyphParameters: ({commit, dispatch}, payload) => {
+    // payload = {parameters, shapeName}
     commit('setGlyphParameters', payload)
     if (payload.redraw) {
       dispatch('activateRedrawing') // redraw glyphs after having changed the parameter value
@@ -102,11 +103,19 @@ export default {
 
   setShapePosition: ({commit}, payload) => commit('setShapePosition', payload),
 
+  setGlyphBox: ({commit, dispatch}, glyphBoxes) => {
+    commit('setGlyphBox', glyphBoxes)
+    dispatch('activateRedrawing')
+  },
+
   selectGlyphEl: ({commit}, payload) => commit('selectGlyphEl', payload),
 
   setBoundingRectSizeFactor: ({commit}, sizeFactor) => commit('setBoundingRectSizeFactor', sizeFactor),
 
   addShrinkRegrowAnimation: ({commit}) => commit('addShrinkRegrowAnimation'),
 
-  removeShrinkRegrowAnimation: ({commit}) => commit('removeShrinkRegrowAnimation')
+  removeShrinkRegrowAnimation: ({commit}) => commit('removeShrinkRegrowAnimation'),
+
+  // exporting glyphs as an image
+  saveAsSVG: ({commit, rootState}) => commit('saveAsSVG', rootState.template.templateName)
 }
