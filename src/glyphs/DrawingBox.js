@@ -7,6 +7,7 @@ class DrawingBox {
     history = []
     // transforms used during drawing of glyphs, must be reapplied when setting transforms are applied
     drawingTransforms = []
+    bounds = {}
 
     constructor (glyph, {
                     boundingRect,
@@ -24,7 +25,8 @@ class DrawingBox {
         }
         this.applyPositioning(shapePositions)
         if (applyHistoryTransforms) {
-            this.applyTransforms(history) // also stories history
+            this.applyTransforms(history)
+            this.history = history
         }
         if (history.length > 0) {
             this.history = history
@@ -48,9 +50,7 @@ class DrawingBox {
     get childrenBoxes () { // returns boxes of children glyphs
         let boxes = []
         for (let glyph of this.glyph.children) {
-            if (!glyph.box) {
-                console.warn(`${this.glyph.name}'s child '${glyph.name}' has no drawing box`)
-            } else {
+            if (glyph.box) {
                 boxes.push(glyph.box)
             }
         }
@@ -59,22 +59,22 @@ class DrawingBox {
 
     applyPositioning (positions) {
         // updates bounding box of glyph based on new positioning parameters
-        let glyphBoundingRect = Object.assign({}, this.drawingBounds)
+        let glyphBoundingRect = Object.assign({}, this.bounds)
         const {topShift, leftShift, widthProportion, heightProportion} = positions
         // topShift and leftShift are relative to boundingRect dimensions before scaling
         if (typeof topShift !== 'undefined') {
-            glyphBoundingRect.top += topShift * this.drawingBounds.height
-            glyphBoundingRect.y += topShift * this.drawingBounds.height
+            glyphBoundingRect.top = this.drawingBounds.y + topShift * this.drawingBounds.height
+            glyphBoundingRect.y = glyphBoundingRect.top
         }
         if (typeof leftShift !== 'undefined') {
-            glyphBoundingRect.left += leftShift * this.drawingBounds.width
-            glyphBoundingRect.x += leftShift * this.drawingBounds.width
+            glyphBoundingRect.left = this.drawingBounds.x + leftShift * this.drawingBounds.width
+            glyphBoundingRect.x = glyphBoundingRect.left
         }
         if (typeof widthProportion !== 'undefined') {
-            glyphBoundingRect.width *= widthProportion
+            glyphBoundingRect.width = widthProportion * this.drawingBounds.width
         }
         if (typeof heightProportion !== 'undefined') {
-            glyphBoundingRect.height *= heightProportion
+            glyphBoundingRect.height = heightProportion * this.drawingBounds.height
         }
         this.bounds = glyphBoundingRect
         this.center = {
@@ -138,11 +138,15 @@ class DrawingBox {
             }
             step.parameters[2].drawing = false // prevents storing duplicates in drawingTransforms
         }
-        this.applyTransforms(adaptedTransforms)
+        for (let step of adaptedTransforms) {
+            step.parameters[3] = false // do not register drawing transforms that have already been registered
+            this[step.transform](...step.parameters)
+        }
     }
 
     resize (widthProportion = 1.0, heightProportion = 1.0,
-            options = {setValues: false, drawing: false, center: false, children: false, redraw: false}) {
+            options = {setValues: false, drawing: false, center: false, children: false, redraw: false},
+            register=true) {
         const {center, children, setValues, drawing, redraw} = options
         let newWidthProportion, newHeightProportion
         if (widthProportion == null) {
@@ -174,8 +178,10 @@ class DrawingBox {
             })
         }
         this.applyPositioning(positions) // bounds for this glyph
-        // record transformation that occured on box
-        this.registerTransform('resize', [widthProportion, heightProportion, options], drawing)
+        // record transformation acting on box (unless transform is being replayed, in which case 'register' should be false)
+        if (register) {
+            this.registerTransform('resize', [widthProportion, heightProportion, options], drawing)
+        }
         // re-applies drawing transforms in case a modification occurred
         if (redraw) {
             let selector = ''
@@ -185,10 +191,6 @@ class DrawingBox {
                 selector = 'resizeHeight'
             }
             this.applyDrawingTransforms(selector)
-        }
-        // clean history if too long
-        if (this.history.length > this.maxHistLength) {
-            this.history.splice(0, this.history.length - this.maxHistLength) // remove one element
         }
         // apply to children
         if (children) { // TODO test
@@ -200,7 +202,8 @@ class DrawingBox {
     }
 
     shift (leftShift = 0.0, topShift = 0.0,
-           options = {setValues: false, drawing: false, scale: false, children: false, redraw: false}) {
+           options = {setValues: false, drawing: false, scale: false, children: false, redraw: false},
+           register=true) {
         const {scale, children, setValues, drawing, redraw} = options
         let newLeftShift, newTopShift
         if (leftShift == null) {
@@ -208,14 +211,14 @@ class DrawingBox {
         } else if (setValues) {
             newLeftShift = leftShift
         } else {
-            newLeftShift = this.shapePositions.leftShift + leftShift
+            newLeftShift = Math.min(this.shapePositions.leftShift + leftShift, 1.0)
         }
         if (topShift == null) {
             newTopShift = this.shapePositions.topShift
         } else if (setValues) {
             newTopShift = topShift
         } else {
-            newTopShift = this.shapePositions.topShift + topShift
+            newTopShift = Math.min(this.shapePositions.topShift + topShift, 1.0)
         }
         let positions = {
             leftShift: newLeftShift,
@@ -226,7 +229,9 @@ class DrawingBox {
                 this.shapePositions.heightProportion * (1 - topShift) : this.shapePositions.heightProportion,
         }
         this.applyPositioning(positions)
-        this.registerTransform('shift', [leftShift, topShift, options], drawing)
+        if (register) {
+            this.registerTransform('shift', [leftShift, topShift, options], drawing)
+        }
         // re-applies drawing transforms in case a modification occurred
         if (redraw) {
             let selector = ''
@@ -244,7 +249,7 @@ class DrawingBox {
         }
     }
 
-    toCenter (left = true, top = true, options = {drawing: false}) {
+    toCenter (left = true, top = true, options = {drawing: false}, register=true) {
         const {drawing} = options
         const positions = {
             leftShift: left ? (1 - this.shapePositions.widthProportion) / 2 : this.shapePositions.leftShift,
@@ -254,7 +259,9 @@ class DrawingBox {
         }
         this.applyPositioning(positions)
         this.applyDrawingTransforms('shift') // applies any required drawing shifts after centering
-        this.registerTransform('center', [left, top, options], drawing)
+        if (register) {
+            this.registerTransform('center', [left, top, options], drawing)
+        }
     }
 }
 
