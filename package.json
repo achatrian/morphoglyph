@@ -24,9 +24,10 @@
     "vue-number-input-spinner": "^2.2.0",
     "vue-router": "^3.0.3",
     "vue-virtual-scroller": "^1.0.0-rc.2",
-    "vuetify": "^1.5.16",
+    "vuetify": "^1.5.24",
     "vuetify-upload-button": "^2.0.2",
-    "vuex": "^3.0.1"
+    "vuex": "^3.0.1",
+    "firebase": "^7.12.0"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^3.9.0",

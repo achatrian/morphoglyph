@@ -9,7 +9,7 @@ import paper from 'paper'
 import debounce from 'debounce'
 // import store from '../store/index'
 import DrawingBox from './DrawingBox'
-
+2
 
 class BaseGlyph {
 
@@ -329,9 +329,11 @@ class BaseGlyph {
     try {
       drawingBox = this.getItem('drawingBox')
     } catch (e) {
-      return updated
+      if (this.parent !== null) {
+        drawingBox = this.parent.getItem('drawingBox')
+      }
     }
-    if (this.drawn && (
+    if (drawingBox && this.drawn && (
         Math.abs(this.box.drawingBounds.x - drawingBox.bounds.x) > threshold ||
         Math.abs(this.box.drawingBounds.y - drawingBox.bounds.y) > threshold ||
         Math.abs(this.box.drawingBounds.width -  drawingBox.bounds.width) > threshold ||
@@ -381,14 +383,11 @@ class BaseGlyph {
             this.box.drawingBounds.height /  drawingBox.bounds.height
         )
       } else if (updated.main) {
-        const mainPath = this.mainPath
-        group.translate(new paper.Point(
-            this.box.bounds.x - mainPath.bounds.x,
-            this.box.bounds.y - mainPath.bounds.y
-        ))
-        group.scale(
-            this.box.bounds.width / mainPath.bounds.width,
-            this.box.bounds.height / mainPath.bounds.height
+        group.bounds = new paper.Rectangle(
+            this.box.bounds.x,
+            this.box.bounds.y,
+            this.box.bounds.width,
+            this.box.bounds.height
         )
       } else {
         console.warn('fitToBox did not update any path')

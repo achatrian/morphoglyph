@@ -118,8 +118,8 @@
 
     .btn{
         z-index: 4
-        /*canvas is used. For input fields, need to put above canvas in z-stack
-        btn class gives z-index value of 4 > 3, the canvas' value*/
+        /* canvas is used. For input fields, need to put above canvas in z-stack
+        btn class gives z-index value of 4 > 3, the canvas' value */
     }
 
     .canvas-box{ /* class to make divs into boxes where graphics are visualised */

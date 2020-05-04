@@ -1,0 +1,1 @@
+nvm use 12; cd ..; npm run-script build; cp phewLocal/* dist; cp -r templates dist; cd dist; npm i .; node phewLocal.js

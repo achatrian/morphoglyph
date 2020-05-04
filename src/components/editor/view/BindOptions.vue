@@ -48,8 +48,7 @@
                             </v-btn>
                         </v-flex>
                     </v-layout>
-                    <v-tabs v-model="selectedShapeIndex" color="secondary"
-                            slider-color="primary" grow>
+                    <v-tabs v-model="selectedShapeIndex" color="secondary" slider-color="primary" grow>
                         <v-tab v-for="item of shapeItems" :key="item.id" :value="item.value">
                             {{item.value}}
                         </v-tab>
@@ -68,9 +67,6 @@
                         <v-flex xs6 md3 d-flex>
                             <v-btn flat class="primary white--text" @click="applyBinding">Bind</v-btn>
                         </v-flex>
-                        <v-flex xs6 md3 d-flex>
-                            <app-load-config @configLoaded="applyConfig"/>
-                        </v-flex>
                     </v-layout>
                 </v-layout>
             </v-card>
@@ -79,14 +75,12 @@
 
 <script>
     import {mapState, mapActions} from 'vuex'
-    import LoadConfig from './buttons/LoadConfig'
     import ScrollOptions from './panels/ScrollOptions'
 
     export default {
         name: 'BindOptions',
         components: {
             'app-scroll-options': ScrollOptions,
-            'app-load-config': LoadConfig
         },
         data () {
             return {
@@ -94,9 +88,9 @@
                 selectedShape: '',
                 selectedGlyphEl: '',
                 fieldBindings: [],
-                selectedGlyphName: '',
+                selectedGlyphName: 'Shape',
                 selectedOrderField: '', // selected field of cluster names
-                selectedGlyphSetting: '',
+                selectedGlyphSetting: 'ellipse',
                 lastUnboundField: '', // used to flag which field needs re-clicking to be bound again,
                 selectedTemplateName: ''
             }
@@ -120,7 +114,7 @@
             }),
             glyphNames () { // names of glyph types for selection
                 let glyphNames = []
-                this.glyphTypes.forEach(glyphType => glyphNames.push(glyphType.type))
+                this.glyphTypes.forEach(glyphType => glyphNames.push(glyphType.type.slice(0, -5)))  // slice away 'Glyph'
                 return glyphNames
             },
             settingOptions () {
@@ -128,7 +122,7 @@
             },
             shapeItems () {
                 let items = []
-                const allShapes = this.glyphShapes.children.concat([this.glyphShapes.main])
+                const allShapes = [this.glyphShapes.main, ...this.glyphShapes.children]  // default selection is main
                 allShapes.forEach((shapeName, id) => {
                     items.push({
                         id: id,
@@ -253,7 +247,7 @@
                 if (this.glyphs.length > 0) {
                     this.discardGlyphs()
                 }
-                this.addDataBoundGlyphs() // uses store.glyph.glyphTypeName
+                this.addDataBoundGlyphs(this.selectedGlyphName) // uses store.glyph.glyphTypeName
                 this.setGlyphBinderState(false)
                 // when first called, num displayed glyph is 0
                 this.changeDisplayedGlyphNum(this.numDisplayedGlyphs || this.maxDisplayedGlyphs) // FIXME first outcome is redundant
@@ -279,14 +273,13 @@
             },
             selectedGlyphName () {
                 // watcher that loads the type of glyph, and makes the glyph elements available for selection
-                if (this.selectedGlyphName !== 'None') {
-                    for (let glyphType of this.glyphTypes) {
-                        if (glyphType.type === this.selectedGlyphName) {
-                            this.selectedShape = glyphType.shapes.main
-                        }
+                const glyphObjectName = this.selectedGlyphName + 'Glyph'
+                for (let glyphType of this.glyphTypes) {
+                    if (glyphType.type === glyphObjectName) {
+                        this.selectedShape = glyphType.shapes.main
                     }
-                    this.setGlyphType({glyphTypeName: this.selectedGlyphName, glyphSetting: this.selectedGlyphSetting})
                 }
+                this.setGlyphType({glyphTypeName: this.selectedGlyphName, glyphSetting: this.selectedGlyphSetting})
             },
             selectedGlyphSetting () {
                 // same as above, to update setting when needed
@@ -294,6 +287,16 @@
                     this.setGlyphType({glyphTypeName: this.selectedGlyphName, glyphSetting: this.selectedGlyphSetting})
                 }
             }
+        },
+        mounted () {
+            // select glyph name
+            const glyphObjectName = this.selectedGlyphName + 'Glyph'
+            for (let glyphType of this.glyphTypes) {
+                if (glyphType.type === glyphObjectName) {
+                    this.selectedShape = glyphType.shapes.main
+                }
+            }
+            this.setGlyphType({glyphTypeName: this.selectedGlyphName, glyphSetting: this.selectedGlyphSetting})
         }
     }
 </script>

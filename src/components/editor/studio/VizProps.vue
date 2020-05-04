@@ -179,7 +179,20 @@
         </v-list-tile>
         <!--<v-divider/>-->
         <v-list-tile>
-          <!--<app-positioner shape-name="selectedShapeName"/>-->
+          <v-spacer/>
+          <v-select v-model="selectedMode"
+                    :items="hasProperties.mode ? selectedElement.properties.mode : []"
+                    :disabled="Boolean(rebinding) || selectedFieldName === 'unbound'"
+                    v-show="hasProperties.mode"
+                    @change="onModeSelection"
+          >
+            <span class="text--white"
+                  style="display: inline-block; width: 100px; margin-top: 4px"
+                  slot="prepend"
+            >
+              Options:
+            </span>
+          </v-select>
         </v-list-tile>
       </v-list>
       <v-divider/>
@@ -188,10 +201,9 @@
 </template>
 
 <script>
-import {mapState, mapActions, mapGetters} from 'vuex'
+import {mapState, mapActions} from 'vuex'
 import { Chrome } from 'vue-color'
-// import Positioner from './Positioner'
-// must make this work even in the case of multiple glyphs that have elements
+
 
 export default {
   name: 'VizProps',
@@ -208,13 +220,12 @@ export default {
         name: '',
         properties: {}
       },
+      selectedWidth: 1,
       selectedFieldName: '',
       currentGlyphId: 0,
-      selectedWidth: 1,
-      selectedRelativeX: 0.5,
-      selectedRelativeY: 0.5,
       colorPick: {hex: ''},
-      dialog: false
+      dialog: false,
+      selectedMode: ''
     }
   },
   computed: {
@@ -228,10 +239,8 @@ export default {
       glyphElements: state => state.glyph.glyphElements,
       dataFields: state => state.backend.dataFields,
       fieldTypes: state => state.backend.fieldTypes,
-      numDisplayedGlyphs: state => state.app.numDisplayedGlyphs
-    }),
-    ...mapGetters({
-      glyphNames: 'glyph/glyphNames'
+      numDisplayedGlyphs: state => state.app.numDisplayedGlyphs,
+      glyphNames: state => state.glyph.project.glyphNames
     }),
     shapeElements () {
       if (this.glyphs.length === 0 || !this.selectedShapeName) {
@@ -244,7 +253,8 @@ export default {
     hasProperties () {
       return {
         size: Boolean(this.selectedElement.properties.size),
-        color: Boolean(this.selectedElement.properties.color)
+        color: Boolean(this.selectedElement.properties.color),
+        mode: Boolean(this.selectedElement.properties.mode)
       }
     }
   },
@@ -253,7 +263,8 @@ export default {
       selectGlyphEl: 'glyph/selectGlyphEl',
       setPathParameter: 'glyph/setPathParameter',
       redrawElement: 'glyph/redrawElement',
-      deleteElement: 'glyph/deleteElement'
+      deleteElement: 'glyph/deleteElement',
+      setGlyphParameters: 'glyph/setGlyphParameters'
     }),
     reset (newData = {}) {
       this.rebinding = newData.rebinding || false
@@ -336,7 +347,7 @@ export default {
           console.log(`(previously bound to ${oldBinding.field})`)
         }
       } else {
-        console.log(`${this.selectedFieldName} was bound to ${this.selectedShapeName}.${this.selectedElementName} (previously bound to ${oldBinding.element})`)
+        console.log(`${this.selectedFieldName} was bound to ${this.selectedShapeName}.${this.selectedElementName}`)
         if (oldBinding) {
           console.log(`(previously bound to ${oldBinding.element})`)
         }
@@ -354,9 +365,24 @@ export default {
         this.deleteElement(oldBinding)
       }
       this.reset()
+    },
+    onModeSelection () {
+      this.setGlyphParameters({
+        parameters: {
+          [this.selectedElement.name.toLocaleLowerCase() + 'Mode']: this.selectedMode
+        },
+        shapeName: this.selectedShapeName
+      })
+      const binding = this.bindings.find(
+              binding_ => binding_.shape === this.selectedShapeName && binding_.field === this.selectedFieldName
+      )
+      this.redrawElement(binding)
     }
   },
   watch: {
+    selectedShapeName () {
+      this.reset()
+    },
     glyphNames () {
       if (this.glyphs.length > 0) {
         this.selectedShapeName = this.glyphs[0].name
@@ -381,6 +407,14 @@ export default {
           shapeName: this.selectedShapeName,
           elementName: this.selectedElement.name
         })
+        if (this.selectedElement.fillColor) {
+          this.setPathParameter({
+            parameter: 'fillColor',
+            value: this.colorPick.hex,
+            shapeName: this.selectedShapeName,
+            elementName: this.selectedElement.name
+          })
+        }
       }
     }
   }

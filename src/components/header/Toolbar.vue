@@ -28,10 +28,12 @@
       <v-combobox :placeholder="Boolean(fileName) ? 'Project Name' : 'No data'"
                   :items="templatesNames"
                   v-model="currentTemplateName"
-                  @input="updateTemplateName_"
+                  @change="updateTemplateName_"
+                  @keydown="updateTemplateName_"
                   @select="updateTemplateName_"
                   :disabled="!Boolean(fileName)"
       />
+      <!-- TODO keydown event above not available with vuetify 1.5 -- need to update vuetify -->
     </div>
     <app-apply-template :templateName="this.currentTemplateName"/>
     <app-save-templates/>
@@ -48,7 +50,6 @@
 
 <script>
 import {mapState, mapActions} from 'vuex'
-import debounce from 'debounce'
 
 //import Settings from './settings/Settings'
 import LoadData from './buttons/LoadData'
@@ -82,7 +83,7 @@ export default {
       availableTemplates: state => state.template.availableTemplates
     }),
     templatesNames () {
-      return this.availableTemplates.map(templateItem => templateItem.name.slice(0, -5))
+      return this.availableTemplates.map(templateItem => templateItem.name)
     }
   },
   methods: {
@@ -98,12 +99,29 @@ export default {
     onStudioClick () {
       this.toggleStudioDrawer()
     },
-    updateTemplateName_: debounce.call(
-            this, function (templateName) {
-              console.log(`Changing template name from ${this.templateName} to ${templateName}`)
-              this.updateTemplateName(templateName)
-            }, 500
-    )
+    updateTemplateName_ (updateEvent) {
+      // handles different types of event that trigger a template name update (select, input, ...)
+      let templateName
+      if (updateEvent.target) {
+        templateName = updateEvent.target.value
+      } else if (typeof updateEvent === 'string' && updateEvent.length > 0) {
+        templateName = updateEvent
+      }
+      console.log(`Changing template name from ${this.templateName} to ${templateName}`)
+      this.updateTemplateName(templateName)
+    }
+    // updateTemplateName_: debounce.call(this, function (updateEvent) {
+    //   if (updateEvent.target) {
+    //     const templateName = updateEvent.target.value
+    //     console.log(`Changing template name from ${this.templateName} to ${templateName}`)
+    //     this.updateTemplateName(templateName)
+    //   }
+    // }, 100)
+  },
+  watch: {
+    currentTemplateName () {
+      this.updateTemplateName_(this.currentTemplateName)
+    }
   }
 }
 </script>

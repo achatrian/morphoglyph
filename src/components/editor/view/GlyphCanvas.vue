@@ -159,7 +159,7 @@ export default {
               canvasComponent.placeGlyphs()
             }
           },
-          3000,
+          10000,
           this
         )
       } else {

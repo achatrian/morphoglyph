@@ -40,7 +40,7 @@ export default {
   readBindingsFile: async ({dispatch, commit}, file) => {
     console.log(file)
     if (!(file instanceof File)) {
-      throw new TypeError(`Input is of type ${typeof File} (expected type: File)`)
+      throw new TypeError(`Input is of type ${typeof file} (expected type: File)`)
     }
     try {
       const data = await readUploadedFileAsText(file)

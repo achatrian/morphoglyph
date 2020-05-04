@@ -19,7 +19,7 @@ import {mapState, mapActions} from 'vuex'
 import GlyphCanvas from './GlyphCanvas'
 import BindOptions from './BindOptions'
 import ShapeManager from './ShapeManager'
-import GlyphAdder from './GlyphAdder'
+import GlyphAdder from './GlyphPreview'
 import WelcomeCard from './WelcomeCard'
 import LegendViewer from "./LegendViewer";
 

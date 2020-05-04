@@ -14,9 +14,11 @@ const state = {
   project: {
     name: 'A new phew project',
     bindings: [], // stores features -> marker bindings
-    glyphs: [], // stores the glyph objects
+    glyphs: [], // stores the glyph objects,
+    glyphNames: [],
     template: {} // FIXME unused
   },
+  totalGlyphNum: 0,
   activeLayer: null,
   selection: {layer: 0, path: ''}, // TODO this is for selecting glyph element by clicking -- not well integrated
   glyphSettings: {name: '', message: '', options: []}, // loaded from glyph type
@@ -25,7 +27,7 @@ const state = {
   selectedGlyphSetting: '',
   redrawing: false, // flag used to signal glyph canvas to redraw glyphs (canvas has access to bounding boxes)
   // Shape appearance parameters
-  userAppliedTransforms: []
+
 }
 
 export default {

@@ -126,8 +126,13 @@ export default {
   },
 
   setNamingField: (state, namingField) => {
-    state.namingField = namingField // set field
-    state.dataDisplayOrder = state.normalizedData.map(dataPoint => dataPoint[namingField])
+    if (namingField) {
+      state.namingField = namingField // set field
+      state.dataDisplayOrder = state.normalizedData.map(dataPoint => dataPoint[namingField])
+    } else {
+      state.namingField = '_default'
+      state.dataDisplayOrder = state.normalizedData.map((dataPoint, index) => index)
+    }
   },
 
   orderDataByValue: (state, orderField) => {

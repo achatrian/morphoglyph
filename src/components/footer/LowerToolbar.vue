@@ -49,13 +49,13 @@ export default {
   })
   },
   methods: {...mapActions({
-    shiftLayersAssignment: 'glyph/shiftLayersAssignment',
-    changeCurrentPage: 'app/changeCurrentPage',
-    orderDataByValue: 'backend/orderDataByValue'
-  }),
-  reorderGlyphs () {
-    this.orderDataByValue(this.selectedOrderField)
-  }
+      shiftLayersAssignment: 'glyph/shiftLayersAssignment',
+      changeCurrentPage: 'app/changeCurrentPage',
+      orderDataByValue: 'backend/orderDataByValue'
+    }),
+    reorderGlyphs () {
+      this.orderDataByValue(this.selectedOrderField)
+    }
   },
   watch: {
     page () {

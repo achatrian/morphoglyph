@@ -19,6 +19,7 @@
     <app-viz-props v-show="!glyphBinder" :shapeName.sync="shapeName"/>
     <app-positioner :shape-name="shapeName"/>
     <app-chart-controller/>
+    <app-glyph-adder/>
     <!--<app-shape-canvas/>-->
   </div>
   </v-navigation-drawer>
@@ -29,10 +30,11 @@
 import { mapState, mapActions } from 'vuex'
 //import Table from './Table'
 import VizProps from './VizProps'
-//import GlyphBind from './GlyphBind'
 import Positioner from './Positioner'
 // import ShapeCanvas from './ShapeCanvas'
 import ChartController from './ChartController'
+import GlyphAdder from './GlyphAdder'
+
 
 export default {
   name: 'Studio',
@@ -46,7 +48,8 @@ export default {
     'app-viz-props': VizProps,
     'app-positioner': Positioner,
     // 'app-shape-canvas': ShapeCanvas,
-    'app-chart-controller': ChartController
+    'app-chart-controller': ChartController,
+    'app-glyph-adder': GlyphAdder
   },
   computed: {
     ...mapState({

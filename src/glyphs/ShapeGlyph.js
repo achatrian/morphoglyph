@@ -16,11 +16,11 @@ class ShapeGlyph extends BaseGlyph {
       meshType: 'grid',
       spikeSize: 0.4,
       decorationSize: 5, // size of pattern elements in patterning
-      decorationType: 'circle',
+      decorationMode: 'circle',
       protrusionProportion: 0.15,
       protrusionBackgroundColor: '#F5F5F5',
       protrusionStrokeColor: '#212121',
-      islandsType: 'circle',
+      islandsMode: 'circle',
       islandsSize: 10,
       maxNumIslands: 40
     }) {
@@ -44,7 +44,8 @@ class ShapeGlyph extends BaseGlyph {
     return {
       name: 'shapeType', // NB case sensitive
       message: 'Select glyph shape',
-      options: ['ellipse', 'rectangle', 'circle', 'regularPolygon', 'customShape']
+      options: ['ellipse', 'rectangle', 'circle', 'regularPolygon', 'customShape'],
+      default: 'ellipse'
     }
   }
 
@@ -53,6 +54,10 @@ class ShapeGlyph extends BaseGlyph {
   }
 
   static get elements () {
+    /*Description of element properties
+    * fillColor: if true, color picker changes fillColor besides changing the stroke color
+    *
+    * */
     return [
       {
         name: 'Height',
@@ -72,7 +77,7 @@ class ShapeGlyph extends BaseGlyph {
         name: 'Membrane',
         type: 'path',
         properties: {
-          color: {range: [], step: []},
+          color: {range: [], step: [], fillColor: false},
           size: {range: [1, 30], step: 1}
         },
         target: 'main',
@@ -82,7 +87,7 @@ class ShapeGlyph extends BaseGlyph {
         name: 'Spikes',
         type: 'path',
         properties: {
-          color: {range: [], step: []},
+          color: {range: [], step: [], fillColor: false},
           size: {range: [0.4, 2], step: 0.2}
         },
         target: 'main',
@@ -92,7 +97,7 @@ class ShapeGlyph extends BaseGlyph {
         name: 'Mesh',
         type: 'path',
         properties: {
-          color: {range: [], step: []},
+          color: {range: [], step: [], fillColor: false},
           size: {range: [0.3, 1.5], step: 0.3},
           mode: ['grid', 'vertical', 'horizontal', 'random']
         },
@@ -103,7 +108,7 @@ class ShapeGlyph extends BaseGlyph {
         name: 'Decoration',
         type: 'path',
         properties: {
-          color: {range: [], step: []},
+          color: {range: [], step: [], fillColor: true},
           size: {range: [0.3, 1.5], step: 0.3},
           mode: ['circle', 'star', 'square']
         },
@@ -116,7 +121,7 @@ class ShapeGlyph extends BaseGlyph {
         properties: {
           requiresTransform: true, // used to send scale orders into glyph as drawing options
           priority: 1, // elements are drawn according to their priority value in decreasing order (default is 0)
-          color: {range: [], step: []},
+          color: {range: [], step: [], fillColor: false},
           size: {range: [1, 20], step: 1}
         },
         target: 'main',
@@ -126,8 +131,8 @@ class ShapeGlyph extends BaseGlyph {
         name: 'Islands', // previously BorderSymbol
         type: 'path',
         properties: {
-          color: {range: [], step: []},
-          size: {range: [1, 20], step: 1},
+          color: {range: [], step: [], fillColor: true},
+          size: {range: [1, 10], step: 1},
           mode: ['circle', 'star', 'square']
         },
         target: 'main',
@@ -253,6 +258,7 @@ class ShapeGlyph extends BaseGlyph {
     }
     membranePath.strokeColor = this.parameters.primaryColor
     membranePath.strokeWidth = this.parameters.thickPathSize
+    membranePath.fillColor = null
     this.registerItem(membranePath, 'membrane')
   }
 
@@ -280,6 +286,7 @@ class ShapeGlyph extends BaseGlyph {
     }
     spikePath.strokeColor = this.parameters.secondaryColor
     spikePath.strokeWidth = this.parameters.spikeSize
+    spikePath.fillColor = null
     this.registerItem(spikePath, 'spikes')
   }
 
@@ -341,13 +348,13 @@ class ShapeGlyph extends BaseGlyph {
         let containsExtremes = [ // + and - overloading for paper.Point is not working?
             outerPath.contains(possiblePoint), // center
             outerPath.contains(possiblePoint.add(horVect)), // E
-            !this.children.some(outerPath.contains.bind(outerPath, possiblePoint.add(horVect))), // E children
+            !this.children.some(child => child.outerPath.contains(possiblePoint.add(horVect))), // E children
             outerPath.contains(possiblePoint.add(horVect.negate())), // W
-            !this.children.some(outerPath.contains.bind(outerPath, possiblePoint.add(horVect.negate()))), // W children
+            !this.children.some(child => child.outerPath.contains(possiblePoint.add(horVect.negate()))), // W children
             outerPath.contains(possiblePoint.add(verVect)), // S
-            !this.children.some(outerPath.contains.bind(outerPath, possiblePoint.add(verVect))), // S children
+            !this.children.some(child => child.outerPath.contains(possiblePoint.add(verVect))), // S children
             outerPath.contains(possiblePoint.add(verVect.negate())), // N
-            !this.children.some(outerPath.contains.bind(outerPath, possiblePoint.add(verVect.negate()))) // N children
+            !this.children.some(child => child.outerPath.contains(possiblePoint.add(verVect.negate()))) // N children
         ]
         if (containsExtremes.every(t => t)) {
           possiblePoints.push(possiblePoint) // FIXME nucleus bounds are as big as Cell
@@ -357,7 +364,7 @@ class ShapeGlyph extends BaseGlyph {
     let decoration = []
     let decorationElement
     for (let i = 0; i < Math.ceil(possiblePoints.length * fillingFraction); i++) {
-      switch (this.parameters.decorationType) {
+      switch (this.parameters.decorationMode) {
         case 'circle':
            decorationElement = new paper.Path.Circle(
               possiblePoints[i],
@@ -467,7 +474,7 @@ class ShapeGlyph extends BaseGlyph {
     for (let i = 0; i < Math.ceil(this.parameters.maxNumIslands * borderFraction); i++) {
       let symbolPosition = this.outerPath.getPointAt(this.outerPath.length * (1 - i / this.parameters.maxNumIslands))
       let island
-      switch (this.parameters.islandsType) {
+      switch (this.parameters.islandsMode) {
         case 'circle':
           island = new paper.Path.Circle(
               symbolPosition,

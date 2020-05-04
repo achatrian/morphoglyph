@@ -1,0 +1,99 @@
+{
+  "name": "myTemplate0",
+  "user": "achatrian",
+  "lastModifiedDate": "Sun Sep 15 2019 20:34:51 GMT+0100 (British Summer Time)",
+  "glyphHierarchy": [
+    {
+      "name": "cell",
+      "children": [
+        {
+          "name": "nucleus",
+          "children": []
+        }
+      ]
+    }
+  ],
+  "glyphs": [
+    {
+      "name": "cell",
+      "type": "CellGlyph",
+      "parameters": {
+        "membraneFraction": 0.5,
+        "membraneSize": "",
+        "numPoints": 200,
+        "spikeHeight": 0.3,
+        "meshType": "grid",
+        "spikeSize": 0.4,
+        "decorationSize": 5, // size of pattern elements in patterning
+        "decorationType": "circle",
+        "protrusionProportion": 0.15,
+        "protrusionBackgroundColor": "#F5F5F5",
+        "protrusionStrokeColor": "#212121",
+        "islandsType": "circle",
+        "islandsSize": 10,
+        "maxNumIslands": 55
+      },
+      "drawingBox": {
+        "drawingBounds": "{} bounding rectangle goes here"
+        ""
+      }
+    },
+    {
+      "name": "nucleus",
+      "type": "CellGlyph",
+      "parameters": {
+        "strokeColor": "#283593",
+        "primaryColor": "#AB47BC",
+        "secondaryColor": "#D4E157",
+        "lightColor": "#1E88E5",
+        "darkColor": "#B71C1C",
+        "strokeWidth": 2,
+        "thickPathSize": 7,
+        "narrowPathSize": 4,
+        "numSides": 6, // for RegularPolygon: defaults to hexagon
+        "numPoints": 250, // for drawing Membrane and Spikes
+        "spikeHeight": 0.3,
+        "meshType": "grid"
+      }
+    }
+  ],
+  "bindings": {
+    "BCL_data.csv": [
+      {
+        "element": "Height",
+        "field": "Length",
+        "shape": "main"
+      },
+      {
+        "element": "Width",
+        "field": "Width",
+        "shape": "main"
+      },
+      {
+        "element": "Membrane",
+        "field": "Nuc Width",
+        "shape": "main"
+      },
+      {
+        "element": "Decoration",
+        "field": "Ruffliness",
+        "shape": "main"
+      },
+      {
+        "element": "Protrusion",
+        "field": "Protrusions",
+        "shape": "main"
+      },
+      {
+        "element": "Islands",
+        "field": "NF",
+        "shape": "main"
+      },
+      {
+        "element": "Spikes",
+        "field": "Nuc Text",
+        "shape": "main"
+      }
+    ]
+  }
+}

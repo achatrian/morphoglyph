@@ -34,19 +34,28 @@ class CellGlyph extends ShapeGlyph {
     }
     // make nucleus glyph
     const nucleusOptions = {
-          backend: 'paper',
-          strokeColor: '#283593',
-          primaryColor: '#AB47BC',
-          secondaryColor: '#D4E157',
-          lightColor: '#1E88E5',
-          darkColor: '#B71C1C',
-          strokeWidth: 2,
-          thickPathSize: 7,
-          narrowPathSize: 4,
-          numSides: 6, // for RegularPolygon: defaults to hexagon
-          numPoints: 250, // for drawing Membrane and Spikes
-          spikeHeight: 0.3,
-          meshType: 'grid',
+        backend: 'paper',
+        strokeColor: '#283593',
+        primaryColor: '#AB47BC',
+        secondaryColor: '#D4E157',
+        lightColor: '#1E88E5',
+        darkColor: '#B71C1C',
+        strokeWidth: 2,
+        thickPathSize: 7,
+        narrowPathSize: 4,
+        numSides: 6, // for RegularPolygon: defaults to hexagon
+        numPoints: 150, // for drawing Membrane and Spikes
+        spikeHeight: 0.3,
+        meshType: 'grid',
+        spikeSize: 0.4,
+        decorationSize: 2, // size of pattern elements in patterning
+        decorationType: 'circle',
+        protrusionProportion: 0.15,
+        protrusionBackgroundColor: '#F5F5F5',
+        protrusionStrokeColor: '#212121',
+        islandsType: 'circle',
+        islandsSize: 2,
+        maxNumIslands: 30
     }
     const nucleus = new ShapeGlyph(this.layer, '0', 'Nucleus', nucleusOptions, this)
     this.registerChild(nucleus)
@@ -60,7 +69,8 @@ class CellGlyph extends ShapeGlyph {
     return {
         name: 'shapeType', // NB case sensitive
         message: 'Select glyph shape',
-        options: ['ellipse', 'rectangle', 'circle', 'regularPolygon', 'customShape']
+        options: ['ellipse', 'rectangle', 'circle', 'regularPolygon', 'customShape'],
+        default: 'ellipse'
     }
   }
 
@@ -87,6 +97,27 @@ class CellGlyph extends ShapeGlyph {
     super.draw(options) // draws cell
     const nucleus = this.children[0]
     nucleus.draw(Object.assign(options, {shapeType: 'ellipse'}))
+    // if no scale orders are given for the nucleus, it's scaled to fit inside the cell box
+    if (!options.scaleOrders.some(scaleOrder => scaleOrder.element === 'Width' && scaleOrder.shape === 'Nucleus')) {
+        const cellWidthOrder = options.scaleOrders.find(scaleOrder => scaleOrder.element === 'Width' &&
+            scaleOrder.shape === 'Cell')
+        if (cellWidthOrder) {
+          nucleus.box.resize(Math.max(cellWidthOrder.value - 0.1, 0.1),
+              null, {drawing: true, center: true, children: true})
+        } else {
+          nucleus.box.resize(0.5, null, {drawing: true, center: true, children: true})
+        }
+    }
+    if (!options.scaleOrders.some(scaleOrder => scaleOrder.element === 'Height' && scaleOrder.shape === 'Nucleus')) {
+        const cellHeightOrder = options.scaleOrders.find(scaleOrder => scaleOrder.element === 'Height' &&
+            scaleOrder.shape === 'Cell')
+        if (cellHeightOrder) {
+            nucleus.box.resize(null, Math.max(cellHeightOrder.value - 0.3, 0.1),
+                {drawing: true, center: true, children: true})
+        } else {
+            nucleus.box.resize(null, 0.5, {drawing: true, center: true, children: true})
+        }
+    }
     const shiftToMainCenter = this.box.shapePositions.topShift + this.box.shapePositions.heightProportion / 2 -
         nucleus.box.shapePositions.heightProportion / 2 - nucleus.box.shapePositions.topShift
     nucleus.box.shift(null, shiftToMainCenter, {setValues: false, drawing: true, scale: false, children: false})

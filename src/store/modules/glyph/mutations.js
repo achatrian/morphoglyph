@@ -69,8 +69,10 @@ export default {
     // update elements names with those from currently selected class
     state.glyphElements = [...glyphClass.elements]
     console.log(`Loaded settings and elements for glyph type: ${glyphClass.type}`)
-    if (glyphSetting.length > 0) {
+    if (glyphSetting) {
       state.selectedGlyphSetting = glyphSetting
+    } else {
+      state.selectedGlyphSetting = state.glyphSettings.default
     }
   },
 
@@ -87,6 +89,16 @@ export default {
     state.project.bindings = bindings
   },
 
+  updateGlyphNames: (state) => {
+    state.totalGlyphNum = state.project.glyphs.reduce((total, newGlyph) => total + [...newGlyph.iter()].length, 0)
+    state.project.glyphNames = [...state.project.glyphs.reduce((names, newGlyph) => {
+      for (let glyph of [...newGlyph.iter()]) {
+        names.add(glyph.name)
+      }
+      return names
+    }, new Set())]
+  },
+
   addDataBoundGlyphs: (state, {parsedData, namingField}) => { // payload is added in action
     const glyphClass = state.glyphTypes.find(glyphType => glyphType.type.startsWith(state.glyphTypeName))
     if (typeof glyphClass === 'undefined') {
@@ -96,14 +108,18 @@ export default {
     state.glyphElements = glyphClass.elements // update glyph elements for feature binding
     // extract naming field from data-points and initialise glyphs in order of appearance in file
     // eslint-disable-next-line new-cap
-    state.project.glyphs = parsedData.map((dataPoint, layerIndex) => new glyphClass(layerIndex, dataPoint[namingField]))
+    if (namingField === '_default') { // glyphs are identified with ordinal numbers by default
+      state.project.glyphs = parsedData.map((dataPoint, layerIndex) => new glyphClass(layerIndex, layerIndex))
+    } else {
+      state.project.glyphs = parsedData.map((dataPoint, layerIndex) => new glyphClass(layerIndex, dataPoint[namingField]))
+    }
   },
 
   makeEmptyGlyphs: (state, {
     newGlyphName,
     createOptions,
       boundingRects
-  }) => { // TODO not used anymore to add child glyphs ... remove ?
+  }) => {
     if (state.project.glyphs.length === 0) {
       throw Error("Databound glyphs must be added before empty glyphs can be created")
     }
@@ -115,14 +131,14 @@ export default {
     for (let glyph of state.project.glyphs) {
       let emptyGlyph
       if (createOptions) {
-        emptyGlyph = new glyphClass(glyph.layer, newGlyphName, createOptions) // glyphs will be undrawn at this point
+        emptyGlyph = new glyphClass(glyph.layer, newGlyphName, newGlyphName, createOptions) // glyphs will be undrawn at this point
       } else {
-        emptyGlyph = new glyphClass(glyph.layer, newGlyphName) // default options will be used
+        emptyGlyph = new glyphClass(glyph.layer, newGlyphName, newGlyphName) // default options will be used
       }
       glyph.registerChild(emptyGlyph)
       createdGlyphs.push(emptyGlyph)
     }
-    // draw created children glyphs
+    // draw the newly-created children glyphs
     for (let [i, boundingRect] of boundingRects.entries()) {
       createdGlyphs[i].draw({
         boundingRect: Object.assign({}, boundingRect),
@@ -159,7 +175,7 @@ export default {
     glyph.changeLayer(layerId)
   },
 
-  drawGlyph: (state, {boundingRect, glyphId, dataPoint, varShapeAssignment, shapeJSONStore}) => {
+  drawGlyph: (state, {boundingRect, glyphId, dataPoint, varShapeAssignment, shapeJSONStore, glyphBoxes}) => {
     /* params {
           glyphIndex: Number
           boundingRect: {left: Number, top: Number, width: Number, height: Number}
@@ -190,11 +206,14 @@ export default {
         shapeJSONs[assignment.shape] = shapeJSONStore.get(assignment.shape)
       }
     }
+    // enforce relative position of glyph if present
+    const glyphBox = glyphBoxes.find(glyphBox => glyphBox._id === glyph.id)
     let drawOptions = {
       boundingRect: Object.assign({}, boundingRect),
       scaleOrders: scaleOrders,
       [state.glyphSettings.name]: state.selectedGlyphSetting,
-      shapeJSONs: shapeJSONs // used by glyphs to draw custom main paths
+      shapeJSONs: shapeJSONs, // used by glyphs to draw custom main paths
+      glyphBox: glyphBox
     }
     // Draw all glyph paths
     glyph.draw(drawOptions)
@@ -389,6 +408,11 @@ export default {
       if (!targetGlyph) {
         throw new Error(`No glyph matching '${shapeName}'`)
       }
+      for (let parameter of Object.keys(parameters)) {
+        if (!targetGlyph.parameters.hasOwnProperty(parameter)) {
+          throw Error(`Attempted to change non-existent parameter ${parameter}`)
+        }
+      }
       Object.assign(targetGlyph.parameters, parameters)
     }
   },
@@ -410,13 +434,8 @@ export default {
     }
   },
 
-  setShapePosition: (state, {shapeName, position}) => {
-    let shapePositions = state.shapePositions
-    shapePositions[shapeName] = position
-    state.shapePositions = shapePositions // principle of rewriting object for vuex to react to it
-  },
-
-  setGlyphBox: (state, glyphBoxes) => { // one update for all glyphs
+  // FIXME unused !!!
+  setGlyphBox: (state, {glyphBoxes, update = 'box'}) => { // one update for all glyphs
     if (glyphBoxes.length !== state.project.glyphs.length) {
       throw new Error("Passed box parameters do not match number of existing glyphs")
     }
@@ -435,13 +454,17 @@ export default {
         } else {
           targetGlyph = glyph.getChild(shapeName)
         }
-        targetGlyph.box = new DrawingBox(targetGlyph, {
-          boundingRect: glyphBox[shapeName].drawingBounds,
-          shapePositions: glyphBox[shapeName].shapePositions,
-          history: glyphBox[shapeName].history,
-          maxHistLength: glyphBox[shapeName].maxHistLength,
-          applyHistoryTransforms: false // save history but do not apply transforms on box creation. Use box info instead
-        })
+        if (update === 'box') {
+          targetGlyph.box = new DrawingBox(targetGlyph, {
+            boundingRect: glyphBox[shapeName].drawingBounds,
+            shapePositions: glyphBox[shapeName].shapePositions,
+            history: glyphBox[shapeName].history,
+            maxHistLength: glyphBox[shapeName].maxHistLength,
+            applyHistoryTransforms: false // save history but do not apply transforms on box creation. Use box info instead
+          })
+        } else if (update === 'positions') {
+          targetGlyph.box.shapePositions = glyphBox[shapeName].shapePositions
+        }
         targetGlyph.fitToBox()
       }
     }

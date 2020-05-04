@@ -1,13 +1,18 @@
 
 
 export default {
-    updateTemplateName: (state, templateName) => state.templateName = templateName,
+    updateTemplateName: (state, templateName) => {
+        state.templateName = templateName
+        state.currentTemplate.name = templateName
+    },
 
     updateOriginalFileName: (state, originalFileName) => {
-        const newCurrentTemplate = Object.assign(
-            {originalFileName: originalFileName},
-            state.currentTemplate
-        )
+        const newCurrentTemplate = Object.assign({originalFileName: originalFileName},  state.currentTemplate)
+        state.currentTemplate = newCurrentTemplate  // update whole object for vuex reactions
+    },
+
+    updateNamingField: (state, namingField) => {
+        const newCurrentTemplate = Object.assign({namingField: namingField}, state.currentTemplate)
         state.currentTemplate = newCurrentTemplate
     },
 
@@ -20,13 +25,13 @@ export default {
             // only one level deep hierarchy allowed
             const topGlyph = {
                 name: glyph.name,
-                type: glyph.type,
+                type: glyph.constructor.type,
                 children: []
             }
             for (let childGlyph of glyph.children) {
                 topGlyph.children.push({
                     name: childGlyph.name,
-                    type: childGlyph.type,
+                    type: childGlyph.constructor.type,
                     children: []
                 })
             }

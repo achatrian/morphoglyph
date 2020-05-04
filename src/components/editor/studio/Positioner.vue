@@ -3,11 +3,11 @@
     <v-divider/>
     <span class="app-title light--text subheading">Glyph position:</span>
     <div class="move-resize-commands">
-      <v-slider label="X" min="0" max="1" step="0.05" v-model="leftShift" class="control-item position-slider"
+      <v-slider label="X" min="0" max="1" step="0.05" v-model="leftShiftSliderValue" class="control-item position-slider"
                 @change="planLeftShift">
         <template v-slot:append>
           <v-text-field
-                  v-model="leftShift"
+                  v-model="leftShiftSliderValue"
                   class="mt-0 pt-0 num-field"
                   hide-details
                   single-line
@@ -15,11 +15,11 @@
           ></v-text-field>
         </template>
       </v-slider>
-      <v-slider label="Y" min="0" max="1" step="0.05" v-model="topShift" class="control-item position-slider"
+      <v-slider label="Y" min="0" max="1" step="0.05" v-model="topShiftSliderValue" class="control-item position-slider"
                 @change="planTopShift">
         <template v-slot:append>
           <v-text-field
-                  v-model="topShift"
+                  v-model="topShiftSliderValue"
                   class="mt-0 pt-0 num-field"
                   hide-details
                   single-line
@@ -27,11 +27,11 @@
           ></v-text-field>
         </template>
       </v-slider>
-      <v-slider label="W" min="0" max="1" step="0.05" v-model="widthProportion" class="control-item position-slider"
+      <v-slider label="W" min="0" max="1" step="0.05" v-model="widthProportionSliderValue" class="control-item position-slider"
                 @change="planWidthResize">
         <template v-slot:append>
           <v-text-field
-                  v-model="widthProportion"
+                  v-model="widthProportionSliderValue"
                   class="mt-0 pt-0 num-field"
                   hide-details
                   single-line
@@ -39,11 +39,11 @@
           ></v-text-field>
         </template>
       </v-slider>
-      <v-slider label="H" min="0" max="1" step="0.05" v-model="heightProportion" class="control-item position-slider"
+      <v-slider label="H" min="0" max="1" step="0.05" v-model="heightProportionSliderValue" class="control-item position-slider"
                 @change="planHeightResize">
         <template v-slot:append>
           <v-text-field
-                  v-model="heightProportion"
+                  v-model="heightProportionSliderValue"
                   class="mt-0 pt-0 num-field"
                   hide-details
                   single-line
@@ -52,27 +52,33 @@
         </template>
       </v-slider>
       <div class="move-resize-commands move-options">
-        <v-checkbox class="control-item" label="Children" color="secondary" v-model="changeChildren"/>
-        <v-tooltip
-                class="tooltip"
-                open-delay="700"
-                bottom
-        >
-          <v-btn class="control-item light primary--text" icon @click="planCentering">
-            <v-icon>adjust</v-icon>
-          </v-btn>
-          <span>Shift all glyphs back to their original drawing position</span>
-        </v-tooltip>
-        <v-tooltip
-                class="tooltip"
-                open-delay="700"
-                bottom
-        >
-          <v-btn class="control-item secondary dark--text" icon @click="resetOriginalPosition">
-            <v-icon>undo</v-icon>
-          </v-btn>
-          <span>Undo last glyph movement</span>
-        </v-tooltip>
+        <v-checkbox class="control-item" label="Children" color="secondary" v-model="changeChildrenBoxValue"/>
+        <v-btn class="control-item light primary--text" icon @click="planCentering">
+          <v-icon>adjust</v-icon>
+        </v-btn>
+        <v-btn class="control-item secondary dark--text" icon @click="resetOriginalPosition">
+          <v-icon>undo</v-icon>
+        </v-btn>
+<!--        !!! TOOLTIPS HERE MAKE BUTTONS DISAPPEAR ???-->
+<!--        <v-tooltip-->
+<!--                open-delay="700"-->
+<!--                bottom-->
+<!--        >-->
+<!--          <v-btn class="control-item light primary&#45;&#45;text" icon @click="planCentering">-->
+<!--            <v-icon>adjust</v-icon>-->
+<!--          </v-btn>-->
+<!--          <span>Shift all glyphs back to their original drawing position</span>-->
+<!--        </v-tooltip>-->
+<!--        <v-tooltip-->
+<!--                class="tooltip"-->
+<!--                open-delay="700"-->
+<!--                bottom-->
+<!--        >-->
+<!--              <v-btn class="control-item light primary&#45;&#45;text" icon @click="planCentering">-->
+<!--                <v-icon>adjust</v-icon>-->
+<!--              </v-btn>-->
+<!--          <span>Undo last glyph movement</span>-->
+<!--        </v-tooltip>-->
       </div>
     </div>
     <v-divider/>
@@ -80,23 +86,49 @@
 </template>
 
 <script>
-import {mapState, mapActions, mapGetters} from 'vuex'
+import {mapState, mapActions} from 'vuex'
 import debounce from 'debounce'
 import Deque from 'double-ended-queue'
+
+function initializePositionStore () {
+  return {
+    leftShift: 0.0,
+    topShift: 0.0,
+    widthProportion: 1.0,
+    heightProportion: 1.0,
+    steps: new Deque(10),
+    changeChildren: false
+  }
+}
 
 export default {
   name: 'Positioner',
   props: {
-    shapeName: String
+    shapeName: {type: String, default: '_default'}
   },
   data () {
     return {
-      leftShift: 0.0,
-      topShift: 0.0,
-      widthProportion: 1.0,
-      heightProportion: 1.0,
-      steps: new Deque(10),
-      changeChildren: false,
+      shapeName_: '_default',
+      positionStore: {_default: initializePositionStore()},
+      // getters and setters for position
+      // getter is called on data object on initialization, which doesn't have the 'shapeName' property
+      get leftShift () {return this.positionStore[this.shapeName_].leftShift},
+      get topShift () {return this.positionStore[this.shapeName_].topShift},
+      get widthProportion () {return this.positionStore[this.shapeName_].widthProportion},
+      get heightProportion () {return this.positionStore[this.shapeName_].heightProportion},
+      get steps () {return this.positionStore[this.shapeName_].steps},
+      get changeChildren () {return this.positionStore[this.shapeName_].changeChildren},
+      set leftShift (leftShift) {this.positionStore[this.shapeName_].leftShift = leftShift},
+      set topShift (topShift) {this.positionStore[this.shapeName_].topShift = topShift},
+      set widthProportion (widthProportion) {this.positionStore[this.shapeName_].widthProportion = widthProportion},
+      set heightProportion (heightProportion) {this.positionStore[this.shapeName_].heightProportion = heightProportion},
+      set steps (steps) {this.positionStore[this.shapeName_].steps = steps},
+      set changeChildren (changeChildren) {this.positionStore[this.shapeName_].changeChildren = changeChildren},
+      leftShiftSliderValue: 0.0,
+      topShiftSliderValue: 0.0,
+      widthProportionSliderValue: 1.0,
+      heightProportionSliderValue: 1.0,
+      changeChildrenBoxValue: false,
       totalGlyphNumStore: 0,
       glyphNamesStore: new Set (),
       positionStored: false
@@ -104,11 +136,9 @@ export default {
   },
   computed: {
     ...mapState({
-      glyphs: state => state.glyph.project.glyphs
-    }),
-    ...mapGetters({
-      totalGlyphNum: 'glyph/totalGlyphNum',
-      glyphNames: 'glyph/glyphNames'
+      glyphs: state => state.glyph.project.glyphs,
+      totalGlyphNum: state => state.glyph.project.totalGlyphNum,
+      glyphNames: state => state.glyph.project.glyphNames
     }),
     meanShapeBounds () {
       const leftShiftSum = this.glyphs.reduce((total, nextGlyph) => {
@@ -179,37 +209,65 @@ export default {
       changeGlyphPosition: 'glyph/changeGlyphPosition'
     }),
     planLeftShift: debounce.call(this, function () {
+      this.leftShift = this.leftShiftSliderValue
       this.steps.push({
         transform: 'shift',
-        parameters: [this.leftShift, null, {setValues: true, scale: false, children: false, redraw: true}]
+        parameters: [this.leftShift, null, {
+          setValues: true,
+          drawing: false,
+          scale: false,
+          children: false,
+          redraw: true}]
       })
       this.applySteps()
     }, 400),
     planTopShift: debounce.call(this, function () {
+      this.topShift = this.topShiftSliderValue
       this.steps.push({
         transform: 'shift',
-        parameters: [null, this.topShift, {setValues: true, scale: false, children: false, redraw: true}]
+        parameters: [null, this.topShift, {
+          setValues: true,
+          drawing: false,
+          scale: false,
+          children: false,
+          redraw: true}]
       })
       this.applySteps()
     }, 400),
     planWidthResize: debounce.call(this, function () {
+      this.widthProportion = this.widthProportionSliderValue
       this.steps.push({
         transform: 'resize',
-        parameters: [this.widthProportion, null, {setValues: true, center: false, children: false, redraw: true}]
+        parameters: [this.widthProportion, null, {
+          setValues: true,
+          drawing: false,
+          center: false,
+          children: false,
+          redraw: true}]
       })
       this.applySteps()
     }, 400),
     planHeightResize: debounce.call(this, function () {
+      this.heightProportion = this.heightProportionSliderValue
       this.steps.push({
         transform: 'resize',
-        parameters: [null, this.heightProportion, {setValues: true, center: false, children: false, redraw: true}]
+        parameters: [null, this.heightProportion, {
+          setValues: true,
+          drawing: false,
+          center: false,
+          children: false,
+          redraw: true}]
       })
       this.applySteps()
     }, 400),
     planCentering () {
       this.steps.push({
         transform: 'toCenter',
-        parameters: [true, true, {setValues: true, center: false, children: false}]
+        parameters: [true, true, {
+          setValues: true,
+          drawing: false,
+          center: false,
+          children: false}]
       })
       this.applySteps()
       this.leftShift = this.meanShapeBounds.leftShift
@@ -219,14 +277,15 @@ export default {
       this.steps.push({
         transform: 'shift',
         parameters: [
-          this.originalShapePositions[0][this.shapeName].leftShift,
-          this.originalShapePositions[0][this.shapeName].topShift,
+          this.originalShapePositions[0][this.shapeName_].leftShift,
+          this.originalShapePositions[0][this.shapeName_].topShift,
           {setValues: true, scale: false, children: false, redraw: false}
           ]
       })
       this.applySteps()
     },
     applySteps: debounce.call(this, function () { // once steps are sent to glyphs, they are cleared up
+      this.changeChildren = this.changeChildrenBoxValue
       this.changeGlyphPosition({
         steps: this.steps.toArray(),
         shapeSelector: this.shapeName,
@@ -236,12 +295,17 @@ export default {
     }, 600)
   },
   watch: {
-    meanShapeBounds: debounce.call(this, function () {
-      this.leftShift = this.meanShapeBounds.leftShift
-      this.topShift = this.meanShapeBounds.topShift
-      this.widthProportion = this.meanShapeBounds.widthProportion
-      this.heightProportion = this.meanShapeBounds.heightProportion
-    }, 1000),
+    shapeName () {
+      this.shapeName_ = this.shapeName // shapeName is version of shapeName on data object, used by getters defined above
+      if (!this.positionStore[this.shapeName_]) {
+        this.positionStore[this.shapeName_] = initializePositionStore()
+      }
+      // reset slider values with values for current shape
+      this.leftShiftSliderValue = this.leftShift
+      this.topShiftSliderValue = this.topShift
+      this.widthProportionSliderValue = this.widthProportion
+      this.heightProportionSliderValue = this.heightProportion
+    },
     glyph () {
       this.glyphNamesStore = this.glyphNames
       this.totalGlyphNumStore = this.totalGlyphNum

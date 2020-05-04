@@ -30,7 +30,7 @@
             }),
             templateExists () {
                 if (this.availableTemplates.length > 0) {
-                    return Boolean(this.availableTemplates.find(templateItem => templateItem.name.slice(0, -5) === this.templateName))
+                    return Boolean(this.availableTemplates.find(templateItem => templateItem.name === this.templateName))
                 } else {
                     return false
                 }

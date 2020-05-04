@@ -1,0 +1,54 @@
+{
+  "date": "",
+  "fileName": "BCL_data.csv",
+  "glyphType": "Cell",
+  "glyphSetting": "customShape",
+  "displayOrderField": "Cell line",
+  "bindings": [
+    {
+      "element": "Height",
+      "field": "Length",
+      "shape": "Cell"
+    },
+    {
+      "element": "Width",
+      "field": "Width",
+      "shape": "Cell"
+    },
+    {
+      "element": "Membrane",
+      "field": "Ruffliness",
+      "shape": "Cell"
+    },
+    {
+      "element": "Protrusion",
+      "field": "Protrusions",
+      "shape": "Cell"
+    },
+    {
+      "element": "Decoration",
+      "field": "Ruffliness",
+      "shape": "Cell"
+    },
+    {
+      "element": "Height",
+      "field": "Nuc Length",
+      "shape": "Nucleus"
+    },
+    {
+      "element": "Width",
+      "field": "Nuc Width",
+      "shape": "Nucleus"
+    },
+    {
+      "element": "Membrane",
+      "field": "NF",
+      "shape": "Nucleus"
+    },
+    {
+      "element": "Mesh",
+      "field": "Nuc Text",
+      "shape": "Nucleus"
+    }
+  ]
+}

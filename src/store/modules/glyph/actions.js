@@ -13,12 +13,17 @@ export default {
 
   setBindings: ({commit}, bindings) => commit('setBindings', bindings),
 
-  addDataBoundGlyphs: ({rootState, commit}, glyphTypeName) => {
-    commit('addDataBoundGlyphs', {
+  updateGlyphNames: ({commit}) => commit('updateGlyphNames'),
+
+  addDataBoundGlyphs: ({rootState, commit, dispatch}, glyphTypeName) => {
+    dispatch('setGlyphType', {
       glyphTypeName: glyphTypeName,
+    })
+    commit('addDataBoundGlyphs', {
       parsedData: rootState.backend.parsedData,
       namingField: rootState.backend.namingField
     })
+    dispatch('updateGlyphNames')
   },
 
   makeEmptyGlyphs: ({rootState, commit, dispatch}, payload) => {
@@ -28,6 +33,7 @@ export default {
     }
     payload.boundingRects = rootState.app.boundingRects
     commit('makeEmptyGlyphs', payload)
+    dispatch('updateGlyphNames')
   },
 
   shiftLayersAssignment: ({commit}, payload) => commit('shiftLayersAssignment', payload),
@@ -38,14 +44,22 @@ export default {
 
   drawGlyph: ({rootState, commit}, payload) => {
     const glyphId = rootState.backend.dataDisplayOrder[payload.glyphIndex]
+    let dataPoint
+    if (rootState.backend.namingField === '_default') {
+      dataPoint = rootState.backend.normalizedData[glyphId] // where glyphId is a number
+    } else {
+      dataPoint = rootState.backend.normalizedData.find(
+          dataPoint_ => dataPoint_[rootState.backend.namingField] === glyphId
+      ) // data point corresponding to cluster in given dock,
+    }
     Object.assign(payload, {
       glyphId: glyphId,
       // find dataPoint in backend
-      dataPoint: rootState.backend.normalizedData.find(
-          dataPoint => dataPoint[rootState.backend.namingField] === glyphId
-      ), // data point corresponding to cluster in given dock,
+      dataPoint: dataPoint,
       varShapeAssignment: rootState.backend.varShapeAssignment,
-      shapeJSONStore: rootState.backend.shapeJSONStore
+      shapeJSONStore: rootState.backend.shapeJSONStore,
+      glyphBoxes: rootState.template.currentTemplate.glyphBoxes ?
+          rootState.template.currentTemplate.glyphBoxes : []
     })
     commit('drawGlyph', payload)
   },
@@ -67,13 +81,15 @@ export default {
 
   redrawElement: ({rootState, commit}, newBinding) => {
     const orderedData = [...rootState.backend.normalizedData]
-    orderedData.sort((dp0, dp1) => {
-      if (rootState.backend.fieldTypes[rootState.backend.namingField] === Number) {
-        return dp0[rootState.backend.namingField] - dp1[rootState.backend.namingField]
-      } else {
-        return dp0[rootState.backend.namingField].localeCompare(dp1[rootState.backend.namingField])
-      }
-    })
+    if (rootState.backend.namingField !== '_default') {
+      orderedData.sort((dp0, dp1) => {
+        if (rootState.backend.fieldTypes[rootState.backend.namingField] === Number) {
+          return dp0[rootState.backend.namingField] - dp1[rootState.backend.namingField]
+        } else {
+          return dp0[rootState.backend.namingField].localeCompare(dp1[rootState.backend.namingField])
+        }
+      })
+    }
     commit('redrawElement', {
       binding: newBinding,
       normalizedData: orderedData
