@@ -400,7 +400,7 @@ export default {
       }
     },
     colorPick () {
-      if (this.numDisplayedGlyphs && Boolean(this.selectedElementName)) {
+      if (this.numDisplayedGlyphs && Boolean(this.selectedElementName) && this.selectedElement.type === 'path') {
         this.setPathParameter({
           parameter: 'strokeColor',
           value: this.colorPick.hex,

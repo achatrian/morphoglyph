@@ -11,6 +11,8 @@ export default {
   },
   setGlyphType: ({commit}, payload) => commit('setGlyphType', payload),
 
+  chooseGlyphSetting: ({commit}, glyphSetting) => commit('chooseGlyphSetting', glyphSetting),
+
   setBindings: ({commit}, bindings) => commit('setBindings', bindings),
 
   updateGlyphNames: ({commit}) => commit('updateGlyphNames'),

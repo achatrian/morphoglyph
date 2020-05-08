@@ -200,6 +200,7 @@
             ...mapActions({
                 setGlyphBinderState: 'app/setGlyphBinderState',
                 setGlyphType: 'glyph/setGlyphType',
+                chooseGlyphSetting: 'glyph/chooseGlyphSetting',
                 setBindings: 'glyph/setBindings',
                 addDataBoundGlyphs: 'glyph/addDataBoundGlyphs',
                 discardGlyphs: 'glyph/discardGlyphs',
@@ -248,6 +249,7 @@
                     this.discardGlyphs()
                 }
                 this.addDataBoundGlyphs(this.selectedGlyphName) // uses store.glyph.glyphTypeName
+                this.chooseGlyphSetting(this.selectedGlyphSetting)
                 this.setGlyphBinderState(false)
                 // when first called, num displayed glyph is 0
                 this.changeDisplayedGlyphNum(this.numDisplayedGlyphs || this.maxDisplayedGlyphs) // FIXME first outcome is redundant

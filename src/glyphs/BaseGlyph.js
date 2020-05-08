@@ -9,7 +9,7 @@ import paper from 'paper'
 import debounce from 'debounce'
 // import store from '../store/index'
 import DrawingBox from './DrawingBox'
-2
+
 
 class BaseGlyph {
 
@@ -60,6 +60,11 @@ class BaseGlyph {
     }
     if (parent !== null && parent.layer !== this.layer) {
       throw Error(`Child ${this.name}'s layer (${this.layer}) differs from parent ${parent.name}'s layer (${parent.layer}`)
+    }
+    if (parent === null) {
+      this.shape = this.constructor.shapes.main
+    } else {
+      this.shape = this.children[this.parent.children.length] || '' // else take name of nth child
     }
     this.parent = parent
     // create main group where to store shape items:
@@ -326,11 +331,18 @@ class BaseGlyph {
     // Check whether drawing bounds have change, in which case the change is applied with reference to the drawing box
     let updated = {box: false, main: false}
     let drawingBox
-    try {
-      drawingBox = this.getItem('drawingBox')
-    } catch (e) {
-      if (this.parent !== null) {
-        drawingBox = this.parent.getItem('drawingBox')
+    let glyph = this
+    while (!drawingBox) {
+      // walk up to top parent and find drawing box
+      // (this works in case children glyphs also have drawing boxes, but it currently has no use)
+      try {
+        drawingBox = glyph.getItem('drawingBox')
+      } catch (e) {
+        if (glyph.parent !== null) {
+          glyph = glyph.parent
+        } else {
+          throw Error(`No drawingBox registered in top glyph '${glyph.name}'`)
+        }
       }
     }
     if (drawingBox && this.drawn && (
@@ -438,9 +450,9 @@ class BaseGlyph {
     }
   }
 
-  getChild (childName) {
+  getChild (childName, by='name') {
     try {
-      return this.children.find(childGlyph => { return childGlyph.name === childName })
+      return this.children.find(childGlyph => { return (by === 'name' ? childGlyph.name : childGlyph.shape) === childName })
     } catch (e) {
       throw Error(`Glyph ${this.name} has no children named '${childName}'`)
     }

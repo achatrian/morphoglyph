@@ -66,10 +66,10 @@ export default {
             glyphTypes: state => state.glyph.glyphTypes
         }),
         typeItems () {
-            return this.glyphTypes.map(glyphType => glyphType.name.slice(0, -5))
+            return this.glyphTypes.map(glyphType => glyphType.type.slice(0, -5))
         },
         shapeItems () {
-            const selectedType = this.glyphTypes.find(glyphType => glyphType.name.startsWith(this.selectedGlyphType))
+            const selectedType = this.glyphTypes.find(glyphType => glyphType.type.startsWith(this.selectedGlyphType))
             if (!selectedType) {
                 console.log(`No type was found matching name ${this.selectedGlyphType}`)
                 return []
@@ -91,7 +91,7 @@ export default {
         },
         setGlyphType_ (selectedGlyphType) {
             this.setGlyphType({glyphTypeName: selectedGlyphType})
-            const selectedType = this.glyphTypes.find(glyphType => glyphType.name.startsWith(this.selectedGlyphType))
+            const selectedType = this.glyphTypes.find(glyphType => glyphType.type.startsWith(this.selectedGlyphType))
             if (!selectedType) {
                 this.selectedGlyphShape = selectedType.settings.default
             }

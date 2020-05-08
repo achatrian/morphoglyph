@@ -6,23 +6,7 @@ class CellGlyph extends ShapeGlyph {
     layer,
     id,
     name = '',
-    options = {
-      ...CellGlyph.baseOptions(),
-      membraneFraction: 0.5,
-      membraneSize: '',
-      numPoints: 200,
-      spikeHeight: 0.3,
-      meshType: 'grid',
-      spikeSize: 0.4,
-      decorationSize: 5, // size of pattern elements in patterning
-      decorationType: 'circle',
-      protrusionProportion: 0.15,
-      protrusionBackgroundColor: '#F5F5F5',
-      protrusionStrokeColor: '#212121',
-      islandsType: 'circle',
-      islandsSize: 10,
-      maxNumIslands: 55
-    }) {
+    options = CellGlyph.shapeOptions()) {
     super(layer, id, name, options)
     this.glyphElements = CellGlyph.elements
     this.itemIds = {
@@ -33,31 +17,19 @@ class CellGlyph extends ShapeGlyph {
       mesh: null
     }
     // make nucleus glyph
-    const nucleusOptions = {
-        backend: 'paper',
-        strokeColor: '#283593',
-        primaryColor: '#AB47BC',
-        secondaryColor: '#D4E157',
-        lightColor: '#1E88E5',
-        darkColor: '#B71C1C',
-        strokeWidth: 2,
-        thickPathSize: 7,
-        narrowPathSize: 4,
-        numSides: 6, // for RegularPolygon: defaults to hexagon
-        numPoints: 150, // for drawing Membrane and Spikes
-        spikeHeight: 0.3,
-        meshType: 'grid',
-        spikeSize: 0.4,
-        decorationSize: 2, // size of pattern elements in patterning
-        decorationType: 'circle',
-        protrusionProportion: 0.15,
-        protrusionBackgroundColor: '#F5F5F5',
-        protrusionStrokeColor: '#212121',
-        islandsType: 'circle',
-        islandsSize: 2,
-        maxNumIslands: 30
-    }
-    const nucleus = new ShapeGlyph(this.layer, '0', 'Nucleus', nucleusOptions, this)
+    const nucleusOptions = CellGlyph.shapeOptions()
+    Object.assign(nucleusOptions, {
+      strokeColor: '#283593',
+      primaryColor: '#AB47BC',
+      secondaryColor: '#D4E157',
+      lightColor: '#1E88E5',
+      darkColor: '#B71C1C',
+      membraneStrokeColor: '#AB47BC',
+      spikesStrokeColor: '#D4E157',
+      islandsSize: 5,
+      maxNumIslands: 20
+    })
+    const nucleus = new ShapeGlyph(this.layer, id, 'Nucleus', nucleusOptions, this)
     this.registerChild(nucleus)
   }
 

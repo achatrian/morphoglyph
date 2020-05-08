@@ -4,17 +4,17 @@ import paper from 'paper'
 
 /* Simple glyph implementing paper.Path closed paths as main path */
 class ShapeGlyph extends BaseGlyph {
-  constructor (
-    layer,
-    id,
-    name = '',
-    options = {
+
+  static shapeOptions () {
+    return {
       ...ShapeGlyph.baseOptions(),
       numSides: 6, // for RegularPolygon: defaults to hexagon
       numPoints: 150, // for drawing Membrane and Spikes
+      membraneStrokeColor: ShapeGlyph.baseOptions().primaryColor,
       spikeHeight: 0.3,
-      meshType: 'grid',
       spikeSize: 0.4,
+      spikesStrokeColor: ShapeGlyph.baseOptions().secondaryColor,
+      meshMode: 'grid',
       decorationSize: 5, // size of pattern elements in patterning
       decorationMode: 'circle',
       protrusionProportion: 0.15,
@@ -23,7 +23,14 @@ class ShapeGlyph extends BaseGlyph {
       islandsMode: 'circle',
       islandsSize: 10,
       maxNumIslands: 40
-    }) {
+    }
+  }
+
+  constructor (
+    layer,
+    id,
+    name = '',
+    options = ShapeGlyph.shapeOptions()) {
     // constructor for standard PhenoPlot glyph
     super(layer, id, name, options)
     this.glyphElements = ShapeGlyph.elements
@@ -244,6 +251,16 @@ class ShapeGlyph extends BaseGlyph {
     return outerPath
   }
 
+  drawHeight(heightProportion) {
+    this.box.resize(null, heightProportion, {setValues: true, drawing: false, center: true, children: false, redraw: false})
+    this.fitToBox()
+  }
+
+  drawWidth(widthProportion) {
+    this.box.resize(null, widthProportion, {setValues: true, drawing: false, center: true, children: false, redraw: false})
+    this.fitToBox()
+  }
+
   drawMembrane (membraneFraction, subElements) { // eslint-disable-line no-unused-vars
     /* Draws a thicker membrane */
     if (!(membraneFraction >= 0.0 || membraneFraction <= 1.0)) {
@@ -256,7 +273,7 @@ class ShapeGlyph extends BaseGlyph {
     for (let i = 0; i < Math.floor(this.parameters.numPoints * membraneFraction); i++) {
       membranePath.add(outerPath.getLocationAt(outerPath.length * (1 - i / this.parameters.numPoints)))
     }
-    membranePath.strokeColor = this.parameters.primaryColor
+    membranePath.strokeColor = this.parameters.membraneStrokeColor
     membranePath.strokeWidth = this.parameters.thickPathSize
     membranePath.fillColor = null
     this.registerItem(membranePath, 'membrane')
@@ -284,7 +301,7 @@ class ShapeGlyph extends BaseGlyph {
         pathClone.segments[i].point.y + offset[1])
       spikePath.add(newPoint)
     }
-    spikePath.strokeColor = this.parameters.secondaryColor
+    spikePath.strokeColor = this.parameters.spikesStrokeColor
     spikePath.strokeWidth = this.parameters.spikeSize
     spikePath.fillColor = null
     this.registerItem(spikePath, 'spikes')
@@ -296,7 +313,7 @@ class ShapeGlyph extends BaseGlyph {
     let spacing
     // vertical mesh
     for (let i = 0; i < numLines; i++) {
-      switch (this.parameters.meshType) {
+      switch (this.parameters.meshMode) {
         case 'grid':
         case 'vertical':
           spacing = (this.mainPath.bounds.right - this.mainPath.bounds.left) / numLines
@@ -304,7 +321,7 @@ class ShapeGlyph extends BaseGlyph {
             new paper.Point(this.outerPath.bounds.left + (i + 0.5) * spacing, this.outerPath.bounds.top),
             new paper.Point(this.outerPath.bounds.left + (i + 0.5) * spacing, this.outerPath.bounds.bottom)
           ))
-          if (this.parameters.meshType !== 'grid') {
+          if (this.parameters.meshMode !== 'grid') {
             break // otherwise do horizontal as well
           }
         // eslint-disable-line no-fallthrough
@@ -319,7 +336,7 @@ class ShapeGlyph extends BaseGlyph {
           throw Error("Random grid not implemented")
         // break
         default:
-          throw Error(`Unknown mesh type ${this.parameters.meshType}`)
+          throw Error(`Unknown mesh type ${this.parameters.meshMode}`)
       }
     }
     let mesh = new paper.Group([])

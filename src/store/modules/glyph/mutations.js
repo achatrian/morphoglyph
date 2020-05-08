@@ -76,6 +76,16 @@ export default {
     }
   },
 
+  chooseGlyphSetting: (state, glyphSetting) => {
+    const glyphClass = state.glyphTypes.find(glyphType => glyphType.type.startsWith(state.glyphTypeName))
+    if (typeof glyphClass === 'undefined') {
+      throw Error(`Unknown glyph type: ${state.glyphTypeName}`)
+    }
+    // update settings with those of currently selected class
+    state.glyphSettings = glyphClass.settings
+    state.selectedGlyphSetting = glyphSetting
+  },
+
   resetProject: (state) => {
     glyphScope().project.clear()
     Vue.set(state, 'project', {
@@ -233,7 +243,7 @@ export default {
       if (glyphElement.type === 'scale') {
         continue // skipping bindings to scale-type elements
       }
-      if (glyph.name === binding.shape) {
+      if (glyph.shape === binding.shape) {
         targetGlyph = glyph
       } else {
         targetGlyph = glyph.getChild(binding.shape)
@@ -286,8 +296,8 @@ export default {
                 childStep.parameters[1] += childGlyph.box.shapePositions.topShift -
                     targetGlyph.box.shapePositions.topShift
               }
-              return childStep
             }
+            return childStep
           })
           childGlyph.box.applyTransforms(childSteps)
         }
