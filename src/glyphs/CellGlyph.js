@@ -6,8 +6,10 @@ class CellGlyph extends ShapeGlyph {
     layer,
     id,
     name = '',
-    options = CellGlyph.shapeOptions()) {
-    super(layer, id, name, options)
+    options = CellGlyph.shapeOptions(),
+    parent = null
+  ) {
+    super(layer, id, name, options, parent)
     this.glyphElements = CellGlyph.elements
     this.itemIds = {
       ...this.itemIds,

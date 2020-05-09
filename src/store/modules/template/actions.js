@@ -66,7 +66,11 @@ export default {
             dispatch('app/changeCurrentPage', state.currentTemplate.currentPage, {root: true})
             dispatch('backend/setNamingField', state.currentTemplate.namingField, {root: true})
             dispatch('glyph/setBindings', state.currentTemplate.elementFeatureBindings, {root: true})
-            dispatch('glyph/addDataBoundGlyphs', state.currentTemplate.topGlyph.type, {root: true})
+            dispatch('glyph/addDataBoundGlyphs', {
+                    glyphTypeName: state.currentTemplate.topGlyph.type,
+                    glyphName: state.currentTemplate.topGlyph.name
+                },
+            {root: true})
             dispatch('backend/normalizeFeatures', null, {root: true})
             // apply glyph variables
             for (let [shapeName, parameters] of Object.entries(state.currentTemplate.glyphParameters)) {

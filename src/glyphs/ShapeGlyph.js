@@ -30,9 +30,10 @@ class ShapeGlyph extends BaseGlyph {
     layer,
     id,
     name = '',
-    options = ShapeGlyph.shapeOptions()) {
+    options = ShapeGlyph.shapeOptions(),
+    parent= null) {
     // constructor for standard PhenoPlot glyph
-    super(layer, id, name, options)
+    super(layer, id, name, options, parent)
     this.glyphElements = ShapeGlyph.elements
     this.itemIds = {
       ...this.itemIds,

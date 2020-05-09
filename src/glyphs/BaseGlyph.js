@@ -51,20 +51,18 @@ class BaseGlyph {
     }
     this.layer = layer
     this.id = id
+    if (parent === null) {  // add shape attribute to locate predefined parts of a glyph
+      this.shape = this.constructor.shapes.main
+    } else {
+      this.shape = parent.constructor.shapes.children[parent.children.length] || '' // else take name of nth child
+    }
     if (name) {
       this.name = name
-    } else if (parent === null) {
-      this.name = this.constructor.shapes.main // if this is not a child glyph take main name
     } else {
-      this.name = this.children[this.parent.children.length] || '' // else take name of nth child
+      this.name = this.shape
     }
     if (parent !== null && parent.layer !== this.layer) {
       throw Error(`Child ${this.name}'s layer (${this.layer}) differs from parent ${parent.name}'s layer (${parent.layer}`)
-    }
-    if (parent === null) {
-      this.shape = this.constructor.shapes.main
-    } else {
-      this.shape = this.children[this.parent.children.length] || '' // else take name of nth child
     }
     this.parent = parent
     // create main group where to store shape items:

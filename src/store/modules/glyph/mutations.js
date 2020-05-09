@@ -126,7 +126,7 @@ export default {
   },
 
   makeEmptyGlyphs: (state, {
-    newGlyphName,
+    glyphName,
     createOptions,
       boundingRects
   }) => {
@@ -141,9 +141,9 @@ export default {
     for (let glyph of state.project.glyphs) {
       let emptyGlyph
       if (createOptions) {
-        emptyGlyph = new glyphClass(glyph.layer, newGlyphName, newGlyphName, createOptions) // glyphs will be undrawn at this point
+        emptyGlyph = new glyphClass(glyph.layer, glyphName, glyphName, createOptions) // glyphs will be undrawn at this point
       } else {
-        emptyGlyph = new glyphClass(glyph.layer, newGlyphName, newGlyphName) // default options will be used
+        emptyGlyph = new glyphClass(glyph.layer, glyphName, glyphName) // default options will be used
       }
       glyph.registerChild(emptyGlyph)
       createdGlyphs.push(emptyGlyph)
@@ -246,7 +246,7 @@ export default {
       if (glyph.shape === binding.shape) {
         targetGlyph = glyph
       } else {
-        targetGlyph = glyph.getChild(binding.shape)
+        targetGlyph = glyph.getChild(binding.shape, 'shape')
       } // target is either main glyph or one of children
       if (typeof targetGlyph === 'undefined') {
         throw new Error(`Neither glyph ${glyphId} nor its children match shape '${binding.shape}' `)

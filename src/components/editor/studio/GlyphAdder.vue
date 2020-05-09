@@ -22,7 +22,6 @@
                         :items="typeItems"
                         label="Select glyph type"
                         v-model="selectedGlyphType"
-                        @change=setGlyphType_
                 />
 <!--                select glyph shape-->
             </v-toolbar>
@@ -42,7 +41,7 @@
                     color="dark"
                     flat
                     dense>
-                <v-btn flat class="primary white--text" @click="makeEmptyGlyphs_">
+                <v-btn flat class="primary white--text" @click="addGlyphs">
                     add
                 </v-btn>
             </v-toolbar>
@@ -63,7 +62,10 @@ export default {
     }},
     computed: {
         ...mapState({
-            glyphTypes: state => state.glyph.glyphTypes
+            glyphs: state => state.glyph.project.glyphs,
+            glyphTypes: state => state.glyph.glyphTypes,
+            parsedData: state => state.backend.parsedData,
+            maxDisplayedGlyphs: state => state.app.maxDisplayedGlyphs
         }),
         typeItems () {
             return this.glyphTypes.map(glyphType => glyphType.type.slice(0, -5))
@@ -83,17 +85,33 @@ export default {
     },
     methods: {
         ...mapActions({
+            activateSnackbar: 'app/activateSnackbar',
             setGlyphType: 'glyph/setGlyphType',
+            addDataBoundGlyphs: 'glyph/addDataBoundGlyphs',
+            activateRedrawing: 'glyph/activateRedrawing',
+            changeDisplayedGlyphNum: 'app/changeDisplayedGlyphNum',
             makeEmptyGlyphs: 'glyph/makeEmptyGlyphs'
         }),
-        makeEmptyGlyphs_ () {
-            this.makeEmptyGlyphs({newGlyphName: this.writtenGlyphName})
-        },
-        setGlyphType_ (selectedGlyphType) {
-            this.setGlyphType({glyphTypeName: selectedGlyphType})
-            const selectedType = this.glyphTypes.find(glyphType => glyphType.type.startsWith(this.selectedGlyphType))
-            if (!selectedType) {
-                this.selectedGlyphShape = selectedType.settings.default
+        addGlyphs() {
+            // if no glyphs are present, one glyph per datapoint is created.
+            // Otherwise, empty glyphs are added as children
+            if (this.parsedData.length === 0) {
+                this.activateSnackbar({
+                    text: "Load a data file before adding glyphs",
+                    timeout: 3000
+                })
+            } else if (this.glyphs.length === 0) {
+                this.addDataBoundGlyphs({
+                    glyphName: this.writtenGlyphName,
+                    glyphTypeName: this.selectedGlyphType
+                })
+                this.changeDisplayedGlyphNum(this.maxDisplayedGlyphs)
+                // this.activateRedrawing()
+            } else {
+                this.makeEmptyGlyphs({
+                    glyphName: this.writtenGlyphName,
+                    glyphTypeName: this.selectedGlyphType
+                })
             }
         }
     }

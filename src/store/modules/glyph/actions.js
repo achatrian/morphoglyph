@@ -17,11 +17,12 @@ export default {
 
   updateGlyphNames: ({commit}) => commit('updateGlyphNames'),
 
-  addDataBoundGlyphs: ({rootState, commit, dispatch}, glyphTypeName) => {
+  addDataBoundGlyphs: ({rootState, commit, dispatch}, {glyphName, glyphTypeName}) => {
     dispatch('setGlyphType', {
       glyphTypeName: glyphTypeName,
     })
     commit('addDataBoundGlyphs', {
+      glyphName: glyphName,
       parsedData: rootState.backend.parsedData,
       namingField: rootState.backend.namingField
     })
@@ -29,10 +30,15 @@ export default {
   },
 
   makeEmptyGlyphs: ({rootState, commit, dispatch}, payload) => {
+    // {glyphName, glyphTypeName, createOptions}
     if (rootState.app.numDisplayedGlyphs === 0) {
       dispatch('app/changeDisplayedGlyphNum', 1, {root: true})
       dispatch('app/updateGlyphArrangement', null, {root: true})
     }
+    const {glyphTypeName} = payload
+    dispatch('setGlyphType', {
+      glyphTypeName: glyphTypeName,
+    })
     payload.boundingRects = rootState.app.boundingRects
     commit('makeEmptyGlyphs', payload)
     dispatch('updateGlyphNames')
