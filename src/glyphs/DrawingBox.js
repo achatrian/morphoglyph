@@ -84,7 +84,7 @@ class DrawingBox {
         this.shapePositions = positions
     }
 
-    registerTransform (transformName, parameters = [], drawing = false) { // TODO test
+    recordTransform (transformName, parameters = [], drawing = false) { // TODO test
         if (parameters.length !== 3) {
             throw Error('Transforms take 3 parameters')
         }
@@ -146,7 +146,7 @@ class DrawingBox {
 
     resize (widthProportion = 1.0, heightProportion = 1.0,
             options = {setValues: false, drawing: false, center: false, children: false, redraw: false},
-            register=true) {
+            record=true) {
         const {center, children, setValues, drawing, redraw} = options
         let newWidthProportion, newHeightProportion
         if (widthProportion == null) {
@@ -178,9 +178,9 @@ class DrawingBox {
             })
         }
         this.applyPositioning(positions) // bounds for this glyph
-        // record transformation acting on box (unless transform is being replayed, in which case 'register' should be false)
-        if (register) {
-            this.registerTransform('resize', [widthProportion, heightProportion, options], drawing)
+        // record transformation acting on box (unless transform is being replayed, in which case 'record' should be false)
+        if (record) {
+            this.recordTransform('resize', [widthProportion, heightProportion, options], drawing)
         }
         // re-applies drawing transforms in case a modification occurred
         if (redraw) {
@@ -203,7 +203,7 @@ class DrawingBox {
 
     shift (leftShift = 0.0, topShift = 0.0,
            options = {setValues: false, drawing: false, scale: false, children: false, redraw: false},
-           register=true) {
+           record=true) {
         const {scale, children, setValues, drawing, redraw} = options
         let newLeftShift, newTopShift
         if (leftShift == null) {
@@ -229,8 +229,8 @@ class DrawingBox {
                 this.shapePositions.heightProportion * (1 - topShift) : this.shapePositions.heightProportion,
         }
         this.applyPositioning(positions)
-        if (register) {
-            this.registerTransform('shift', [leftShift, topShift, options], drawing)
+        if (record) {
+            this.recordTransform('shift', [leftShift, topShift, options], drawing)
         }
         // re-applies drawing transforms in case a modification occurred
         if (redraw) {
@@ -249,7 +249,7 @@ class DrawingBox {
         }
     }
 
-    toCenter (left = true, top = true, options = {drawing: false}, register=true) {
+    toCenter (left = true, top = true, options = {drawing: false}, record=true) {
         const {drawing} = options
         const positions = {
             leftShift: left ? (1 - this.shapePositions.widthProportion) / 2 : this.shapePositions.leftShift,
@@ -259,8 +259,8 @@ class DrawingBox {
         }
         this.applyPositioning(positions)
         this.applyDrawingTransforms('shift') // applies any required drawing shifts after centering
-        if (register) {
-            this.registerTransform('center', [left, top, options], drawing)
+        if (record) {
+            this.recordTransform('center', [left, top, options], drawing)
         }
     }
 }

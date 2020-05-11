@@ -87,7 +87,20 @@ export default {
 
   deleteElement: ({commit}, binding) => commit('deleteElement', binding),
 
-  redrawElement: ({rootState, commit}, newBinding) => {
+  redrawElement: ({rootState, state, commit, dispatch}, newBinding) => {
+    const bindings = state.project.bindings.filter(
+        binding => !(binding.element === newBinding.element && binding.shape === newBinding.shape)
+    )
+    bindings.push(newBinding)
+    commit('setBindings', bindings)
+    // if newBinding is for a scale type element, features must be re-co-normalized
+    const scaleBindings = state.project.bindings.filter(binding => {
+      const element = state.glyphElements.find(element => element.name === binding.element)
+      return element && element.type === 'scale'
+    })
+    if (scaleBindings.length > 1 && scaleBindings.some(binding => Object.is(binding, newBinding))) { // renormalize data so that all scales have the same unit
+      dispatch('backend/normalizeFeatures', null, {root: true})
+    }
     const orderedData = [...rootState.backend.normalizedData]
     if (rootState.backend.namingField !== '_default') {
       orderedData.sort((dp0, dp1) => {
@@ -98,10 +111,20 @@ export default {
         }
       })
     }
-    commit('redrawElement', {
-      binding: newBinding,
-      normalizedData: orderedData
-    })
+    if (scaleBindings.length > 1 && scaleBindings.some(binding => Object.is(binding, newBinding))) {
+      for (let binding of scaleBindings) {
+        commit('redrawElement', {
+          binding: binding,
+          normalizedData: orderedData
+        })
+      }
+    } else {
+      commit('redrawElement', {
+        binding: newBinding,
+        normalizedData: orderedData
+      })
+    }
+
   },
 
   setGlyphVisibility: ({commit}, payload) => commit('setGlyphVisibility', payload),

@@ -12,7 +12,7 @@ const state = {
   fieldTypes: [],
   normalizedData: [],
   featuresRanges: {},
-  namingField: '',
+  namingField: '_default',
   loadedBindingData: {date: '', fileName: '', glyphType: '', namingField: '', bindings: []},
   dataDisplayOrder: [],
   orderField: 'file entries',

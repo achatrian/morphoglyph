@@ -11,10 +11,10 @@
           <v-select
             :items="Array.from(glyphNames)"
             dense
-            label="Glyph Shape"
-            v-model="selectedShapeName"
+            label="Glyph Name"
+            v-model="selectedGlyphName"
             :disabled="Boolean(rebinding)"
-            @change="$emit('update:shapeName', selectedShapeName)"
+            @change="$emit('update:shapeName', selectedGlyphName)"
           />
         </div>
       </v-toolbar>
@@ -25,12 +25,12 @@
       dense>
         <div class="select-title">
           <v-select
-            :items="shapeElements.map(element => element.name)"
+            :items="selectedGlyphElements.map(element => element.name)"
             dense
             label="Glyph Element"
             v-model="selectedElementName"
             @change="onSelectElementName"
-            :disabled="rebinding === 'field'"
+            :disabled="rebinding === 'element'"
           />
         </div>
         <div class="select-title">
@@ -40,7 +40,7 @@
             label="Data Feature"
             v-model="selectedFieldName"
             @change="onSelectFieldName"
-            :disabled="rebinding === 'element'"
+            :disabled="rebinding === 'field'"
           />
         </div>
       </v-toolbar>
@@ -64,6 +64,7 @@
                      color="primary"
                      @click="rebinding = 'element'"
                      class="bind-item text--white"
+                     :disabled="selectedElementName === 'unbound'"
               >
                 <v-icon color="white">nature</v-icon>
               </v-btn>
@@ -81,6 +82,7 @@
                      color="light"
                      @click="rebinding = 'field'"
                      class="bind-item primary--text"
+                     :disabled="selectedFieldName === 'unbound'"
               >
                 <v-icon color="primary">texture</v-icon>
               </v-btn>
@@ -214,7 +216,7 @@ export default {
   data () {
     return {
       rebinding: '',
-      selectedShapeName: '',
+      selectedGlyphName: '',
       selectedElementName: '',
       selectedElement: {
         name: '',
@@ -242,13 +244,19 @@ export default {
       numDisplayedGlyphs: state => state.app.numDisplayedGlyphs,
       glyphNames: state => state.glyph.project.glyphNames
     }),
-    shapeElements () {
-      if (this.glyphs.length === 0 || !this.selectedShapeName) {
+    selectedGlyphElements () {
+      if (this.glyphs.length === 0 || !this.selectedGlyphName) {
         return []
       }
       const glyphs = [...this.glyphs[0].iter()]
-      const shapeType = glyphs.find(glyph => glyph.name === this.selectedShapeName).constructor
+      const shapeType = glyphs.find(glyph => glyph.name === this.selectedGlyphName).constructor
       return shapeType.elements
+    },
+    selectedShape () { // get shape of selected glyph for bindings filtering
+      if (this.glyphs.length === 0 || !this.selectedGlyphName) {
+        return ''
+      }
+      return [...this.glyphs[0].iter()].find(glyph => glyph.name === this.selectedGlyphName).shape
     },
     hasProperties () {
       return {
@@ -282,16 +290,16 @@ export default {
     onSelectElementName () {
       // 0: find glyph element -> needed in order to check what parameters can be modified through element.properties
       this.selectGlyphEl({layer: this.selection.layer, path: this.selectedElementName})
-      const selectedElement = this.shapeElements.find(element => element.name === this.selectedElementName)
+      const selectedElement = this.selectedGlyphElements.find(element => element.name === this.selectedElementName)
       if (selectedElement) {
-        this.selectedElement = this.shapeElements.find(element => element.name === this.selectedElementName)
+        this.selectedElement = this.selectedGlyphElements.find(element => element.name === this.selectedElementName)
       } else {
         this.selectedElement = {name: '', properties: {}}
       }
       // 1: if element is bound, update the displayed field name in the field select box
-      if (this.selectedElementName && this.rebinding !== 'element') {
+      if (this.selectedElementName && this.rebinding !== 'field') {
         const elementBinding = this.bindings.find(
-                binding => binding.shape === this.selectedShapeName && binding.element === this.selectedElementName
+                binding => binding.name === this.selectedGlyphName && binding.element === this.selectedElementName
         )
         if (elementBinding) {
           this.selectedFieldName = elementBinding.field
@@ -301,12 +309,12 @@ export default {
       }
     },
     onSelectFieldName () {
-      if (this.selectedFieldName && this.rebinding !== 'field') {
+      if (this.selectedFieldName && this.rebinding !== 'element') {
         const fieldBinding = this.bindings.find(binding => binding.field === this.selectedFieldName)
         if (fieldBinding) {
           this.selectedElementName = fieldBinding.element
           this.selectGlyphEl({layer: this.selection.layer, path: fieldBinding.element}) // FIXME unused
-          const selectedElement = this.shapeElements.find(element => element.name === fieldBinding.element)
+          const selectedElement = this.selectedGlyphElements.find(element => element.name === fieldBinding.element)
           if (selectedElement) {
             this.selectedElement = selectedElement
           }
@@ -318,19 +326,21 @@ export default {
     },
     applyBindingChange () { // handle change of field associated with element
       // Apply new field selection FIXME test this
+      const shape = [...this.glyphs[0].iter()].find(glyph => glyph.name === this.selectedGlyphName).shape
       let newBinding = {
         element: this.selectedElementName,
         field: this.selectedFieldName,
-        shape: this.selectedShapeName
+        name: this.selectedGlyphName,
+        shape: shape
       }
       let oldBinding
       if (this.rebinding === 'element') {
         oldBinding = this.bindings.find(
-                binding => binding.shape === this.selectedShapeName && binding.field === this.selectedFieldName
+                binding => binding.name === this.selectedGlyphName && binding.field === this.selectedFieldName
         )
       } else if (this.rebinding === 'field') {
         oldBinding = this.bindings.find(
-                binding => binding.shape === this.selectedShapeName && binding.element === this.selectedElementName
+                binding => binding.name === this.selectedGlyphName && binding.element === this.selectedElementName
         )
       } else {
         throw Error("Shouldn't be here")
@@ -342,12 +352,12 @@ export default {
       }) // reset all except element name
       this.onSelectElementName() // find element to read properties and display controls
       if (this.rebinding === 'field') {
-        console.log(`${this.selectedShapeName}.${this.selectedElementName} was bound to ${this.selectedFieldName}`)
+        console.log(`${this.selectedGlyphName}.${this.selectedElementName} was bound to ${this.selectedFieldName}`)
         if (oldBinding) {
           console.log(`(previously bound to ${oldBinding.field})`)
         }
       } else {
-        console.log(`${this.selectedFieldName} was bound to ${this.selectedShapeName}.${this.selectedElementName}`)
+        console.log(`${this.selectedFieldName} was bound to ${this.selectedGlyphName}.${this.selectedElementName}`)
         if (oldBinding) {
           console.log(`(previously bound to ${oldBinding.element})`)
         }
@@ -357,7 +367,7 @@ export default {
     applyUnbinding () { // unbinds element or feature
       let oldBinding
         oldBinding = this.bindings.find(
-                binding => binding.shape === this.selectedShapeName &&
+                binding => binding.name === this.selectedGlyphName &&
                         binding.field === this.selectedFieldName &&
                         binding.element === this.selectedElementName
         )
@@ -371,22 +381,22 @@ export default {
         parameters: {
           [this.selectedElement.name.toLocaleLowerCase() + 'Mode']: this.selectedMode
         },
-        shapeName: this.selectedShapeName
+        shapeName: this.selectedGlyphName
       })
       const binding = this.bindings.find(
-              binding_ => binding_.shape === this.selectedShapeName && binding_.field === this.selectedFieldName
+              binding_ => binding_.shape === this.selectedGlyphName && binding_.field === this.selectedFieldName
       )
       this.redrawElement(binding)
     }
   },
   watch: {
-    selectedShapeName () {
+    selectedGlyphName () {
       this.reset()
     },
     glyphNames () {
       if (this.glyphs.length > 0) {
-        this.selectedShapeName = this.glyphs[0].name
-        this.$emit('update:shapeName', this.selectedShapeName)
+        this.selectedGlyphName = this.glyphs[0].name
+        this.$emit('update:shapeName', this.selectedGlyphName)
       }
     },
     selectedWidth () {
@@ -394,7 +404,7 @@ export default {
         this.setPathParameter({
           parameter: 'strokeWidth',
           value: this.selectedWidth,
-          shapeName: this.selectedShapeName,
+          shapeName: this.selectedGlyphName,
           elementName: this.selectedElement.name
         })
       }
@@ -404,14 +414,14 @@ export default {
         this.setPathParameter({
           parameter: 'strokeColor',
           value: this.colorPick.hex,
-          shapeName: this.selectedShapeName,
+          glyphName: this.selectedGlyphName,
           elementName: this.selectedElement.name
         })
         if (this.selectedElement.fillColor) {
           this.setPathParameter({
             parameter: 'fillColor',
             value: this.colorPick.hex,
-            shapeName: this.selectedShapeName,
+            glyphName: this.selectedGlyphName,
             elementName: this.selectedElement.name
           })
         }

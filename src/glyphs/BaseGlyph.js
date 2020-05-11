@@ -258,10 +258,10 @@ class BaseGlyph {
         continue // no item to return for scale-type elements
       }
       let targetGlyph
-      if (element.target === 'main' || element.target === this.name) {
+      if (element.target === 'main' || element.target === this.shape) {
         targetGlyph = this
       } else if (searchChildren) {
-        targetGlyph = this.children.find(glyph => glyph.name === element.target)
+        targetGlyph = this.children.find(glyph => glyph.shape === element.target)
       } else {
         continue // only get here if includeChildren is false
       }

@@ -31,7 +31,7 @@ class CellGlyph extends ShapeGlyph {
       islandsSize: 5,
       maxNumIslands: 20
     })
-    const nucleus = new ShapeGlyph(this.layer, id, 'Nucleus', nucleusOptions, this)
+    const nucleus = new ShapeGlyph(this.layer, id, name + ' Nucleus', nucleusOptions, this)
     this.registerChild(nucleus)
   }
 

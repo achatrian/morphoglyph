@@ -41,6 +41,18 @@
                     color="dark"
                     flat
                     dense>
+                <v-select
+                        class="selector"
+                        outlined
+                        :items="stringFields"
+                        label="Select order feature"
+                        v-model="selectedOrderFeature"
+                />
+            </v-toolbar>
+            <v-toolbar
+                    color="dark"
+                    flat
+                    dense>
                 <v-btn flat class="primary white--text" @click="addGlyphs">
                     add
                 </v-btn>
@@ -58,14 +70,17 @@ export default {
     data () {return{
         writtenGlyphName: '',
         selectedGlyphType: '',
-        selectedGlyphShape: ''
+        selectedGlyphShape: '',
+        selectedOrderFeature: '',
     }},
     computed: {
         ...mapState({
             glyphs: state => state.glyph.project.glyphs,
             glyphTypes: state => state.glyph.glyphTypes,
             parsedData: state => state.backend.parsedData,
-            maxDisplayedGlyphs: state => state.app.maxDisplayedGlyphs
+            maxDisplayedGlyphs: state => state.app.maxDisplayedGlyphs,
+            fieldTypes: state => state.backend.fieldTypes,
+            dataFields: state => state.backend.dataFields
         }),
         typeItems () {
             return this.glyphTypes.map(glyphType => glyphType.type.slice(0, -5))
@@ -81,7 +96,20 @@ export default {
             } else {
                 return selectedType.settings.options
             }
-        }
+        },
+        stringFields () { // items for cluster name selector
+            // string fields for select
+            let fields = []
+            for (let field of this.dataFields) {
+                if (this.fieldTypes[field] === String) {
+                    fields.push(field)
+                }
+            }
+            if (fields.length === 0) {
+                fields = this.dataFields // if no string fields are available, let user choose any field
+            }
+            return fields
+        },
     },
     methods: {
         ...mapActions({
@@ -89,6 +117,7 @@ export default {
             setGlyphType: 'glyph/setGlyphType',
             addDataBoundGlyphs: 'glyph/addDataBoundGlyphs',
             activateRedrawing: 'glyph/activateRedrawing',
+            setNamingField: 'backend/setNamingField',
             changeDisplayedGlyphNum: 'app/changeDisplayedGlyphNum',
             makeEmptyGlyphs: 'glyph/makeEmptyGlyphs'
         }),
@@ -101,6 +130,7 @@ export default {
                     timeout: 3000
                 })
             } else if (this.glyphs.length === 0) {
+                this.setNamingField(this.selectedOrderFeature)
                 this.addDataBoundGlyphs({
                     glyphName: this.writtenGlyphName,
                     glyphTypeName: this.selectedGlyphType
@@ -108,6 +138,7 @@ export default {
                 this.changeDisplayedGlyphNum(this.maxDisplayedGlyphs)
                 // this.activateRedrawing()
             } else {
+                this.setNamingField(this.selectedOrderFeature)
                 this.makeEmptyGlyphs({
                     glyphName: this.writtenGlyphName,
                     glyphTypeName: this.selectedGlyphType

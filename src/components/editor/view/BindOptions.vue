@@ -13,7 +13,7 @@
                         <v-flex xs6 sm3>
                             <!--FIXME must make this work both for creating glyph and assigning elements to glyphs-->
                             <v-text-field
-                                    placeholder="Type the glyph name"
+                                    placeholder="Choose a glyph name"
                                     class="selector"
                                     style="margin-top: -20px"
                                     v-if="glyphs.length === 0"
@@ -25,10 +25,10 @@
                                            @click="selectedGlyphName = typedGlyphName"
                                            v-if="!selectedGlyphName"
                                     >
-                                        <v-icon>add</v-icon>
+                                        <v-icon>check</v-icon>
                                     </v-btn>
                                     <v-btn icon
-                                           @click="selectedGlyphName = ''"
+                                           @click="selectedGlyphName = ''; typedGlyphName= ''"
                                            v-if="selectedGlyphName"
                                     >
                                         <v-icon>cancel</v-icon>
@@ -47,7 +47,7 @@
                         </v-flex>
                         <v-flex xs6 sm3>
                             <v-select
-                                    :disabled="glyphs.length > 0"
+                                    :disabled="glyphs.length > 0 || !selectedGlyphName"
                                     class="selector"
                                     outlined
                                     :items="glyphTypeNames"
@@ -62,6 +62,7 @@
                                     :items="settingOptions"
                                     :label="glyphSettings.message || 'Choose glyph-specific options'"
                                     v-model="selectedGlyphSetting"
+                                    :disabled="!selectedGlyphName"
                             />
                         </v-flex>
                         <v-flex xs6 sm3>
@@ -71,6 +72,7 @@
                                     :items="stringFields"
                                     label="Choose cluster names"
                                     v-model="selectedOrderField"
+                                    :disabled="!selectedGlyphName || !fileName"
                             />
                         </v-flex>
                         <v-flex xs1 sm1>
@@ -141,15 +143,13 @@
                 glyphSettings: state => state.glyph.glyphSettings,
                 glyphShapes: state => state.glyph.glyphShapes,
                 glyphElements: state => state.glyph.glyphElements,
+                bindings: state => state.glyph.project.bindings,
                 dataFields: state => state.backend.dataFields,
                 fieldTypes: state => state.backend.fieldTypes,
                 fileName: state => state.backend.fileName,
                 loadedBindingData: state => state.backend.loadedBindingData,
                 numDisplayedGlyphs: state => state.app.numDisplayedGlyphs,
-                maxDisplayedGlyphs: state => state.app.maxDisplayedGlyphs,
-                availableTemplates: state => state.template.availableTemplates,
-                currentTemplate: state => state.template.currentTemplate,
-                testTemplate: state => state.template.testTemplate
+                maxDisplayedGlyphs: state => state.app.maxDisplayedGlyphs
             }),
             glyphTypeNames () { // names of glyph types for selection
                 let glyphTypeNames = []
@@ -235,6 +235,7 @@
         methods: {
             ...mapActions({
                 setGlyphBinderState: 'app/setGlyphBinderState',
+                activateSnackbar: 'app/activateSnackbar',
                 setGlyphType: 'glyph/setGlyphType',
                 chooseGlyphSetting: 'glyph/chooseGlyphSetting',
                 setBindings: 'glyph/setBindings',
@@ -250,6 +251,10 @@
                 return binding.name === this.selectedGlyphName && binding.shape === this.selectedShape
             },
             bindFieldToElement (selectedField) { // function to turn element and feature selections into a binding object
+                if (!this.selectedGlyphName) {
+                    this.activateSnackbar({text: "Choose glyph name before binding elements"})
+                    return
+                }
                 if (this.selectedGlyphEl) {
                     let previousBinding = -1
                     this.fieldBindings.forEach((binding, i) => {
@@ -321,38 +326,42 @@
             selectedShapeIndex () { // v-tabs gives scalar number, use to selected desired shape
               this.selectedShape = this.shapeItems[this.selectedShapeIndex].value
             },
-            selectedGlyphType () {
-                // watcher that loads the type of glyph, and makes the glyph elements available for selection
-                const glyphObjectName = this.selectedGlyphType + 'Glyph'
-                for (let glyphType of this.glyphTypes) {
-                    if (glyphType.type === glyphObjectName) {
-                        this.selectedShape = glyphType.shapes.main
+            selectedGlyphType: {
+                immediate: true,  // fire on component mounting TODO test
+                handler () {
+                    // watcher that loads the type of glyph, and makes the glyph elements available for selection
+                    const glyphObjectName = this.selectedGlyphType + 'Glyph'
+                    for (let glyphType of this.glyphTypes) {
+                        if (glyphType.type === glyphObjectName) {
+                            this.selectedShape = glyphType.shapes.main
+                        }
+                    }
+                    this.setGlyphType({glyphTypeName: this.selectedGlyphType, glyphSetting: this.selectedGlyphSetting})
+                    if (this.glyphs.length === 0) { // when adding data bound glyphs through bind options, if type is changed clear all the bindings
+                        this.fieldBindings = this.fieldBindings.filter(binding => this.shapeCheck(binding))
                     }
                 }
-                this.setGlyphType({glyphTypeName: this.selectedGlyphType, glyphSetting: this.selectedGlyphSetting})
             },
             selectedGlyphSetting () {
                 // same as above, to update setting when needed
                 if (this.selectedGlyphType !== 'None') {
                     this.setGlyphType({glyphTypeName: this.selectedGlyphType, glyphSetting: this.selectedGlyphSetting})
                 }
-            }
-        },
-        mounted () {
-            // select glyph name
-            const glyphObjectName = this.selectedGlyphType + 'Glyph'
-            for (let glyphType of this.glyphTypes) {
-                if (glyphType.type === glyphObjectName) {
-                    this.selectedShape = glyphType.shapes.main
+            },
+            bindings: {
+                deep: true,
+                handler () {
+                    console.log("Bindings have changed in the state")
+                    this.fieldBindings = this.bindings
                 }
             }
-            this.setGlyphType({glyphTypeName: this.selectedGlyphType, glyphSetting: this.selectedGlyphSetting})
         }
     }
 </script>
 <style scoped>
     #bind-card{
         width: 100%;
+        height: 100%;
         margin: auto
     }
 

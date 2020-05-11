@@ -152,10 +152,10 @@ class ShapeGlyph extends BaseGlyph {
   draw (options) {
     super.draw(options) // box is also updated here
     const widthScaleOrder = options.scaleOrders.find(
-        scaleOrder => scaleOrder.element === 'Width' && scaleOrder.shape === this.name
+        scaleOrder => scaleOrder.element === 'Width' && scaleOrder.shape === this.shape
     )
     const heightScaleOrder = options.scaleOrders.find(
-        scaleOrder => scaleOrder.element === 'Height' && scaleOrder.shape === this.name
+        scaleOrder => scaleOrder.element === 'Height' && scaleOrder.shape === this.shape
     )
     if (widthScaleOrder) {
       // drawing option must be set to true for box to remember to reapply this transforms when shape positions is reset
@@ -165,7 +165,7 @@ class ShapeGlyph extends BaseGlyph {
       this.box.resize(null, heightScaleOrder.value, {drawing: true, center: true, children: true})
     }
     const protrusionScaleOrder = options.scaleOrders.find(
-        scaleOrder => scaleOrder.element === 'Protrusion' && scaleOrder.shape === this.name
+        scaleOrder => scaleOrder.element === 'Protrusion' && scaleOrder.shape === this.shape
     )
     if (protrusionScaleOrder) {
       this.box.shift(null, this.parameters.protrusionProportion, {drawing: true, scale: true, children: true})
@@ -258,7 +258,7 @@ class ShapeGlyph extends BaseGlyph {
   }
 
   drawWidth(widthProportion) {
-    this.box.resize(null, widthProportion, {setValues: true, drawing: false, center: true, children: false, redraw: false})
+    this.box.resize(widthProportion, null, {setValues: true, drawing: false, center: true, children: false, redraw: false})
     this.fitToBox()
   }
 

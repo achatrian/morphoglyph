@@ -109,7 +109,7 @@ export default {
     }, new Set())]
   },
 
-  addDataBoundGlyphs: (state, {parsedData, namingField}) => { // payload is added in action
+  addDataBoundGlyphs: (state, {glyphName, parsedData, namingField}) => { // payload is added in action
     const glyphClass = state.glyphTypes.find(glyphType => glyphType.type.startsWith(state.glyphTypeName))
     if (typeof glyphClass === 'undefined') {
       throw Error(`Unknown glyph type: ${state.glyphTypeName}`)
@@ -118,11 +118,11 @@ export default {
     state.glyphElements = glyphClass.elements // update glyph elements for feature binding
     // extract naming field from data-points and initialise glyphs in order of appearance in file
     // eslint-disable-next-line new-cap
-    if (namingField === '_default') { // glyphs are identified with ordinal numbers by default
-      state.project.glyphs = parsedData.map((dataPoint, layerIndex) => new glyphClass(layerIndex, layerIndex))
-    } else {
-      state.project.glyphs = parsedData.map((dataPoint, layerIndex) => new glyphClass(layerIndex, dataPoint[namingField]))
-    }
+    state.project.glyphs = parsedData.map((dataPoint, layerIndex) => new glyphClass(
+        layerIndex,
+        namingField === '_default' ? layerIndex : dataPoint[namingField],  // use layer number as id if no naming field was specified
+        glyphName)
+    )
   },
 
   makeEmptyGlyphs: (state, {
@@ -328,7 +328,7 @@ export default {
 
   redrawElement: (state, {binding, normalizedData}) => {
     for (let [i, glyph] of state.project.glyphs.entries()) {
-      let targetGlyph = [...glyph.iter()].find(glyph => glyph.name === binding.shape)
+      let targetGlyph = [...glyph.iter()].find(glyph => glyph.name === binding.name)
       if (targetGlyph.drawn) {
         targetGlyph.activateLayer()
         if (targetGlyph.itemIds[binding.element.toLowerCase()]) {
@@ -338,11 +338,6 @@ export default {
         targetGlyph.buildGroups()
       }
     }
-    // remove any binding with same element as in new assignment
-    state.project.bindings = state.project.bindings.filter(
-        binding_ => !(binding_.element === binding.element && binding_.shape === binding.shape)
-    )
-    state.project.bindings.push(binding)
   },
 
   setGlyphVisibility: (state, {value, glyphSelector = 'all', shapeSelector = 'layer', itemSelector = 'group'}) => {
@@ -427,13 +422,13 @@ export default {
     }
   },
 
-  setPathParameter: (state, {parameter, value, shapeName, elementName}) => {
+  setPathParameter: (state, {parameter, value, glyphName, elementName}) => {
     let targetGlyph
     for (let glyph of state.project.glyphs) {
-      if (glyph.drawn && glyph.name === shapeName) {
+      if (glyph.drawn && glyph.name === glyphName) {
         targetGlyph = glyph
       } else {
-        targetGlyph = glyph.getChild(shapeName)
+        targetGlyph = glyph.getChild(glyphName)
       } // target is either main glyph or one of its children
       if (targetGlyph && targetGlyph.drawn) {
         let paths = targetGlyph.getNamedItems(true)
