@@ -102,10 +102,14 @@ class BaseGlyph {
   }
 
   // iterate over self and children
-  * iter () {
+  * iter (recursive=false) {
     yield this
     for (let child of this.children) {
-      yield child
+      if (recursive) {
+        yield* child.iter(recursive) // yields from generator
+      } else {
+        yield child
+      }
     }
   }
 
@@ -484,16 +488,18 @@ class BaseGlyph {
           }
           this.data.shrunk = true
         }
-      }, 400),
+      }, 300),
       mouseleave: debounce.call(this, function () {
-        if (this.data.shrunk) {
-          this.scale(scaleFactor)
-          for (let group of childrenGroups) {
-            group.scale(scaleFactor)
+        setTimeout(function(this_) {
+          if (this_.data.shrunk) {
+            this_.scale(scaleFactor)
+            for (let group of childrenGroups) {
+              group.scale(scaleFactor)
+            }
+            this_.data.shrunk = false
           }
-          this.data.shrunk = false
-        }
-      }, 400)
+        }, 500, this)
+      }, 1000)
     })
     this.animations.add('shrink-regrow')
     this.shirnkRegrowScaleFactor = scaleFactor // save for scaling glyphs up again!

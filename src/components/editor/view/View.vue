@@ -7,6 +7,7 @@
     <app-glyph-canvas v-resize.quiet="updateGlyphArrangement" :drawing.sync="drawing"
                       v-show="canvas" ref="canvas"/>
     <app-legend-viewer v-if="legendViewer"/>
+    <app-shape-canvas v-if="shapeCanvas"/>
     <div class="progress-wrap" v-show="drawing && !glyphBinder && !shapeManager && !glyphAdder && !legendViewer">
       <v-progress-circular class="progress" indeterminate size="100" color="primary"/>
     </div>
@@ -21,7 +22,8 @@ import BindOptions from './BindOptions'
 import ShapeManager from './ShapeManager'
 import GlyphAdder from './GlyphPreview'
 import WelcomeCard from './WelcomeCard'
-import LegendViewer from "./LegendViewer";
+import LegendViewer from "./LegendViewer"
+import ShapeCanvas from "./ShapeCanvas"
 
 export default {
   name: 'UIView', // prevent warning for reused HTML id
@@ -38,7 +40,8 @@ export default {
     'app-shape-manager': ShapeManager,
     'app-glyph-adder': GlyphAdder,
     'app-legend-viewer': LegendViewer,
-    'app-welcome-card': WelcomeCard
+    'app-welcome-card': WelcomeCard,
+    'app-shape-canvas': ShapeCanvas
   },
   computed: {
     ...mapState({
@@ -48,6 +51,7 @@ export default {
       glyphAdder: state => state.app.glyphAdder,
       canvas: state => state.app.canvas,
       legendViewer: state => state.app.legendViewer,
+      shapeCanvas: state => state.app.shapeCanvas,
       numDisplayedGlyphs: state=>state.app.numDisplayedGlyphs
     })
   },

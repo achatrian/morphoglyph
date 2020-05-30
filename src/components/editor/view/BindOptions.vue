@@ -28,7 +28,7 @@
                                         <v-icon>check</v-icon>
                                     </v-btn>
                                     <v-btn icon
-                                           @click="selectedGlyphName = ''; typedGlyphName= ''"
+                                           @click="selectedGlyphName = ''; typedGlyphName= ''; fieldBindings = [...bindings]"
                                            v-if="selectedGlyphName"
                                     >
                                         <v-icon>cancel</v-icon>
@@ -38,7 +38,7 @@
                             <v-select
                                     v-else
                                     class="selector"
-                                    :items="glyphNames"
+                                    :items="mainGlyphNames"
                                     label="Choose glyph"
                                     v-model="selectedGlyphName"
                             >
@@ -75,33 +75,36 @@
                                     :disabled="!selectedGlyphName || !fileName"
                             />
                         </v-flex>
-                        <v-flex xs1 sm1>
-                            <v-btn icon @click="setGlyphBinderState(false); setGlyphVisibility({value: true})">
-                                <v-icon color="primary">close</v-icon>
-                            </v-btn>
-                        </v-flex>
                     </v-layout>
                     <v-tabs v-model="selectedShapeIndex" color="secondary" slider-color="primary" grow>
                         <v-tab v-for="item of shapeItems" :key="item.id" :value="item.value">
                             {{item.value}}
                         </v-tab>
                     </v-tabs>
-                    <v-layout row wrap>
-                        <v-flex xs12 md6 >
+                    <v-layout row wrap align-centre>
+                        <v-flex xs6 md3 >
                             <app-scroll-options title="Element selection" :items="elementItems"
-                                                :select.sync="selectedGlyphEl" @buttonClick="unbindElement"/>
+                                                :select.sync="selectedGlyphEl" @buttonClick="unbindElement" class="list"/>
                         </v-flex>
-                        <v-flex xs12 md6>
-                            <app-scroll-options title="Feature selection" :items="fieldItems"
-                                                @change="bindFieldToElement" @buttonClick="unbindField"/>
+                        <v-flex xs6 md3>
+                            <app-scroll-options title="Feature selection" :items="fieldItems" :select.sync="selectedField"
+                                                @change="bindFieldToElement" @buttonClick="unbindField" class="list"/>
                         </v-flex>
-                        <v-flex x12 md12>
+                        <v-flex x12 md6>
                             <app-bindings-table class="bindings-table" :bindings="fieldBindings"/>
                         </v-flex>
                     </v-layout>
-                    <v-layout row wrap align-end justify-space-around>
-                        <v-flex xs6 md3 d-flex class="bind-button">
-                            <v-btn flat class="primary white--text" @click="applyBinding">Bind</v-btn>
+                    <v-layout row align-end justify-space-between>
+                        <v-flex xs4 md4 d-flex>
+                            <v-btn flat class="primary white--text button" @click="applyBinding">Bind</v-btn>
+                        </v-flex>
+                        <v-flex xs4 md4 d-flex>
+                            <v-btn flat class="secondary primary--text button"
+                                   @click="fieldBindings = [...bindings]">Revert</v-btn>
+                        </v-flex>
+                        <v-flex xs4 md4 d-flex>
+                            <v-btn flat class="dark white--text button"
+                                   @click="setGlyphBinderState(false); setGlyphVisibility({value: true})">Close</v-btn>
                         </v-flex>
                     </v-layout>
                 </v-layout>
@@ -125,6 +128,7 @@
                 selectedShapeIndex: 0,
                 selectedShape: '',
                 selectedGlyphEl: '',
+                selectedField: '',
                 fieldBindings: [],
                 selectedGlyphType: 'Shape',
                 typedGlyphName: 'New Glyph',
@@ -139,7 +143,7 @@
             ...mapState({
                 glyphs: state => state.glyph.project.glyphs,
                 glyphTypes: state => state.glyph.glyphTypes,
-                glyphNames: state => state.glyph.project.glyphNames,
+                mainGlyphNames: state => state.glyph.project.mainGlyphNames,
                 glyphSettings: state => state.glyph.glyphSettings,
                 glyphShapes: state => state.glyph.glyphShapes,
                 glyphElements: state => state.glyph.glyphElements,
@@ -183,7 +187,7 @@
                         items.push({
                             id: i,
                             key: element.name,
-                            value: element.name + (elementBinding ? ' ( bound feature: ' + elementBinding.field + ' )': ''),
+                            value: element.name, // + (elementBinding ? ' ( bound feature: ' + elementBinding.field + ' )': ''),
                             selected: this.selectedGlyphEl === element.name,
                             button: Boolean(elementBinding)
                         })
@@ -194,23 +198,23 @@
             fieldItems () { // item for list of features
                 let items = []
                 let i = 0
-                const value = (field, fieldBinding) => {
-                    if (fieldBinding) {
-                        return field + ' ( bound to ' + fieldBinding.shape + '\'s ' + fieldBinding.element + ' )'
-                    } else if (this.lastUnboundField === field) {
-                        return field + ' ( unbound )' // flag that field was just unbound
-                    } else {
-                        return field
-                    }
-                }
+                // const value = (field, fieldBinding) => {
+                //     if (fieldBinding) {
+                //         return field + ' ( bound to ' + fieldBinding.shape + '\'s ' + fieldBinding.element + ' )'
+                //     } else if (this.lastUnboundField === field) {
+                //         return field + ' ( unbound )' // flag that field was just unbound
+                //     } else {
+                //         return field
+                //     }
+                // }
                 for (let field of this.dataFields) {
                     if (this.fieldTypes[field] === Number) { // TODO update this to work for categorical variables
                         let fieldBinding = this.fieldBindings.find(binding => binding.field === field && binding.shape)
                         items.push({
                             id: i,
                             key: field,
-                            value: value(field, fieldBinding),
-                            selected: Boolean(fieldBinding), // all bound features are highlighted
+                            value: field,
+                            selected: this.selectedField === field,
                             button: Boolean(fieldBinding)
                         })
                         i++
@@ -240,7 +244,6 @@
                 chooseGlyphSetting: 'glyph/chooseGlyphSetting',
                 setBindings: 'glyph/setBindings',
                 addDataBoundGlyphs: 'glyph/addDataBoundGlyphs',
-                discardGlyphs: 'glyph/discardGlyphs',
                 changeDisplayedGlyphNum: 'app/changeDisplayedGlyphNum',
                 activateRedrawing: 'glyph/activateRedrawing',
                 setNamingField: 'backend/setNamingField',
@@ -290,9 +293,6 @@
                 this.setNamingField(this.selectedOrderField)
                 this.setBindings(this.fieldBindings)
                 this.normalizeFeatures() // re-normalize features to fix spatial scale
-                if (this.glyphs.length > 0) {
-                    this.discardGlyphs()
-                }
                 if (this.glyphs.length === 0) {
                     this.addDataBoundGlyphs({
                         glyphTypeName: this.selectedGlyphType,
@@ -323,6 +323,15 @@
             }
         },
         watch: {
+            selectedGlyphName () {
+                if (this.glyphs.length > 0) {
+                    const glyph = [...this.glyphs[0].iter(true)].find(glyph => glyph.name === this.selectedGlyphName)
+                    if (glyph) {
+                        this.selectedGlyphType = glyph.constructor.type.slice(0, -5)
+                    }
+                }
+
+            },
             selectedShapeIndex () { // v-tabs gives scalar number, use to selected desired shape
               this.selectedShape = this.shapeItems[this.selectedShapeIndex].value
             },
@@ -352,7 +361,7 @@
                 deep: true,
                 handler () {
                     console.log("Bindings have changed in the state")
-                    this.fieldBindings = this.bindings
+                    this.fieldBindings = [...this.bindings]
                 }
             }
         }
@@ -361,7 +370,6 @@
 <style scoped>
     #bind-card{
         width: 100%;
-        height: 100%;
         margin: auto
     }
 
@@ -370,14 +378,18 @@
         margin: auto
     }
 
+    /*.list{*/
+    /*    max-width: 40%;*/
+    /*}*/
+
     .bindings-table{
         max-width: 90%;
-        max-height: 40%;
+        max-height: 20%;
         position: center;
         margin: auto
     }
 
-    /*.bind-button{*/
-    /*    margin-top: 33%;*/
-    /*}*/
+    .button{
+        /*max-width: 30%;*/
+    }
 </style>

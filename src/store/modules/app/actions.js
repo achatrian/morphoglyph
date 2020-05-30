@@ -32,8 +32,9 @@ export default {
     commit('setGlyphAdderState', false)
     commit('setWelcomeCardState', false)
     commit('setLegendViewerState', false)
-    commit('setChartState', false) // chart is like a different window
-    // must remove temp layers that's used by some windows
+    commit('setShapeCanvasState')
+    commit('setChartState', false) // chart is drawn on main canvas, hence it occupies the same space as windows
+    // removes temp layers that's used by some windows
     commit('glyph/removeTempLayer', null, {root: true})
     // more window togglers go here
   },
@@ -85,7 +86,18 @@ export default {
     commit('setLegendViewerState', payload)
   },
 
-  setShapeCanvasState: ({commit}, payload) => commit('setShapeCanvasState', payload),
+  setShapeCanvasState: ({commit, dispatch}, payload) => {
+    if (payload) {
+      dispatch('glyph/setGlyphVisibility', {value: false}, {root: true})
+      // action used to close all other windows, so that no two windows are open at the same time
+      dispatch('removeWindows')
+      dispatch('glyph/makeTempLayer', null, {root: true}) // create a new temporary layer for ShapeManager
+    } else {
+      setTimeout(dispatch, 200, 'glyph/setGlyphVisibility', {value: true}, {root: true})
+      dispatch('glyph/removeTempLayer', null, {root: true}) // create a new temporary layer for ShapeManager
+    }
+    commit('setShapeCanvasState', payload)
+  },
 
   setWelcomeCardState: ({commit}, payload) => commit('setWelcomeCardState', payload),
 

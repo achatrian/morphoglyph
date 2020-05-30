@@ -2,8 +2,9 @@
     <v-data-table
             class="table-outer"
             :headers="headers"
-            :items="bindings"
+            :items="entries"
             no-results-text="No selected bindings"
+            disable-initial-sort
     >
         <template slot="items" slot-scope="props">
             <td class="text-xs-right table-tile">{{props.item.name}}</td>
@@ -28,6 +29,22 @@
         data () {
             return {
                 headers: headers
+            }
+        },
+        computed: {
+            entries () {
+                const entries = [...this.bindings]
+                if (entries.length < 5) {
+                    while (!(entries.length >= 5)) {
+                        entries.push({
+                            name: '',
+                            shape: '',
+                            element: '',
+                            field: ''
+                        })
+                    }
+                }
+                return entries
             }
         }
     }

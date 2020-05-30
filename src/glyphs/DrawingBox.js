@@ -59,7 +59,7 @@ class DrawingBox {
 
     applyPositioning (positions) {
         // updates bounding box of glyph based on new positioning parameters
-        let glyphBoundingRect = Object.assign({}, this.bounds)
+        let glyphBoundingRect = {...this.bounds}
         const {topShift, leftShift, widthProportion, heightProportion} = positions
         // topShift and leftShift are relative to boundingRect dimensions before scaling
         if (typeof topShift !== 'undefined') {
@@ -263,6 +263,17 @@ class DrawingBox {
             this.recordTransform('center', [left, top, options], drawing)
         }
     }
+
+    relativeShift (leftShift = null, topShift = null,
+                   options = {setValues: false, drawing: false, scale: false, children: false, redraw: false},
+                   record= true) {
+        console.assert(new Set([1, 2, 3, null]).has(leftShift), 'shift must be equal to 1, 2 or 3')
+        console.assert(new Set([1, 2, 3, null]).has(topShift), 'shift must be equal to 1, 2 or 3')
+        const horShift = (leftShift - 1)*(1 - this.shapePositions.widthProportion)/2
+        const vertShift = (topShift - 1)*(1 - this.shapePositions.heightProportion)/2
+        this.shift(leftShift ? horShift : null, topShift ? vertShift : null, options, record)
+    }
+
 }
 
 export default DrawingBox

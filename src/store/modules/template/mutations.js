@@ -7,19 +7,19 @@ export default {
     },
 
     updateOriginalFileName: (state, originalFileName) => {
-        const newCurrentTemplate = Object.assign({originalFileName: originalFileName},  state.currentTemplate)
+        const newCurrentTemplate = {originalFileName: originalFileName, ...state.currentTemplate}
         state.currentTemplate = newCurrentTemplate  // update whole object for vuex reactions
     },
 
     updateNamingField: (state, namingField) => {
-        const newCurrentTemplate = Object.assign({namingField: namingField}, state.currentTemplate)
+        const newCurrentTemplate = {namingField: namingField, ...state.currentTemplate}
         state.currentTemplate = newCurrentTemplate
     },
 
     updateGlyphInformation: (state, glyphs) => {
         const glyph = glyphs[0]
         if (typeof glyph !== 'undefined') {
-            const newCurrentTemplate = Object.assign({}, state.currentTemplate)
+            const newCurrentTemplate = {...state.currentTemplate}
             // UPDATE GLYPH HIERARCHY
             // store information about the glyph hierarchy
             // only one level deep hierarchy allowed
@@ -70,14 +70,14 @@ export default {
     },
 
     updateElementFeatureBindings: (state, bindings) => {
-        const newCurrentTemplate = Object.assign({}, state.currentTemplate)
+        const newCurrentTemplate = {...state.currentTemplate}
         newCurrentTemplate.elementFeatureBindings = bindings
         state.currentTemplate = newCurrentTemplate
     },
 
     updateShapes: (state, shapeJSONStore) => {
         // UPDATE SHAPE DESCRIPTIONS
-        const newCurrentTemplate = Object.assign({}, state.currentTemplate)
+        const newCurrentTemplate = {...state.currentTemplate}
         newCurrentTemplate.shapes = Array.from(shapeJSONStore).reduce((obj, [key, value]) => (
             Object.assign(obj, { [key]: value }) // Be careful! Maps can have non-String keys; object literals can't.
         ), {});
@@ -86,18 +86,19 @@ export default {
 
     updateShapeAssignment: (state, varShapeAssignment) => {
         // UPDATE SHAPE ASSIGNMENT TO CATEGORICAL VARIABLES
-        const newCurrentTemplate = Object.assign({}, state.currentTemplate)
+        const newCurrentTemplate = {...state.currentTemplate}
         newCurrentTemplate.shapeAssignment = varShapeAssignment
     },
 
     updateDisplayOptions: (state, options) => {
         const {displayOrderField, numDisplayedGlyphs, boundingRectSizeFactor, currentPage} = options
-        const newCurrentTemplate = Object.assign({
+        const newCurrentTemplate = {
             displayOrderField: displayOrderField,
             numDisplayedGlyphs: numDisplayedGlyphs,
             boundingRectSizeFactor: boundingRectSizeFactor,
-            currentPage: currentPage
-        }, state.currentTemplate)
+            currentPage: currentPage,
+            ...state.currentTemplate
+        }
         state.currentTemplate = newCurrentTemplate
     },
 

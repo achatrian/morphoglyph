@@ -16,6 +16,7 @@ const state = {
     bindings: [], // stores features -> marker bindings
     glyphs: [], // stores the glyph objects,
     glyphNames: [],
+    mainGlyphNames: [],
     template: {} // FIXME unused
   },
   totalGlyphNum: 0,

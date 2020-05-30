@@ -71,12 +71,13 @@ export default {
     console.log(`Loaded settings and elements for glyph type: ${glyphClass.type}`)
     if (glyphSetting) {
       state.selectedGlyphSetting = glyphSetting
-    } else {
+    } else if (!state.selectedGlyphSetting) {
       state.selectedGlyphSetting = state.glyphSettings.default
     }
   },
 
   chooseGlyphSetting: (state, glyphSetting) => {
+    console.log(`Glyph shape is ${glyphSetting}`)
     const glyphClass = state.glyphTypes.find(glyphType => glyphType.type.startsWith(state.glyphTypeName))
     if (typeof glyphClass === 'undefined') {
       throw Error(`Unknown glyph type: ${state.glyphTypeName}`)
@@ -91,7 +92,9 @@ export default {
     Vue.set(state, 'project', {
       name: 'A Phew project',
       glyphs: [],
-      bindings: []
+      bindings: [],
+      glyphNames: [],
+      template: {}
     })
   },
 
@@ -102,8 +105,16 @@ export default {
   updateGlyphNames: (state) => {
     state.totalGlyphNum = state.project.glyphs.reduce((total, newGlyph) => total + [...newGlyph.iter()].length, 0)
     state.project.glyphNames = [...state.project.glyphs.reduce((names, newGlyph) => {
-      for (let glyph of [...newGlyph.iter()]) {
+      for (let glyph of [...newGlyph.iter(true)]) {
         names.add(glyph.name)
+      }
+      return names
+    }, new Set())]
+    state.project.mainGlyphNames = [...state.project.glyphs.reduce((names, newGlyph) => {
+      for (let glyph of [...newGlyph.iter(true)]) {
+        if (glyph.shape === glyph.constructor.shapes.main) {
+          names.add(glyph.name)
+        }
       }
       return names
     }, new Set())]
@@ -128,7 +139,6 @@ export default {
   makeEmptyGlyphs: (state, {
     glyphName,
     createOptions,
-      boundingRects
   }) => {
     if (state.project.glyphs.length === 0) {
       throw Error("Databound glyphs must be added before empty glyphs can be created")
@@ -137,7 +147,6 @@ export default {
     if (typeof glyphClass === 'undefined') {
       throw Error(`Unknown glyph type: ${state.glyphTypeName}`)
     }
-    let createdGlyphs = [] // store references to newly created glyphs in order to draw them
     for (let glyph of state.project.glyphs) {
       let emptyGlyph
       if (createOptions) {
@@ -146,16 +155,6 @@ export default {
         emptyGlyph = new glyphClass(glyph.layer, glyphName, glyphName) // default options will be used
       }
       glyph.registerChild(emptyGlyph)
-      createdGlyphs.push(emptyGlyph)
-    }
-    // draw the newly-created children glyphs
-    for (let [i, boundingRect] of boundingRects.entries()) {
-      createdGlyphs[i].draw({
-        boundingRect: Object.assign({}, boundingRect),
-        scaleOrders: [],
-        [state.glyphSettings.name]: state.selectedGlyphSetting,
-        shapeJSON: state.shapeJSON // used by glyphs to draw custom main paths
-      })
     }
   },
 
@@ -201,25 +200,33 @@ export default {
       if (glyphElement.type !== 'scale' && !glyphElement.properties.requiresTransform) {
         continue // skipping bindings that are not scales and do not require a transform
       }
-      let scaleOrder = Object.assign({}, {
+      let scaleOrder = {
         ...binding,
         value: dataPoint[binding.field]
-      })
+      }
       scaleOrders.push(scaleOrder)
     }
     // pass custom shape according to categorical features
     const shapeJSONs = []
     for (let assignment of varShapeAssignment) {
       if (dataPoint[assignment.field] === assignment.categoricalValue) {
-        shapeJSONs.push(shapeJSONStore.get(assignment.shape))
+        shapeJSONs.push(shapeJSONStore.get(assignment.shape).json)
         // for glyphs that require named shapes (N.B not used yet)
-        shapeJSONs[assignment.shape] = shapeJSONStore.get(assignment.shape)
+        shapeJSONs[assignment.shape] = shapeJSONStore.get(assignment.shape).json
+      }
+    }
+    // otherwise pass global shape
+    if (shapeJSONs.length === 0) {
+      for (const {json, type} of shapeJSONStore.values()) {
+        if (type === 'global') {
+          shapeJSONs.push(json)
+        }
       }
     }
     // enforce relative position of glyph if present
     const glyphBox = glyphBoxes.find(glyphBox => glyphBox._id === glyph.id)
     let drawOptions = {
-      boundingRect: Object.assign({}, boundingRect),
+      boundingRect: {...boundingRect},
       scaleOrders: scaleOrders,
       [state.glyphSettings.name]: state.selectedGlyphSetting,
       shapeJSONs: shapeJSONs, // used by glyphs to draw custom main paths
@@ -313,7 +320,7 @@ export default {
 
   deleteElement: (state, binding) => {
     for (let glyph of state.project.glyphs) {
-      let targetGlyph = [...glyph.iter()].find(glyph => glyph.name === binding.shape)
+      let targetGlyph = [...glyph.iter()].find(glyph => glyph.name === binding.name)
       if (targetGlyph.drawn) {
         targetGlyph.activateLayer()
         if (targetGlyph.itemIds[binding.element.toLowerCase()]) {
@@ -322,7 +329,7 @@ export default {
       }
     }
     state.project.bindings = state.project.bindings.filter(
-        binding_ => !(binding_.element === binding.element && binding_.shape === binding.shape)
+        binding_ => !(binding_.element === binding.element && binding_.name === binding.name)
     )
   },
 

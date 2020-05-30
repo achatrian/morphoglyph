@@ -6,7 +6,7 @@
     >
         <v-btn icon slot="activator"
                @click="saveCurrentTemplateWithNameCheck"
-               :disabled="!Boolean(fileName)">
+               :disabled="!Boolean(fileName) || !Boolean(templateName)">
             <v-icon color="primary">save</v-icon>
         </v-btn>
         <span>Save current glyphs configuration</span>
@@ -31,7 +31,7 @@
                 if (!this.templateName) {
                     this.activateSnackbar({
                         text: 'Enter project name to save progress',
-                        color: 'error',
+                        color: 'info',
                         timeout: 2000
                     })
                 } else {

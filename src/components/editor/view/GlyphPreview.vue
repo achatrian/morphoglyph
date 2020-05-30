@@ -169,7 +169,7 @@
                     this.setGlyphType({glyphTypeName: this.selectedGlyphName, glyphSetting: glyphSetting})
                 }
                 // activate drawing dialog if option is
-                if (this.glyphSettings.name === 'shapeType' && glyphSetting === 'customShape') {
+                if (this.glyphSettings.name === 'shapeType' && glyphSetting === 'custom') {
                     this.setStudioDrawerState(true)
                     this.setShapeCanvasState(true)
                 }

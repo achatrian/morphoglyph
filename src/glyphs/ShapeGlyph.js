@@ -12,7 +12,7 @@ class ShapeGlyph extends BaseGlyph {
       numPoints: 150, // for drawing Membrane and Spikes
       membraneStrokeColor: ShapeGlyph.baseOptions().primaryColor,
       spikeHeight: 0.3,
-      spikeSize: 0.4,
+      spikesStrokeWidth: 0.4,
       spikesStrokeColor: ShapeGlyph.baseOptions().secondaryColor,
       meshMode: 'grid',
       decorationSize: 5, // size of pattern elements in patterning
@@ -22,6 +22,7 @@ class ShapeGlyph extends BaseGlyph {
       protrusionStrokeColor: '#212121',
       islandsMode: 'circle',
       islandsSize: 10,
+      islandsStrokeColor: ShapeGlyph.baseOptions().secondaryColor,
       maxNumIslands: 40
     }
   }
@@ -52,7 +53,7 @@ class ShapeGlyph extends BaseGlyph {
     return {
       name: 'shapeType', // NB case sensitive
       message: 'Select glyph shape',
-      options: ['ellipse', 'rectangle', 'circle', 'regularPolygon', 'customShape'],
+      options: ['ellipse', 'rectangle', 'circle', 'regularPolygon', 'custom'],
       default: 'ellipse'
     }
   }
@@ -140,7 +141,7 @@ class ShapeGlyph extends BaseGlyph {
         type: 'path',
         properties: {
           color: {range: [], step: [], fillColor: true},
-          size: {range: [1, 10], step: 1},
+          size: {range: [0.3, 2], step: 0.3},
           mode: ['circle', 'star', 'square']
         },
         target: 'main',
@@ -178,7 +179,7 @@ class ShapeGlyph extends BaseGlyph {
     this.activateLayer()
     let path // declare here so that it can be initialized inside switch
     switch (shapeType) {
-      case 'customShape':
+      case 'custom':
         if (options.shapeJSONs.length > 0) {
           // create empty path and import JSON into it, then
           path = new paper.Path()
@@ -303,7 +304,7 @@ class ShapeGlyph extends BaseGlyph {
       spikePath.add(newPoint)
     }
     spikePath.strokeColor = this.parameters.spikesStrokeColor
-    spikePath.strokeWidth = this.parameters.spikeSize
+    spikePath.strokeWidth = this.parameters.spikesStrokeWidth
     spikePath.fillColor = null
     this.registerItem(spikePath, 'spikes')
   }
@@ -515,8 +516,8 @@ class ShapeGlyph extends BaseGlyph {
           )
           break
       }
-      island.fillColor = this.parameters.lightColor
-      island.strokeColor = this.parameters.strokeColor
+      island.fillColor = this.parameters.islandsStrokeColor
+      island.strokeColor = this.parameters.islandsStrokeColor
       islands.push(island)
     }
     const borderSymbolGroup = new paper.Group(islands)

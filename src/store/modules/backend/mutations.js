@@ -51,7 +51,7 @@ export default {
     let numericData = []
     if (state.parsedData.length > 0) {
       for (let dataPoint of state.parsedData) {
-        let numericPoint = Object.assign({}, dataPoint)
+        let numericPoint = {...dataPoint}
         for (let field of state.dataFields) {
           let value = dataPoint[field]
           if (typeof +value === 'number' && !isNaN(value)) {
@@ -168,17 +168,15 @@ export default {
   // glyph shapes data
   setShapeJSON: (state, shapeJSON) => state.shapeJSON = shapeJSON, // save path in json format to move it across canvases
 
-  storeShapeJSON: (state, {shapeJSON, name=''}) => {
-    if (!name) { // if name is empty, replace with numbeer
+  storeShapeJSON: (state, {shapeJSON, type, name=''}) => {
+    if (!name) { // if name is empty, replace with number
       let i = 0
-      while (state.shapeJSONStore.has(String(i))) {
-        i++
-      }
+      while (state.shapeJSONStore.has(String(i))) { i++ }
       name = String(i)
     }
     // NB bracket operator is not overloadable in JS, hence non-primitives (like Map) must use other methods
     const newStore = new Map(state.shapeJSONStore)
-    newStore.set(name, shapeJSON)
+    newStore.set(name, {type: type, json: shapeJSON})
     state.shapeJSONStore = newStore // update object to trigger computed properties
   },
 
@@ -187,9 +185,15 @@ export default {
     newStore.delete(name)
     state.shapeJSONStore = newStore
     // remove all shape assignments to categorical values
-    state.varShapeAssignment = state.varShapeAssignment.filter(
-        assignment => assignment.shape !== name
-    )
+    state.varShapeAssignment = state.varShapeAssignment.filter(assignment => assignment.shape !== name)
+  },
+
+  assignGlyphToShape: (state, {shapeName, glyphName}) => {
+    const newStore = new Map(state.shapeJSONStore)
+    const shapeJSON = newStore.get(shapeName)
+    shapeJSON.glyph = glyphName
+    newStore.set(shapeName, shapeJSON)
+    state.shapeJSONStore = newStore
   },
 
   setVarShapeAssignment: (state, varShapeAssignment) => state.varShapeAssignment = varShapeAssignment

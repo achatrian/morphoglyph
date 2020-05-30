@@ -8,7 +8,7 @@
                     flat
                     dense>
                 <div class="select-title">
-                    <v-text-field placeholder="New glyph name" v-model="writtenGlyphName"/>
+                    <v-text-field label="Glyph name" placeholder="Choose a glyph name" v-model="writtenGlyphName"/>
                 </div>
             </v-toolbar>
 <!--            select glyph type-->
@@ -16,38 +16,48 @@
                     color="dark"
                     flat
                     dense>
-                <v-select
-                        class="selector"
-                        outlined
-                        :items="typeItems"
-                        label="Select glyph type"
-                        v-model="selectedGlyphType"
-                />
+                <div class="select-title">
+                    <v-select
+                            class="selector"
+                            outlined
+                            :items="typeItems"
+                            label="Glyph type"
+                            placeholder="Select a type for the new glyph"
+                            v-model="selectedGlyphType"
+                    />
+                </div>
 <!--                select glyph shape-->
             </v-toolbar>
             <v-toolbar
                     color="dark"
                     flat
                     dense>
-                <v-select
-                        class="selector"
-                        outlined
-                        :items="shapeItems"
-                        label="Select glyph shape"
-                        v-model="selectedGlyphShape"
-                />
+                <div class="select-title">
+                    <v-select
+                            class="selector"
+                            outlined
+                            :items="shapeItems"
+                            label="Glyph shape"
+                            placeholder="Select a shape for the new glyph"
+                            v-model="selectedGlyphShape"
+                            @change="chooseGlyphSetting(selectedGlyphShape)"
+                    />
+                </div>
             </v-toolbar>
             <v-toolbar
                     color="dark"
                     flat
                     dense>
-                <v-select
-                        class="selector"
-                        outlined
-                        :items="stringFields"
-                        label="Select order feature"
-                        v-model="selectedOrderFeature"
-                />
+                <div class="select-title">
+                    <v-select
+                            class="selector"
+                            outlined
+                            :items="stringFields"
+                            label="Ordering feature"
+                            placeholder="Select a feature to order glyphs"
+                            v-model="selectedOrderFeature"
+                    />
+                </div>
             </v-toolbar>
             <v-toolbar
                     color="dark"
@@ -55,6 +65,9 @@
                     dense>
                 <v-btn flat class="primary white--text" @click="addGlyphs">
                     add
+                </v-btn>
+                <v-btn v-if="globalShape" flat class="secondary primary--text" @click="redrawShape">
+                    redraw
                 </v-btn>
             </v-toolbar>
 <!--            scale height of new glyph w.r.to bounding box-->
@@ -71,7 +84,7 @@ export default {
         writtenGlyphName: '',
         selectedGlyphType: '',
         selectedGlyphShape: '',
-        selectedOrderFeature: '',
+        selectedOrderFeature: ''
     }},
     computed: {
         ...mapState({
@@ -80,10 +93,21 @@ export default {
             parsedData: state => state.backend.parsedData,
             maxDisplayedGlyphs: state => state.app.maxDisplayedGlyphs,
             fieldTypes: state => state.backend.fieldTypes,
-            dataFields: state => state.backend.dataFields
+            dataFields: state => state.backend.dataFields,
+            shapeJSONStore: state => state.backend.shapeJSONStore
         }),
         typeItems () {
             return this.glyphTypes.map(glyphType => glyphType.type.slice(0, -5))
+        },
+        globalShape () {
+            let globalShapes = []
+            for (const [name, shape] of this.shapeJSONStore.entries()) {
+                if (shape.type === 'global') {
+                    globalShapes.push({...shape, name: name})
+                }
+            }
+            globalShapes = globalShapes.filter(shape => !shape.glyph) // remove all shapes that already have an assigned glyph
+            return globalShapes.length ? globalShapes[0] : null
         },
         shapeItems () {
             const selectedType = this.glyphTypes.find(glyphType => glyphType.type.startsWith(this.selectedGlyphType))
@@ -94,7 +118,15 @@ export default {
                 console.warn(`Settings '${selectedType.settings.name}' don't allow shape selection for type '${selectedType.name}'`)
                 return []
             } else {
-                return selectedType.settings.options
+                const items = []
+                for (let item of selectedType.settings.options) {
+                    let shapeName = (item === 'custom' && Boolean(this.globalShape)) ? (' - ' + this.globalShape.name) : ''
+                    items.push({
+                        text: item + shapeName,
+                        value: item
+                    })
+                }
+                return items
             }
         },
         stringFields () { // items for cluster name selector
@@ -115,34 +147,65 @@ export default {
         ...mapActions({
             activateSnackbar: 'app/activateSnackbar',
             setGlyphType: 'glyph/setGlyphType',
+            setShapeCanvasState: 'app/setShapeCanvasState',
             addDataBoundGlyphs: 'glyph/addDataBoundGlyphs',
             activateRedrawing: 'glyph/activateRedrawing',
             setNamingField: 'backend/setNamingField',
+            chooseGlyphSetting: 'glyph/chooseGlyphSetting',
             changeDisplayedGlyphNum: 'app/changeDisplayedGlyphNum',
-            makeEmptyGlyphs: 'glyph/makeEmptyGlyphs'
+            makeEmptyGlyphs: 'glyph/makeEmptyGlyphs',
+            removeShapeJSON: 'backend/removeShapeJSON',
+            assignGlyphToShape: 'backend/assignGlyphToShape'
         }),
-        addGlyphs() {
-            // if no glyphs are present, one glyph per datapoint is created.
+        addGlyphs () {
+            // if no glyphs are present, one glyph per data-point is created.
             // Otherwise, empty glyphs are added as children
             if (this.parsedData.length === 0) {
                 this.activateSnackbar({
                     text: "Load a data file before adding glyphs",
                     timeout: 3000
                 })
-            } else if (this.glyphs.length === 0) {
-                this.setNamingField(this.selectedOrderFeature)
-                this.addDataBoundGlyphs({
-                    glyphName: this.writtenGlyphName,
-                    glyphTypeName: this.selectedGlyphType
-                })
-                this.changeDisplayedGlyphNum(this.maxDisplayedGlyphs)
-                // this.activateRedrawing()
             } else {
-                this.setNamingField(this.selectedOrderFeature)
-                this.makeEmptyGlyphs({
-                    glyphName: this.writtenGlyphName,
-                    glyphTypeName: this.selectedGlyphType
-                })
+                setTimeout(function (this_) {
+                    if (this_.glyphs.length === 0) {
+                        this_.setNamingField(this_.selectedOrderFeature)
+                        this_.addDataBoundGlyphs({
+                            glyphName: this_.writtenGlyphName,
+                            glyphTypeName: this_.selectedGlyphType
+                        })
+                        this_.changeDisplayedGlyphNum(this_.maxDisplayedGlyphs)
+                        // this_.activateRedrawing()
+                    } else {
+                        this_.setNamingField(this_.selectedOrderFeature)
+                        this_.makeEmptyGlyphs({
+                            glyphName: this_.writtenGlyphName,
+                            glyphTypeName: this_.selectedGlyphType
+                        })
+                    }
+                    if (this_.selectedGlyphShape === 'custom') {
+                        this_.assignGlyphToShape({shapeName: this_.globalShape.name, glyphName: this_.writtenGlyphName})
+                    }
+                    this_.reset()
+                }, 100, this)
+            }
+        },
+        redrawShape () {
+            this.removeShapeJSON(this.globalShape.name)
+            this.setShapeCanvasState(true)
+        },
+        reset () {
+            this.writtenGlyphName = ''
+            this.selectedGlyphType = ''
+            this.selectedGlyphShape = ''
+            this.selectedOrderFeature = ''
+        }
+    },
+    watch: {
+        selectedGlyphShape () {
+            if (this.selectedGlyphShape === 'custom' && !this.globalShape) {
+                this.setShapeCanvasState(true)
+            } else {
+                this.setShapeCanvasState(false)
             }
         }
     }
@@ -150,11 +213,12 @@ export default {
 </script>
 
 <style scoped>
-.panel {
-    margin-top: 0px;
-}
-.select-title{
-    position: relative;
-    margin-top: 5px
-}
+    .panel {
+        margin-top: 2px;
+    }
+    .select-title{
+        position: relative;
+        margin-top: 20px;
+        width: 100%
+    }
 </style>

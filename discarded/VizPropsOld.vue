@@ -14,6 +14,7 @@
             label="Glyph Name"
             placeholder="Select an existing glyph"
             v-model="selectedGlyphName"
+            :disabled="Boolean(rebinding)"
             @change="$emit('update:shapeName', selectedGlyphName)"
           />
         </div>
@@ -43,13 +44,13 @@
       >
         <div class="select-title">
           <v-select
-                  :items="featuresItems"
+                  :items="dataFields"
                   dense
                   label="Data Feature"
                   placeholder="Select a data feature to bind"
                   v-model="selectedFieldName"
-                  @change="applyBindingChange"
-                  :disabled="!Boolean(selectedElement) || !selectedGlyphName"
+                  @change="onSelectFieldName"
+                  :disabled="rebinding === 'field' || !selectedGlyphName"
           />
         </div>
       </v-toolbar>
@@ -61,6 +62,74 @@
           <!--Rebinding controls-->
           <!--v-if converts to boolean-->
           <div class="re-bind" v-show="selectedElementName">
+            <v-tooltip
+                    class="tooltip"
+                    open-delay="700"
+                    bottom
+                    :disabled="Boolean(rebinding)"
+            >
+              <v-btn icon
+                     slot="activator"
+                     v-if="!rebinding"
+                     color="primary"
+                     @click="rebinding = 'element'"
+                     class="bind-item text--white"
+                     :disabled="selectedElementName === 'unbound'"
+              >
+                <v-icon color="white">nature</v-icon>
+              </v-btn>
+              <span>Choose feature to bind to selected element</span>
+            </v-tooltip>
+            <v-tooltip
+                    class="tooltip"
+                    open-delay="700"
+                    bottom
+                    :disabled="Boolean(rebinding)"
+            >
+              <v-btn icon
+                     slot="activator"
+                     v-if="!rebinding"
+                     color="light"
+                     @click="rebinding = 'field'"
+                     class="bind-item primary--text"
+                     :disabled="selectedFieldName === 'unbound'"
+              >
+                <v-icon color="primary">texture</v-icon>
+              </v-btn>
+              <span>Choose element to bind to selected feature</span>
+            </v-tooltip>
+            <v-tooltip
+                    class="tooltip"
+                    open-delay="700"
+                    bottom
+            >
+              <v-btn icon
+                     slot="activator"
+                     v-if="rebinding"
+                     color="secondary"
+                     @click="applyBindingChange"
+                     class="bind-item primary--text"
+              >
+                <v-icon color="primary">check_circle</v-icon>
+              </v-btn>
+              <span>Apply selection</span>
+            </v-tooltip>
+            <v-tooltip
+                    class="tooltip"
+                    open-delay="700"
+                    bottom
+            >
+              <v-btn icon
+                     slot="activator"
+                     v-show="rebinding"
+                     color="primary"
+                     @click="rebinding = false"
+                     class="bind-item"
+              >
+                <v-icon color="white">cancel</v-icon>
+              </v-btn>
+              <span>Cancel selection</span>
+            </v-tooltip>
             <v-tooltip
                     class="tooltip"
                     open-delay="700"
@@ -156,7 +225,7 @@ export default {
   },
   data () {
     return {
-      rebinding: 'element',
+      rebinding: '',
       selectedGlyphName: '',
       selectedElementName: '',
       selectedElement: {
@@ -207,22 +276,6 @@ export default {
         color: Boolean(this.selectedElement.properties.color),
         mode: Boolean(this.selectedElement.properties.mode)
       }
-    },
-    featuresItems () {
-      const maxFieldLen = 30
-      const featureItems = []
-      for (let field of this.dataFields) {
-        let fieldIsBound = this.bindings.some(binding => binding.field === field)
-        let whiteSpace = []
-        for (let i = field.length; i <= maxFieldLen - 3; i++) {
-          whiteSpace.push(' ')
-        }
-        featureItems.push({
-          text: field.slice(0, maxFieldLen) + whiteSpace.join('') + (fieldIsBound ? '(B)' : ''),
-          value: field
-        })
-      }
-      return featureItems
     }
   },
   methods: {
@@ -272,7 +325,27 @@ export default {
         }, 300, this)
       }
     },
-    async applyBindingChange () { // handle change of field associated with element
+    onSelectFieldName () {
+      if (this.selectedFieldName && this.rebinding !== 'element') {
+        const fieldBinding = this.bindings.find(binding => binding.field === this.selectedFieldName)
+        if (fieldBinding) {
+          this.selectedElementName = fieldBinding.element
+          this.selectGlyphEl({layer: this.selection.layer, path: fieldBinding.element}) // FIXME unused
+          const selectedElement = this.selectedGlyphElements.find(element => element.name === fieldBinding.element)
+          if (selectedElement) {
+            this.selectedElement = selectedElement
+          }
+        } else {
+          this.selectedElementName = 'unbound'
+          this.selectedElement = {name: '', properties: {}}
+        }
+        this.elementSelectColor = 'light'
+        setTimeout(function (this_) {
+          this_.elementSelectColor = 'dark'
+        }, 300, this)
+      }
+    },
+    applyBindingChange () { // handle change of field associated with element
       // Apply new field selection FIXME test this
       const shape = [...this.glyphs[0].iter()].find(glyph => glyph.name === this.selectedGlyphName).shape
       let newBinding = {
@@ -282,22 +355,35 @@ export default {
         shape: shape
       }
       let oldBinding
-      oldBinding = this.bindings.find(
-              binding => binding.name === this.selectedGlyphName && binding.field === this.selectedFieldName
-      )
-      setTimeout(function (this_, newBinding) {
-        this_.redrawElement(newBinding)
-      }, 100, this, newBinding)
-      this.redrawElement(newBinding)
+      if (this.rebinding === 'element') {
+        oldBinding = this.bindings.find(
+                binding => binding.name === this.selectedGlyphName && binding.field === this.selectedFieldName
+        )
+      } else if (this.rebinding === 'field') {
+        oldBinding = this.bindings.find(
+                binding => binding.name === this.selectedGlyphName && binding.element === this.selectedElementName
+        )
+      } else {
+        throw Error("Shouldn't be here")
+      }
+      this.redrawElement(newBinding) // FIXME this will break for protrusions
       this.reset({
         selectedElementName: newBinding.element,
         selectedField: newBinding.field
       }) // reset all except element name
       this.onSelectElementName() // find element to read properties and display controls
-      console.log(`${this.selectedFieldName} was bound to ${this.selectedGlyphName}.${this.selectedElementName}`)
-      if (oldBinding) {
-        console.log(`(previously bound to ${oldBinding.element})`)
+      if (this.rebinding === 'field') {
+        console.log(`${this.selectedGlyphName}.${this.selectedElementName} was bound to ${this.selectedFieldName}`)
+        if (oldBinding) {
+          console.log(`(previously bound to ${oldBinding.field})`)
+        }
+      } else {
+        console.log(`${this.selectedFieldName} was bound to ${this.selectedGlyphName}.${this.selectedElementName}`)
+        if (oldBinding) {
+          console.log(`(previously bound to ${oldBinding.element})`)
+        }
       }
+      this.rebinding = ''
     },
     applyUnbinding () { // unbinds element or feature
       let oldBinding

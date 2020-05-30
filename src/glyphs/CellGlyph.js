@@ -43,7 +43,7 @@ class CellGlyph extends ShapeGlyph {
     return {
         name: 'shapeType', // NB case sensitive
         message: 'Select glyph shape',
-        options: ['ellipse', 'rectangle', 'circle', 'regularPolygon', 'customShape'],
+        options: ['ellipse', 'rectangle', 'circle', 'regularPolygon', 'custom'],
         default: 'ellipse'
     }
   }

@@ -3,7 +3,7 @@
     <v-divider/>
     <span class="app-title light--text subheading">Glyph position:</span>
     <div class="move-resize-commands">
-      <v-slider label="Horizontal" min="1" max="3" step="1" v-model="leftShiftSliderValue" class="control-item position-slider"
+      <v-slider label="X" min="0" max="1" step="0.05" v-model="leftShiftSliderValue" class="control-item position-slider"
                 @change="planLeftShift">
         <template v-slot:append>
           <v-text-field
@@ -15,7 +15,7 @@
           ></v-text-field>
         </template>
       </v-slider>
-      <v-slider label="Vertical" min="1" max="3" step="1" v-model="topShiftSliderValue" class="control-item position-slider"
+      <v-slider label="Y" min="0" max="1" step="0.05" v-model="topShiftSliderValue" class="control-item position-slider"
                 @change="planTopShift">
         <template v-slot:append>
           <v-text-field
@@ -27,11 +27,23 @@
           ></v-text-field>
         </template>
       </v-slider>
-      <v-slider label="Scale" min="1" max="3" step="1" v-model="scaleSliderValue" class="control-item position-slider"
-                @change="planWidthResize(); planHeightResize()">
+      <v-slider label="W" min="0" max="1" step="0.05" v-model="widthProportionSliderValue" class="control-item position-slider"
+                @change="planWidthResize">
         <template v-slot:append>
           <v-text-field
-                  v-model="scaleSliderValue"
+                  v-model="widthProportionSliderValue"
+                  class="mt-0 pt-0 num-field"
+                  hide-details
+                  single-line
+                  type="number"
+          ></v-text-field>
+        </template>
+      </v-slider>
+      <v-slider label="H" min="0" max="1" step="0.05" v-model="heightProportionSliderValue" class="control-item position-slider"
+                @change="planHeightResize">
+        <template v-slot:append>
+          <v-text-field
+                  v-model="heightProportionSliderValue"
                   class="mt-0 pt-0 num-field"
                   hide-details
                   single-line
@@ -81,10 +93,10 @@ import Deque from 'double-ended-queue'
 
 function initializePositionStore () {
   return {
-    leftShift: 0,
-    topShift: 0,
-    widthProportion: 1,
-    heightProportion: 1,
+    leftShift: 0.0,
+    topShift: 0.0,
+    widthProportion: 1.0,
+    heightProportion: 1.0,
     steps: new Deque(10),
     changeChildren: false
   }
@@ -113,9 +125,10 @@ export default {
       set heightProportion (heightProportion) {this.positionStore[this.shapeName_].heightProportion = heightProportion},
       set steps (steps) {this.positionStore[this.shapeName_].steps = steps},
       set changeChildren (changeChildren) {this.positionStore[this.shapeName_].changeChildren = changeChildren},
-      leftShiftSliderValue: 2,
-      topShiftSliderValue: 2,
-      scaleSliderValue: 3,
+      leftShiftSliderValue: 0.0,
+      topShiftSliderValue: 0.0,
+      widthProportionSliderValue: 1.0,
+      heightProportionSliderValue: 1.0,
       changeChildrenBoxValue: false,
       totalGlyphNumStore: 0,
       glyphNamesStore: new Set (),
@@ -128,6 +141,48 @@ export default {
       totalGlyphNum: state => state.glyph.project.totalGlyphNum,
       glyphNames: state => state.glyph.project.glyphNames
     }),
+    meanShapeBounds () {
+      const leftShiftSum = this.glyphs.reduce((total, nextGlyph) => {
+        if (nextGlyph.drawn && nextGlyph.box) {
+          const shift = (nextGlyph.box.bounds.x - nextGlyph.box.drawingBounds.x) / nextGlyph.box.drawingBounds.width
+          return total + shift
+        } else {
+          return total
+        }
+      }, 0.0)
+      const topShiftSum = this.glyphs.reduce((total, nextGlyph) => {
+        if (nextGlyph.drawn && nextGlyph.box) {
+          const shift = (nextGlyph.box.bounds.y - nextGlyph.box.drawingBounds.y) / nextGlyph.box.drawingBounds.height
+          return total + shift
+        } else {
+          return total
+        }
+      }, 0.0)
+      const widthProportionSum = this.glyphs.reduce((total, nextGlyph) => {
+        if (nextGlyph.drawn && nextGlyph.box) {
+          const proportion = nextGlyph.box.bounds.width / nextGlyph.box.drawingBounds.width
+          return total + proportion
+        } else {
+          return total
+        }
+      }, 1.0)
+      const heightProportionSum = this.glyphs.reduce((total, nextGlyph) => {
+        if (nextGlyph.drawn && nextGlyph.box) {
+          const proportion = nextGlyph.box.bounds.height / nextGlyph.box.drawingBounds.height
+          return total + proportion
+        } else {
+          return total
+        }
+      }, 1.0)
+      const numDrawn = this.glyphs.reduce(
+              (total, nextGlyph) => total + Number(nextGlyph.drawn && Boolean(nextGlyph.box)), 1)
+      return {
+        leftShift: leftShiftSum / numDrawn,
+        topShift : topShiftSum / numDrawn,
+        widthProportion: widthProportionSum / numDrawn,
+        heightProportion: heightProportionSum / numDrawn
+      }
+    },
     originalShapePositions () {
       if (([...this.glyphNames].some(name => !this.glyphNamesStore.has(name)) ||
               [...this.glyphNamesStore].some(name => !this.glyphNames.has(name)) ||
@@ -157,31 +212,31 @@ export default {
     planLeftShift: debounce.call(this, function () {
       this.leftShift = this.leftShiftSliderValue
       this.steps.push({
-        transform: 'relativeShift',
+        transform: 'shift',
         parameters: [this.leftShift, null, {
           setValues: true,
           drawing: false,
           scale: false,
           children: false,
-          redraw: false}]
+          redraw: true}]
       })
-      setTimeout(this.applySteps, 300)
+      this.applySteps()
     }, 400),
     planTopShift: debounce.call(this, function () {
       this.topShift = this.topShiftSliderValue
       this.steps.push({
-        transform: 'relativeShift',
+        transform: 'shift',
         parameters: [null, this.topShift, {
           setValues: true,
           drawing: false,
           scale: false,
           children: false,
-          redraw: false}]
+          redraw: true}]
       })
-      setTimeout(this.applySteps, 300)
+      this.applySteps()
     }, 400),
     planWidthResize: debounce.call(this, function () {
-      this.widthProportion = this.scaleSliderValue/3
+      this.widthProportion = this.widthProportionSliderValue
       this.steps.push({
         transform: 'resize',
         parameters: [this.widthProportion, null, {
@@ -191,10 +246,10 @@ export default {
           children: false,
           redraw: true}]
       })
-      setTimeout(this.applySteps, 300)
+      this.applySteps()
     }, 400),
     planHeightResize: debounce.call(this, function () {
-      this.heightProportion = this.scaleSliderValue/3
+      this.heightProportion = this.heightProportionSliderValue
       this.steps.push({
         transform: 'resize',
         parameters: [null, this.heightProportion, {
@@ -204,7 +259,7 @@ export default {
           children: false,
           redraw: true}]
       })
-      setTimeout(this.applySteps, 300)
+      this.applySteps()
     }, 400),
     planCentering () {
       this.steps.push({
@@ -215,11 +270,9 @@ export default {
           center: false,
           children: false}]
       })
-      setTimeout(this.applySteps, 300)
-      this.leftShift = 2
-      this.topShift = 2
-      this.leftShiftSliderValue = 2
-      this.topShiftSliderValue = 2
+      this.applySteps()
+      this.leftShift = this.meanShapeBounds.leftShift
+      this.topShift = this.meanShapeBounds.topShift
     },
     resetOriginalPosition () {
       this.steps.push({
@@ -230,7 +283,7 @@ export default {
           {setValues: true, scale: false, children: false, redraw: false}
           ]
       })
-      setTimeout(this.applySteps, 300)
+      this.applySteps()
     },
     applySteps: debounce.call(this, function () { // once steps are sent to glyphs, they are cleared up
       this.changeChildren = this.changeChildrenBoxValue
@@ -251,7 +304,8 @@ export default {
       // reset slider values with values for current shape
       this.leftShiftSliderValue = this.leftShift
       this.topShiftSliderValue = this.topShift
-      this.scaleSliderValue = Math.round(this.widthProportion*3.0)
+      this.widthProportionSliderValue = this.widthProportion
+      this.heightProportionSliderValue = this.heightProportion
     },
     glyph () {
       this.glyphNamesStore = this.glyphNames
@@ -280,6 +334,7 @@ export default {
   }
 
   .control-item{
+    max-width: 150px;
   }
 
   .num-field{

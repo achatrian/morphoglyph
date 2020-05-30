@@ -81,6 +81,8 @@ export default {
     }
   },
 
+  assignGlyphToShape: ({commit}, payload) => commit('assignGlyphToShape', payload),
+
   removeShapeJSON: ({commit}, name) => commit('removeShapeJSON', name),
 
   setVarShapeAssignment: ({commit}, varShapeAssignment) => commit('setVarShapeAssignment', varShapeAssignment),

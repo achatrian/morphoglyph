@@ -1,82 +1,47 @@
 <template>
     <v-card id='content' class="light elevation-5" v-resize="updateBoxRects">
-        <!--<v-card-title class="title">Add new shapes and assign shapes to variables</v-card-title>-->
-        <v-layout column justify-space-around>
-            <v-layout row>
-                <v-flex xs6 sm4>
-                    <div id="drawing-box" class="canvas-box" ref="drawingBox">
-                    </div>
-                </v-flex>
-                <v-flex xs6 sm4>
-                    <div class="buttons">
-                        <!--TODO remove draw button and always allow drawing (but remove tool when possible to save run-time)-->
-                        <v-btn class="btn white--text primary"
-                               :disabled="drawingMode"
-                               @click="drawPath">
-                            Draw
-                        </v-btn>
-                        <div class="text-field btn">
-                            <v-text-field
-                                    style="z-index: 4"
-                                    label="Enter glyph name"
-                                    v-model="newShapeName"
-                            />
-                        </div>
-                        <v-btn class="btn primary light--text"
-                               :disabled="!drawingMode"
-                               @click="savePath">
-                            Save
-                        </v-btn>
-                        <v-btn class="btn secondary dark--text"
-                               :disabled="!drawingMode"
-                               @click="removePath">
-                            Clear
-                        </v-btn>
-                    </div>
-                </v-flex>
-                <v-flex xs6 sm3>
-                    <div class="explanation-out">
-                        <div class="explanation-in">
-                            Click on a shape and a categorical value in order to assign the shape to the value
-                        </div>
-                    </div>
-                    <v-select class="btn variable-selector"
-                              outlined
-                              :items="categoricals"
-                              label="Choose feature for shape assignment"
-                              v-model="selectedCategorical"
-                    />
-                    <v-btn class="btn close-button" depressed @click="applyShapes">
-                        <v-icon color="primary">done</v-icon>
+        <v-layout row justify-space-around>
+            <v-flex xs6 sm4>
+                <div id="drawing-box" class="canvas-box" ref="drawingBox"></div>
+            </v-flex>
+            <v-flex xs6 sm4>
+                <div class="buttons">
+                    <!--TODO remove draw button and always allow drawing (but remove tool when possible to save run-time)-->
+                    <v-btn class="btn white--text primary"
+                           :disabled="drawingMode"
+                           @click="drawPath">
+                        Draw
                     </v-btn>
-                </v-flex>
-            </v-layout>
-            <v-layout>
-                <v-flex xs6 sm6 class="btn">
-                    <app-scroll-options id="shape-list" title="Saved shapes" :items="shapeNames"
-                                        @change="loadShape" @buttonClick="removeShape"/>
-                </v-flex>
-                <v-flex xs6 sm6 class="btn">
-                    <app-scroll-options id="value-list" title="Categorical values" :items="categoricalValues"
-                                        @change="assignShape" @buttonClick="unassignShape"/>
-
-                </v-flex>
-            </v-layout>
+                    <div class="text-field btn">
+                        <v-text-field
+                                style="z-index: 4"
+                                label="Shape name"
+                                placeholder="Assign name to shape"
+                                v-model="newShapeName"
+                        />
+                    </div>
+                    <v-btn class="btn primary light--text"
+                           :disabled="!drawingMode"
+                           @click="savePath">
+                        Save
+                    </v-btn>
+                    <v-btn class="btn secondary dark--text"
+                           :disabled="!drawingMode"
+                           @click="removePath">
+                        Clear
+                    </v-btn>
+                </div>
+            </v-flex>
         </v-layout>
-        <!-- drawingBounds where new shape can be drawn -->
     </v-card>
 </template>
 
 <script>
-    import paper from 'paper'
-    import {mapState, mapActions} from 'vuex'
-    import ScrollOptions from './panels/ScrollOptions'
+    import paper from "paper"
+    import {mapActions} from 'vuex'
 
     export default {
-        name: "ShapeManager",
-        components: {
-            'app-scroll-options': ScrollOptions
-        },
+        name: "ShapeCanvas",
         data () {
             return {
                 newShapeName: '',
@@ -84,74 +49,12 @@
                 drawingBounds: {top: 0, bottom:0, left: 0, right: 0, width: 0, height: 0},
                 drawGlyphTool: null,
                 path: null,
-                loadedShape: '',
-                selectedCategorical: ''
-            }
-        },
-        computed: {
-            ...mapState({
-                shapeJSONStore: state => state.backend.shapeJSONStore,
-                fieldTypes: state => state.backend.fieldTypes,
-                featuresRanges: state => state.backend.featuresRanges,
-                varShapeAssignment: state => state.backend.varShapeAssignment
-            }),
-            shapeNames () { // names of glyph types for selection
-                const shapeNames = []
-                let i = 0
-                for (let name of this.shapeJSONStore.keys()) {
-                    shapeNames.push({
-                        id: i,
-                        key: name,
-                        value: name,
-                        selected: false,
-                        button: true
-                    })
-                    i++
-                }
-                return shapeNames
-            },
-            categoricals () {
-                const categoricals = []
-                const fieldNames = Object.keys(this.fieldTypes)
-                for (let fieldName of fieldNames) {
-                    if (this.fieldTypes[fieldName] === String) {
-                        categoricals.push(fieldName)
-                    }
-                }
-                return categoricals
-            },
-            categoricalValues () {
-                const categoricalValues = []
-                if (this.selectedCategorical) {
-                    let i = 0
-                    for (let value of this.featuresRanges[this.selectedCategorical]) {
-                        const valueAssignment = this.varShapeAssignment.find(
-                            assignment => assignment.categoricalValue === value
-                        )
-                        const text = valueAssignment ? value + ` ( assigned shape: ${valueAssignment.shape} )`: value
-                        categoricalValues.push({
-                            id: i,
-                            key: value,
-                            value: text,
-                            selected: false,
-                            button: Boolean(valueAssignment) // button to remove shape assignment
-                        })
-                        i++
-                    }
-                }
-                return categoricalValues
             }
         },
         methods: {
             ...mapActions({
-                setShapeManagerState: 'app/setShapeManagerState',
-                reassignGlyphLayer: 'glyph/reassignGlyphLayer',
-                updateGlyphArrangement: 'app/updateGlyphArrangement',
-                storeShapeJSON: 'backend/storeShapeJSON',
-                activateSnackbar: 'app/activateSnackbar',
-                removeShapeJSON: 'backend/removeShapeJSON',
-                setVarShapeAssignment: 'backend/setVarShapeAssignment',
-                activateRedrawing: 'glyph/activateRedrawing'
+               setShapeCanvasState: 'app/setShapeCanvasState',
+                storeShapeJSON: 'backend/storeShapeJSON'
             }),
             initialiseTool () {
                 paper.PaperScope.get(0).activate()
@@ -308,7 +211,7 @@
                     this.storeShapeJSON({
                         name: this.newShapeName,
                         shapeJSON: this.path.exportJSON(),
-                        type: 'categorical'
+                        type: 'global' // global shape is applied to all glyphs that don't have a
                     })
                     this.drawingMode = false
                     this.removePath()
@@ -320,63 +223,13 @@
                         timeout: 2000
                     })
                 }
+                this.setShapeCanvasState(false)
             },
             removePath () {
                 if (this.path) {
                     this.path.remove()
                     this.path = null
                 }
-            },
-            loadShape (name) {
-                this.removePath()
-                paper.project.layers['temp'].activate()
-                const path = new paper.Path()
-                path.importJSON(this.shapeJSONStore.get(name))
-                path.translate(new paper.Point(
-                    this.drawingBounds.center.x - path.bounds.center.x,
-                    this.drawingBounds.center.y - path.bounds.center.y
-                ))
-                path.scale(
-                    0.9 * (this.drawingBounds.width / path.bounds.width),
-                    0.9 * (this.drawingBounds.height / path.bounds.height)
-                )
-                this.path = path
-                this.loadedShape = name
-                this.endDrawing()
-            },
-            removeShape (name) {
-                this.removeShapeJSON(name)
-                this.removePath()
-            },
-            assignShape (categoricalValue) {
-                const varShapeAssignment = this.varShapeAssignment.map(assignment => Object.assign({}, assignment))
-                const valueAssignment = varShapeAssignment.find(
-                    assignment => assignment.categoricalValue === categoricalValue &&
-                        assignment.shape === this.loadedShape && assignment.field === this.selectedCategorical
-                )
-                if (valueAssignment) {
-                    valueAssignment.categoricalValue = categoricalValue
-                } else {
-                    varShapeAssignment.push({
-                        categoricalValue: categoricalValue,
-                        shape: this.loadedShape,
-                        field: this.selectedCategorical
-                    })
-                }
-                this.setVarShapeAssignment(varShapeAssignment)
-            },
-            unassignShape (categoricalValue) {
-                 const varShapeAssignment = this.varShapeAssignment
-                    .map(assignment => Object.assign({}, assignment))
-                    .filter(
-                    assignment => !(assignment.categoricalValue === categoricalValue && assignment.field === this.selectedCategorical)
-                )
-                this.setVarShapeAssignment(varShapeAssignment)
-            },
-            applyShapes () {
-                this.setShapeManagerState(false)
-                setTimeout(function () {})
-                this.activateRedrawing()
             }
         },
         beforeDestroy () {
@@ -388,9 +241,8 @@
 </script>
 
 <style scoped>
-    /* can try to use grid area as well ? */
     #content{
-        width: 90%;
+        width: 50%;
         margin: auto
     }
 
@@ -412,50 +264,13 @@
         display: flex;
         justify-content: center;
         flex-wrap: wrap;
-        max-width: 40%;
+        max-width: 90%;
         margin: auto
-    }
-
-    .text-field{
-        margin: auto;
-    }
-
-    #shape-list{
-    }
-
-    #value-list{
     }
 
     .btn{
         z-index: 4
         /*canvas is used. For input fields, need to put above canvas in z-stack
         btn class gives z-index value of 4 > 3, the canvas' value*/
-    }
-
-    .close-button{
-        margin: auto;
-        margin-left: 50%
-    }
-
-    .explanation-out{
-        background-color: #D1C4E9;
-        border: 1px solid #424242;
-        color: white;
-        max-width: 80%;
-        margin: auto;
-        text-align: justify;
-        text-justify: inter-word;
-    }
-
-    .explanation-in{
-        color: white;
-        max-width: 95%;
-        margin: auto;
-        text-align: justify;
-        text-justify: inter-word;
-    }
-
-    .variable-selector {
-        margin: auto
     }
 </style>

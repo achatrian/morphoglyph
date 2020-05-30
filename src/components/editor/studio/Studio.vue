@@ -16,8 +16,8 @@
   <div class="pointers-please studioPanel elevation-1">
     <!--studio applets go in here-->
     <!--turning off viz props when binder is showing (as multiple binding UIs would be confusing)-->
-    <app-viz-props v-show="glyphs.length > 0" :shapeName.sync="shapeName"/>
     <app-glyph-adder/>
+    <app-viz-props v-show="glyphs.length > 0" :shapeName.sync="shapeName"/>
     <app-positioner v-show="glyphs.length > 0" :shape-name="shapeName"/>
     <app-chart-controller v-show="glyphs.length > 0"/>
     <!--<app-shape-canvas/>-->
