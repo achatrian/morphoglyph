@@ -190,86 +190,93 @@ export default {
           boundingRect: {left: Number, top: Number, width: Number, height: Number}
     } */
     checkRect(boundingRect) // ensures correct rect format
-    let glyph = state.project.glyphs.find(glyph => glyph.id === glyphId)
-    state.activeLayer = glyph.layer // activate layer corresponding to glyph
-    glyph.activateLayer()
-    // Handle scaling of glyph
-    let scaleOrders = []
-    for (let binding of state.project.bindings) {
-      let glyphElement = state.glyphElements.find(element => element.name === binding.element)
-      if (glyphElement.type !== 'scale' && !glyphElement.properties.requiresTransform) {
-        continue // skipping bindings that are not scales and do not require a transform
+    const topGlyph = state.project.glyphs.find(glyph => glyph.id === glyphId)
+    for (const glyph of topGlyph.iter()) { // draw all undrawn glyphs for the given glyphId
+      if (glyph.drawn) {
+        continue
       }
-      let scaleOrder = {
-        ...binding,
-        value: dataPoint[binding.field]
-      }
-      scaleOrders.push(scaleOrder)
-    }
-    // pass custom shape according to categorical features
-    const shapeJSONs = []
-    for (let assignment of varShapeAssignment) {
-      if (dataPoint[assignment.field] === assignment.categoricalValue) {
-        shapeJSONs.push(shapeJSONStore.get(assignment.shape).json)
-        // for glyphs that require named shapes (N.B not used yet)
-        shapeJSONs[assignment.shape] = shapeJSONStore.get(assignment.shape).json
-      }
-    }
-    // otherwise pass global shape
-    if (shapeJSONs.length === 0) {
-      for (const {json, type} of shapeJSONStore.values()) {
-        if (type === 'global') {
-          shapeJSONs.push(json)
+      state.activeLayer = glyph.layer // activate layer corresponding to glyph
+      glyph.activateLayer()
+      // Handle scaling of glyph
+      let scaleOrders = []
+      for (let binding of state.project.bindings) {
+        if (binding.name === glyph.name) {
+          let glyphElement = state.glyphElements.find(element => element.name === binding.element)
+          if (glyphElement.type !== 'scale' && !glyphElement.properties.requiresTransform) {
+            continue // skipping bindings that are not scales and do not require a transform
+          }
+          let scaleOrder = {
+            ...binding,
+            value: dataPoint[binding.field]
+          }
+          scaleOrders.push(scaleOrder)
         }
       }
-    }
-    // enforce relative position of glyph if present
-    const glyphBox = glyphBoxes.find(glyphBox => glyphBox._id === glyph.id)
-    let drawOptions = {
-      boundingRect: {...boundingRect},
-      scaleOrders: scaleOrders,
-      [state.glyphSettings.name]: state.selectedGlyphSetting,
-      shapeJSONs: shapeJSONs, // used by glyphs to draw custom main paths
-      glyphBox: glyphBox
-    }
-    // Draw all glyph paths
-    glyph.draw(drawOptions)
-    let targetGlyph
-    // elements are drawn according to their priority value in decreasing order (the default is 0)
-    // need to clone the binding array first as .sort() mutates its parent
-    const orderedBindings = [...state.project.bindings].sort(binding => {
-      let element = state.glyphElements.find(element => element.name === binding.element)
-      if (element.properties.priority) {
-        return  - element.properties.priority // negative sign needed as sorting order will be ascending
-      } else {
-        return 0
+      // pass custom shape according to categorical features
+      const shapeJSONs = []
+      for (let assignment of varShapeAssignment) {
+        if (dataPoint[assignment.field] === assignment.categoricalValue) {
+          shapeJSONs.push(shapeJSONStore.get(assignment.shape).json)
+          // for glyphs that require named shapes (N.B not used yet)
+          shapeJSONs[assignment.shape] = shapeJSONStore.get(assignment.shape).json
+        }
       }
-    })
-    for (let binding of orderedBindings) {
-      let glyphElement = state.glyphElements.find(element => element.name === binding.element)
-      if (glyphElement.type === 'scale') {
-        continue // skipping bindings to scale-type elements
+      // otherwise pass global shape
+      if (shapeJSONs.length === 0) {
+        for (const {json, type, glyph: glyphName} of shapeJSONStore.values()) {
+          if (type === 'global' && glyphName === glyph.name) {
+            shapeJSONs.push(json)
+          }
+        }
       }
-      if (glyph.shape === binding.shape) {
-        targetGlyph = glyph
-      } else {
-        targetGlyph = glyph.getChild(binding.shape, 'shape')
-      } // target is either main glyph or one of children
-      if (typeof targetGlyph === 'undefined') {
-        throw new Error(`Neither glyph ${glyphId} nor its children match shape '${binding.shape}' `)
+      // enforce relative position of glyph if present
+      const glyphBox = glyphBoxes.find(glyphBox => glyphBox._id === glyph.id)
+      let drawOptions = {
+        boundingRect: {...boundingRect},
+        scaleOrders: scaleOrders,
+        [state.glyphSettings.name]: state.selectedGlyphSetting,
+        shapeJSONs: shapeJSONs, // used by glyphs to draw custom main paths
+        glyphBox: glyphBox
       }
-      try {
-        targetGlyph['draw' + binding.element](dataPoint[binding.field]) // get draw method for element and call it
-      } catch (e) {
-        if (typeof targetGlyph['draw' + binding.element] === 'undefined') {
-          throw new Error(`Handler for element ${binding.element} not defined on glyph type ${targetGlyph.name}`)
+      // Draw all glyph paths
+      glyph.draw(drawOptions)
+      let targetGlyph
+      // elements are drawn according to their priority value in decreasing order (the default is 0)
+      // need to clone the binding array first as .sort() mutates its parent
+      const orderedBindings = [...state.project.bindings].sort(binding => {
+        let element = state.glyphElements.find(element => element.name === binding.element)
+        if (element.properties.priority) {
+          return  - element.properties.priority // negative sign needed as sorting order will be ascending
         } else {
-          throw e
+          return 0
+        }
+      })
+      for (let binding of orderedBindings) {
+        let glyphElement = state.glyphElements.find(element => element.name === binding.element)
+        if (glyphElement.type === 'scale') {
+          continue // skipping bindings to scale-type elements
+        }
+        if (glyph.shape === binding.shape) {
+          targetGlyph = glyph
+        } else {
+          targetGlyph = glyph.getChild(binding.shape, 'shape')
+        } // target is either main glyph or one of children
+        if (typeof targetGlyph === 'undefined') {
+          throw new Error(`Neither glyph ${glyphId} nor its children match shape '${binding.shape}' `)
+        }
+        try {
+          targetGlyph['draw' + binding.element](dataPoint[binding.field]) // get draw method for element and call it
+        } catch (e) {
+          if (typeof targetGlyph['draw' + binding.element] === 'undefined') {
+            throw new Error(`Handler for element ${binding.element} not defined on glyph type ${targetGlyph.name}`)
+          } else {
+            throw e
+          }
         }
       }
+      // Group all drawn paths to enable movements of individual shapes
+      glyph.buildGroups()
     }
-    // Group all drawn paths to enable movements of individual shapes
-    glyph.buildGroups()
   },
 
   moveGlyph: (state, {boundingRect, glyphId}) => {
@@ -390,16 +397,24 @@ export default {
   },
 
   // *** other drawings ***
-  addCaption: (state, {glyphIndex, caption}) => { //boundingRect, }) => {
+  addCaption: (state, {glyphIndex, caption}) => { // boundingRect, }) => {
+    const captionLength = 20 // used to centre caption slightly more, but it's a hack
+    if (caption.length > captionLength) {
+      caption = caption.slice(0, 16)
+    } else {
+      const padLength = (captionLength - caption.length)/2
+      caption = caption.padStart(Math.floor(padLength) + caption.length, ' ') // deprecated in IE11!
+      caption = caption.padEnd(captionLength, ' ')
+    }
     state.activeLayer = glyphIndex
-    // const {left, top, width, height} = boundingRect
-    const {x, y, width, height} = state.project.glyphs[glyphIndex].mainPath.bounds
+    const drawingBox = state.project.glyphs[glyphIndex].getItem('drawingBox')
+    const {x, y, width, height} = drawingBox.bounds
     // eslint-disable-next-line no-unused-vars
     const scope = glyphScope()
     scope.activate()
     new scope.PointText({
       point: [
-        x + width / 10, // starting point of text TODO move to middle
+        x + width / 10, // starting point of text
         y + height * 1.15 // slightly below glyph
       ],
       content: caption,
@@ -409,20 +424,20 @@ export default {
   },
 
   // *** glyph property setter ***
-  setGlyphParameters: (state, {parameters, shapeName}) => {
+  setGlyphParameters: (state, {parameters, glyphName}) => {
     let targetGlyph
     for (let glyph of state.project.glyphs) {
-      if (glyph.name === shapeName) {
+      if (glyph.name === glyphName) {
         targetGlyph = glyph
       } else {
-        targetGlyph = glyph.getChild(shapeName)
+        targetGlyph = glyph.getChild(glyphName)
       } // target is either main glyph or one of its children
       if (!targetGlyph) {
-        throw new Error(`No glyph matching '${shapeName}'`)
+        throw new Error(`No glyph matching '${glyphName}'`)
       }
       for (let parameter of Object.keys(parameters)) {
         if (!targetGlyph.parameters.hasOwnProperty(parameter)) {
-          throw Error(`Attempted to change non-existent parameter ${parameter}`)
+          console.warn(`Attempted to change non-existent parameter ${parameter}`)
         }
       }
       Object.assign(targetGlyph.parameters, parameters)
