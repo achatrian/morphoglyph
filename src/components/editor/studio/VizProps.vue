@@ -107,7 +107,7 @@
             <a slot="activator" v-show="hasProperties.color">
               <div
                 :style="{ 'background-color': colorPick.hex}"
-                style="position: relative; right:135px"
+                style="position: relative; right:120px"
                 class="color-tile"
               />
             </a>
@@ -218,7 +218,7 @@ export default {
           whiteSpace.push(' ')
         }
         featureItems.push({
-          text: field.slice(0, maxFieldLen) + whiteSpace.join('') + (fieldIsBound ? '(B)' : ''),
+          text: field.slice(0, maxFieldLen) + whiteSpace.join('') + (fieldIsBound ? '(O)' : ''),
           value: field
         })
       }
@@ -316,7 +316,7 @@ export default {
         parameters: {
           [this.selectedElement.name.toLocaleLowerCase() + 'Mode']: this.selectedMode
         },
-        shapeName: this.selectedGlyphName
+        glyphName: this.selectedGlyphName
       })
       const binding = this.bindings.find(
               binding_ => binding_.name === this.selectedGlyphName && binding_.field === this.selectedFieldName

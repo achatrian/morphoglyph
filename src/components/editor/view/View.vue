@@ -8,6 +8,7 @@
                       v-show="canvas" ref="canvas"/>
     <app-legend-viewer v-if="legendViewer"/>
     <app-shape-canvas v-if="shapeCanvas"/>
+    <app-template-manager v-if="templateManager"/>
     <div class="progress-wrap" v-show="drawing && !glyphBinder && !shapeManager && !glyphAdder && !legendViewer">
       <v-progress-circular class="progress" indeterminate size="100" color="primary"/>
     </div>
@@ -24,6 +25,7 @@ import GlyphAdder from './GlyphPreview'
 import WelcomeCard from './WelcomeCard'
 import LegendViewer from "./LegendViewer"
 import ShapeCanvas from "./ShapeCanvas"
+import TemplateManager from "./TemplateManager"
 
 export default {
   name: 'UIView', // prevent warning for reused HTML id
@@ -41,7 +43,8 @@ export default {
     'app-glyph-adder': GlyphAdder,
     'app-legend-viewer': LegendViewer,
     'app-welcome-card': WelcomeCard,
-    'app-shape-canvas': ShapeCanvas
+    'app-shape-canvas': ShapeCanvas,
+    'app-template-manager': TemplateManager
   },
   computed: {
     ...mapState({
@@ -52,7 +55,8 @@ export default {
       canvas: state => state.app.canvas,
       legendViewer: state => state.app.legendViewer,
       shapeCanvas: state => state.app.shapeCanvas,
-      numDisplayedGlyphs: state=>state.app.numDisplayedGlyphs
+      numDisplayedGlyphs: state => state.app.numDisplayedGlyphs,
+      templateManager: state => state.app.templateManager
     })
   },
   methods: {

@@ -136,10 +136,7 @@ export default {
     )
   },
 
-  makeEmptyGlyphs: (state, {
-    glyphName,
-    createOptions,
-  }) => {
+  makeEmptyGlyphs: (state, {glyphName, createOptions}) => {
     if (state.project.glyphs.length === 0) {
       throw Error("Databound glyphs must be added before empty glyphs can be created")
     }

@@ -11,7 +11,7 @@
                         :items="items"
                         :item-size="40"
                         key-field="id"
-                        #default="{ item }">
+                        #default="{item}">
         <v-list-tile class="tile"
                      :class="{secondary: item.selected}"
                      @click="selectItem(item)">

@@ -13,7 +13,7 @@ import DrawingBox from './DrawingBox'
 
 class BaseGlyph {
 
-  static baseOptions () {
+  static baseParameters () {
     return {
       backend: 'paper',
       strokeColor: '#78909C',
@@ -21,9 +21,7 @@ class BaseGlyph {
       secondaryColor: '#F50057',
       lightColor: '#E1F5FE',
       darkColor: '#880E4F',
-      strokeWidth: 1,
-      thickPathSize: 6,
-      narrowPathSize: 3
+      strokeWidth: 1
     }
   }
 
@@ -39,15 +37,15 @@ class BaseGlyph {
 
   parameters = {} // stores the drawing parameters for the glyph
 
-  constructor (
-    layer, // paperjs layer where glyph path will be drawn
-    id,
-    name = '', // name to select / find glyph
-    options = BaseGlyph.baseOptions(),
-    parent = null) {
+  constructor(
+      layer, // paperjs layer where glyph path will be drawn
+      id,
+      name = '', // name to select / find glyph
+      parameters = BaseGlyph.baseParameters(),
+      parent = null) {
     // add options as object
-    for (let option in options) {
-      this.parameters[option] = options[option]
+    for (let option in parameters) {
+      this.parameters[option] = parameters[option]
     }
     this.layer = layer
     this.id = id
@@ -65,9 +63,6 @@ class BaseGlyph {
       throw Error(`Child ${this.name}'s layer (${this.layer}) differs from parent ${parent.name}'s layer (${parent.layer}`)
     }
     this.parent = parent
-    // create main group where to store shape items:
-    this.activateLayer()
-    this.group = new paper.Group([])
   }
   glyphElements = BaseGlyph.elements // names of available elements for this type of glyph
   drawn = false // flag to check if draw() has been called
@@ -128,6 +123,8 @@ class BaseGlyph {
       throw Error(`Cannot draw glyph ${this.id} with null layer`)
     }
     this.activateLayer()
+    // create main group where to store shape items:
+    this.group = new paper.Group([])
     if (!Object.is(paper.project.layers[this.layer], paper.project.activeLayer)) {
       throw Error(`Cannot set glyph: Active layer '${paper.project.activeLayer.name}' differs from glyph layer '${paper.project.layers[this.layer].name}'`)
     }
@@ -185,7 +182,11 @@ class BaseGlyph {
         }
       }
     }
-    this.children.forEach(glyph => glyph.buildGroups()) // recursive call on children
+    for (let childGlyph of this.children) {
+      if (childGlyph.drawn) {
+        childGlyph.buildGroups()
+      }
+    }
   }
 
   registerItem (item, itemName) { //selectable = true) {
@@ -222,16 +223,20 @@ class BaseGlyph {
 
   deleteItem (itemName = this.name) {
     // deleting path if it is drawn (and id was registered using registerItem)
-    let children = this.group.children
-    let item = this.findItem(children, itemName)
-    if (typeof item === 'undefined') {
-      children = paper.project.layers[this.layer].children
-      item = this.findItem(children, itemName)
+    if (this.group) {
+      let children = this.group.children
+      let item = this.findItem(children, itemName)
+      if (typeof item === 'undefined') {
+        children = paper.project.layers[this.layer].children
+        item = this.findItem(children, itemName)
+      }
+      if (typeof item === 'undefined') {
+        throw new Error(`Either id or name did not match the tracked id (${this.itemIds[itemName]}) / name (${itemName})`)
+      }
+      item.remove()
+    } else {
+      console.warn(`No group for glyph ${itemName}`)
     }
-    if (typeof item === 'undefined') {
-      throw new Error(`Either id or name did not match the tracked id (${this.itemIds[itemName]}) / name (${itemName})`)
-    }
-    item.remove()
     this.drawnItems.delete(itemName)
     delete this.zOrder[itemName]
     this.itemIds[itemName] = null
@@ -319,6 +324,9 @@ class BaseGlyph {
     })
     if (children) {
       for (let childGlyph of this.children) {
+        if (!childGlyph.drawn) {
+          continue  // sometimes automatic update happens before added glyphs can be drawn
+        }
         childGlyph.box = new DrawingBox(childGlyph, {
           boundingRect: drawingBounds,
           shapePositions: childGlyph.box.shapePositions,
@@ -415,6 +423,7 @@ class BaseGlyph {
   }
 
   reset () { // reset box to null and delete all paperjs items associated with glyph
+    // NB reset does not reset the glyph parameters to defaults! If default parameters are needed a new glyph should be created
     this.box = null
     if (this.drawn) {
       if (this.parent === null) { // if this is root glyph, clear layer
@@ -423,15 +432,17 @@ class BaseGlyph {
         this.drawnItems = new Set()
       } else {
         for (let itemName in this.itemIds) {
-          if (this.itemIds.hasOwnProperty(itemName)) {
-            this.deleteItem(itemName) // this should loop over children items as well
+          if (this.itemIds.hasOwnProperty(itemName) && this.itemIds[itemName]) {
+            this.deleteItem(itemName) // this should loop over children items as well (??)
           }
         }
       }
-      this.children = [] // clear all children
       this.drawn = false
       this.activateLayer()
       this.group = new paper.Group([]) // reset to empty group (needed for path methods to work on new glyph)
+      for (const childGlyph of this.children) {
+        childGlyph.reset()
+      }
     }
   }
 

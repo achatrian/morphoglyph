@@ -1,5 +1,4 @@
 
-
 export default {
     updateTemplateName: (state, templateName) => {
         state.templateName = templateName
@@ -7,13 +6,11 @@ export default {
     },
 
     updateOriginalFileName: (state, originalFileName) => {
-        const newCurrentTemplate = {originalFileName: originalFileName, ...state.currentTemplate}
-        state.currentTemplate = newCurrentTemplate  // update whole object for vuex reactions
+        state.currentTemplate = {originalFileName: originalFileName, ...state.currentTemplate}  // update whole object for vuex reactions
     },
 
     updateNamingField: (state, namingField) => {
-        const newCurrentTemplate = {namingField: namingField, ...state.currentTemplate}
-        state.currentTemplate = newCurrentTemplate
+        state.currentTemplate = {namingField: namingField, ...state.currentTemplate}
     },
 
     updateGlyphInformation: (state, glyphs) => {

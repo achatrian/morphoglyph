@@ -6,6 +6,8 @@ import db from './firebaseInit'
 export default {
     updateTemplateName: ({commit}, templateName) => commit('updateTemplateName', templateName),
 
+    setCurrentTemplate: ({commit}, newTemplate) => commit('setCurrentTemplate', newTemplate),
+
     updateOriginalFileName: ({commit}, originalFileName) => commit('updateOriginalFileName', originalFileName),
 
     updateNamingField: ({commit}, namingField) => commit('updateNamingField', namingField),
@@ -29,7 +31,16 @@ export default {
         dispatch('updateCurrentTemplate')
         console.log(`Saving template ${state.templateName}`)
         try {
-            db.collection('templates').doc(state.templateName).set(state.currentTemplate).then(
+            db.collection('templates').doc(state.templateName).set({
+                ...state.currentTemplate,
+                timestamp: new Date().toLocaleDateString('en-GB', {
+                    day: 'numeric',
+                    month: 'numeric',
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric'
+                })
+            }).then(
                 function () {console.log(`Saved template ${state.templateName}`)}
             )
         } catch (err) {
@@ -66,16 +77,29 @@ export default {
             dispatch('app/changeCurrentPage', state.currentTemplate.currentPage, {root: true})
             dispatch('backend/setNamingField', state.currentTemplate.namingField, {root: true})
             dispatch('glyph/setBindings', state.currentTemplate.elementFeatureBindings, {root: true})
+            for (let [name, shape] of Object.entries(state.currentTemplate.shapes)) {
+                dispatch('backend/storeShapeJSON', {
+                    name: name,
+                    shapeJSON: shape.json,
+                    type: shape.type,
+                    glyph: shape.glyph,
+                }, {root: true})
+            }
             dispatch('glyph/addDataBoundGlyphs', {
                     glyphTypeName: state.currentTemplate.topGlyph.type,
                     glyphName: state.currentTemplate.topGlyph.name
-                },
-            {root: true})
+            }, {root: true})
+            for (const childGlyph of state.currentTemplate.topGlyph.children) {
+                dispatch('glyph/makeEmptyGlyphs', {
+                    glyphName: childGlyph.name,
+                    glyphTypeName: childGlyph.type
+                }, {root: true})
+            }
             dispatch('backend/normalizeFeatures', null, {root: true})
             // apply glyph variables
-            for (let [shapeName, parameters] of Object.entries(state.currentTemplate.glyphParameters)) {
+            for (let [glyphName, parameters] of Object.entries(state.currentTemplate.glyphParameters)) {
                 dispatch('glyph/setGlyphParameters', {
-                    shapeName: shapeName,
+                    glyphName: glyphName,
                     parameters: parameters
                 }, {root: true})
             }
@@ -87,7 +111,15 @@ export default {
             db.collection('templates').get().then(
                 snapShot => {
                     console.log(snapShot)
-                    const availableTemplates = snapShot.docs.map(doc => ({name: doc.data().name,  id: doc.id}))
+                    const availableTemplates = snapShot.docs.map(doc => {
+                        const data = doc.data()
+                        return {
+                           name: data.name,
+                           id: doc.id,
+                           timestamp: data.timestamp || '00/00/00 00:00:00',
+                           glyphNames:  [data.topGlyph.name, ...data.topGlyph.children.map(child => child.name)]
+                        }
+                    })
                     console.log(`Available templates: ${availableTemplates.map(templateItem => templateItem.name)}`)
                     commit('setAvailableTemplates', availableTemplates)
                 }
@@ -106,15 +138,12 @@ export default {
         }
     },
 
-    async getTemplate ({commit}, templateName) {
+    async getTemplate ({commit}, templateName) { // whenever a template is required, the latest version is always downloaded from the server
         if (!templateName) {
             throw Error("Empty template name was given")
         }
         try { // use firebase
             const querySnapshot = await db.collection('templates').where('name', '==', templateName).get()
-            if (querySnapshot.docs.length > 1) {
-                throw Error(`There are ${querySnapshot.docs.length} templates with the same name '${templateName}'`)
-            }
             console.log(querySnapshot.docs)
             console.log(querySnapshot.docs[0].data())
             commit('setCurrentTemplate', querySnapshot.docs[0].data())
@@ -133,5 +162,28 @@ export default {
         }
     },
 
-    setCurrentTemplate: ({commit}, newTemplate) => commit('setCurrentTemplate', newTemplate)
+    async deleteTemplate ({dispatch}, templateName) {
+        await db.collection('templates').doc(templateName).delete()
+        console.log(`Deleted template '${templateName}'`)
+        dispatch('getArrayOfTemplates')
+    },
+
+    async renameTemplate ({dispatch, state}, {oldName, newName}) {
+        await dispatch('getTemplate', oldName)
+        await dispatch('updateTemplateName', newName)
+        db.collection('templates').doc(state.templateName).set({
+            ...state.currentTemplate,
+            timestamp: new Date().toLocaleDateString('en-GB', {
+                day: 'numeric',
+                month: 'numeric',
+                year: 'numeric',
+                hour: 'numeric',
+                minute: 'numeric',
+            }),
+            name: state.templateName
+        }).then(
+            function () { console.log(`Renamed template '${oldName}' to '${newName}'`)}
+        )
+        await dispatch('deleteTemplate', oldName)
+    }
 }

@@ -168,7 +168,7 @@ export default {
   // glyph shapes data
   setShapeJSON: (state, shapeJSON) => state.shapeJSON = shapeJSON, // save path in json format to move it across canvases
 
-  storeShapeJSON: (state, {shapeJSON, type, name=''}) => {
+  storeShapeJSON: (state, {shapeJSON, type, name='', glyph=''}) => {
     if (!name) { // if name is empty, replace with number
       let i = 0
       while (state.shapeJSONStore.has(String(i))) { i++ }
@@ -176,7 +176,7 @@ export default {
     }
     // NB bracket operator is not overloadable in JS, hence non-primitives (like Map) must use other methods
     const newStore = new Map(state.shapeJSONStore)
-    newStore.set(name, {type: type, json: shapeJSON})
+    newStore.set(name, {type: type, json: shapeJSON, glyph: glyph})
     state.shapeJSONStore = newStore // update object to trigger computed properties
   },
 

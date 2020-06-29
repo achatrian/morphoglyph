@@ -10,7 +10,9 @@
         slot="activator"
         flat
         block
-        @click="setShapeManagerState(true)">
+        :color="color"
+        @click="setShapeManagerState(!shapeManager)"
+      >
         <v-icon light :color="color">adjust</v-icon>
         <!--TODO install shape icon-->
       </v-btn>
@@ -20,12 +22,17 @@
 </template>
 
 <script>
-import {mapActions} from 'vuex'
+import {mapState, mapActions} from 'vuex'
 
 export default {
   name: 'Shape',
   props: {
     color: {type: String, default: 'white'}
+  },
+  computed: {
+    ...mapState({
+      shapeManager: state => state.app.shapeManager
+    })
   },
   methods: {
     ...mapActions({

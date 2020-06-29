@@ -5,42 +5,47 @@ import paper from 'paper'
 /* Simple glyph implementing paper.Path closed paths as main path */
 class ShapeGlyph extends BaseGlyph {
 
-  static shapeOptions () {
+  static shapeParameters () {
     return {
-      ...ShapeGlyph.baseOptions(),
+      ...ShapeGlyph.baseParameters(),
+      shapeType: 'ellipse',
       numSides: 6, // for RegularPolygon: defaults to hexagon
-      numPoints: 150, // for drawing Membrane and Spikes
-      membraneStrokeColor: ShapeGlyph.baseOptions().primaryColor,
+      numPoints: 150, // for drawing Border and Spikes
+      borderStrokeColor: ShapeGlyph.baseParameters().primaryColor,
+      borderStrokeWidth: 5,
       spikeHeight: 0.3,
       spikesStrokeWidth: 0.4,
-      spikesStrokeColor: ShapeGlyph.baseOptions().secondaryColor,
+      spikesStrokeColor: ShapeGlyph.baseParameters().secondaryColor,
       meshMode: 'grid',
+      meshStrokeColor: ShapeGlyph.baseParameters().darkColor,
+      meshStrokeWidth: 1,
       decorationSize: 5, // size of pattern elements in patterning
       decorationMode: 'circle',
-      protrusionProportion: 0.15,
-      protrusionBackgroundColor: '#F5F5F5',
-      protrusionStrokeColor: '#212121',
+      decorationColor: ShapeGlyph.baseParameters().secondaryColor,
+      extensionProportion: 0.15,
+      extensionBackgroundColor: '#F5F5F5',
+      extensionStrokeColor: '#212121',
       islandsMode: 'circle',
       islandsSize: 10,
-      islandsStrokeColor: ShapeGlyph.baseOptions().secondaryColor,
-      maxNumIslands: 40
+      islandsStrokeColor: ShapeGlyph.baseParameters().secondaryColor,
+      maxNumIslands: 20
     }
   }
 
-  constructor (
-    layer,
-    id,
-    name = '',
-    options = ShapeGlyph.shapeOptions(),
-    parent= null) {
+  constructor(
+      layer,
+      id,
+      name = '',
+      parameters = ShapeGlyph.shapeParameters(),
+      parent = null) {
     // constructor for standard PhenoPlot glyph
-    super(layer, id, name, options, parent)
+    super(layer, id, name, parameters, parent)
     this.glyphElements = ShapeGlyph.elements
     this.itemIds = {
       ...this.itemIds,
-      membrane: null,
+      border: null,
       spikes: null,
-      protrusion: null,
+      extension: null,
       mesh: null
     }
   }
@@ -83,7 +88,7 @@ class ShapeGlyph extends BaseGlyph {
         subElements: []
       },
       {
-        name: 'Membrane',
+        name: 'Border',
         type: 'path',
         properties: {
           color: {range: [], step: [], fillColor: false},
@@ -119,13 +124,13 @@ class ShapeGlyph extends BaseGlyph {
         properties: {
           color: {range: [], step: [], fillColor: true},
           size: {range: [0.3, 1.5], step: 0.3},
-          mode: ['circle', 'star', 'square']
+          mode: ['circle', 'star', 'square', 'dash', 'line']
         },
         target: 'main',
         subElements: []
       },
       {
-        name: 'Protrusion',
+        name: 'Extension',
         type: 'path',
         properties: {
           requiresTransform: true, // used to send scale orders into glyph as drawing options
@@ -165,20 +170,16 @@ class ShapeGlyph extends BaseGlyph {
     if (heightScaleOrder) {
       this.box.resize(null, heightScaleOrder.value, {drawing: true, center: true, children: true})
     }
-    const protrusionScaleOrder = options.scaleOrders.find(
-        scaleOrder => scaleOrder.element === 'Protrusion' && scaleOrder.shape === this.shape
+    const extensionScaleOrder = options.scaleOrders.find(
+        scaleOrder => scaleOrder.element === 'Extension' && scaleOrder.shape === this.shape
     )
-    if (protrusionScaleOrder) {
-      this.box.shift(null, this.parameters.protrusionProportion, {drawing: true, scale: true, children: true})
+    if (extensionScaleOrder) {
+      this.box.shift(null, this.parameters.extensionProportion, {drawing: true, scale: true, children: true})
     }
     this.drawOptions = options // update drawOptions !
-    let {shapeType} = options
-    if (!shapeType) {
-      shapeType = 'ellipse'
-    }
     this.activateLayer()
     let path // declare here so that it can be initialized inside switch
-    switch (shapeType) {
+    switch (this.parameters.shapeType) {
       case 'custom':
         if (options.shapeJSONs.length > 0) {
           // create empty path and import JSON into it, then
@@ -238,7 +239,7 @@ class ShapeGlyph extends BaseGlyph {
         })
         break
       default:
-        throw Error(`Unknown shape type '${shapeType}'`)
+        throw Error(`Unknown shape type '${this.parameters.shapeType}'`)
     }
     this.mainPath = path // uses setter that store id rather than storing a pointer to the path, which breaks vue reactivity
   }
@@ -246,7 +247,7 @@ class ShapeGlyph extends BaseGlyph {
   get outerPath () { // outer path where elements are drawn onto
     let outerPath
     try {
-      outerPath = this.getItem('protrusion')
+      outerPath = this.getItem('extension')
     } catch {
       outerPath = this.mainPath
     }
@@ -263,22 +264,22 @@ class ShapeGlyph extends BaseGlyph {
     this.fitToBox()
   }
 
-  drawMembrane (membraneFraction, subElements) { // eslint-disable-line no-unused-vars
-    /* Draws a thicker membrane */
-    if (!(membraneFraction >= 0.0 || membraneFraction <= 1.0)) {
-      throw Error(`Invalid membrane fraction ${membraneFraction}, it must be in [0, 1] (`)
+  drawBorder (borderFraction, subElements) { // eslint-disable-line no-unused-vars
+    /* Draws a thicker border */
+    if (!(borderFraction >= 0.0 || borderFraction <= 1.0)) {
+      throw Error(`Invalid border fraction ${borderFraction}, it must be in [0, 1] (`)
     }
     this.activateLayer()
     // create new open path
-    let membranePath = new paper.Path()
+    let borderPath = new paper.Path()
     const outerPath = this.outerPath
-    for (let i = 0; i < Math.floor(this.parameters.numPoints * membraneFraction); i++) {
-      membranePath.add(outerPath.getLocationAt(outerPath.length * (1 - i / this.parameters.numPoints)))
+    for (let i = 0; i < Math.floor(this.parameters.numPoints * borderFraction); i++) {
+      borderPath.add(outerPath.getLocationAt(outerPath.length * (1 - i / this.parameters.numPoints)))
     }
-    membranePath.strokeColor = this.parameters.membraneStrokeColor
-    membranePath.strokeWidth = this.parameters.thickPathSize
-    membranePath.fillColor = null
-    this.registerItem(membranePath, 'membrane')
+    borderPath.strokeColor = this.parameters.borderStrokeColor
+    borderPath.strokeWidth = this.parameters.borderStrokeWidth
+    borderPath.fillColor = null
+    this.registerItem(borderPath, 'border')
   }
 
   drawSpikes (spikeFraction, subElements = {}) {
@@ -349,8 +350,8 @@ class ShapeGlyph extends BaseGlyph {
         mesh.addChild(paper.Path.Line(intersections[i].point, intersections[i + 1].point))
       }
     }
-    mesh.strokeColor = this.parameters.darkColor
-    mesh.strokeWidth = this.parameters.strokeWidth
+    mesh.strokeColor = this.parameters.meshStrokeColor
+    mesh.strokeWidth = this.parameters.meshStrokeWidth
     mesh.bringToFront()
     this.registerItem(mesh, 'mesh')
   }
@@ -400,12 +401,31 @@ class ShapeGlyph extends BaseGlyph {
           break
         case 'square':
           decorationElement = new paper.Path.Rectangle(
-              possiblePoints[i],
+              possiblePoints[i].subtract(new paper.Point(
+                  0.8 * this.parameters.decorationSize/4,
+              0.8 * this.parameters.decorationSize/4
+              )),
               new paper.Size(0.8 * this.parameters.decorationSize/2,0.8 * this.parameters.decorationSize/2)
           )
           break
+        case 'dash':
+          decorationElement = new paper.Path.Line({
+            from: possiblePoints[i].subtract(new paper.Point(this.parameters.decorationSize/4, 0)),
+            to: possiblePoints[i].add(new paper.Point(this.parameters.decorationSize/4, 0)),
+            strokeWidth: Math.max(this.parameters.decorationSize/8, 1),
+            strokeColor: this.parameters.decorationColor
+          })
+          break
+        case 'line':
+          decorationElement = new paper.Path.Line({
+            from: possiblePoints[i].subtract(new paper.Point(0, this.parameters.decorationSize/4)),
+            to: possiblePoints[i].add(new paper.Point(0, this.parameters.decorationSize/4)),
+            strokeWidth: Math.max(this.parameters.decorationSize/8, 1),
+            strokeColor: this.parameters.decorationColor
+          })
+          break
       }
-      decorationElement.fillColor = this.parameters.secondaryColor
+      decorationElement.fillColor = this.parameters.decorationColor
       decorationElement.visible = true
       decoration.push(decorationElement)
     }
@@ -414,21 +434,21 @@ class ShapeGlyph extends BaseGlyph {
     this.registerItem(decorationGroup, 'decoration')
   }
 
-  drawProtrusion (protrusionFraction, subElements) { // eslint-disable-line no-unused-vars
+  drawExtension (extensionFraction, subElements) { // eslint-disable-line no-unused-vars
     let extrusionPath = this.cloneItem(this.name, this.parameters.numPoints)
-    // compute min space available to draw protrusion. This corresponds to glyph with the same height as the box's height
+    // compute min space available to draw extension. This corresponds to glyph with the same height as the box's height
     // this glyph will touch the lower boundary of the drawing box after being shifted and scaled.
-    const upperEmptySpace = this.box.drawingBounds.height * this.parameters.protrusionProportion
+    const upperEmptySpace = this.box.drawingBounds.height * this.parameters.extensionProportion
     for (let i = 0; i < extrusionPath.segments.length; i++) {
       if (extrusionPath.segments[i].point.y < this.mainPath.position.y) {
         // shift up points in upper half of main path's clone - NB (y increases going down in screen)
-        //protrusionPath.segments[i].point.y -= protrusionPath.segments[i].point.y * protrusionFraction
-        extrusionPath.segments[i].point.y -= upperEmptySpace * protrusionFraction
+        //extensionPath.segments[i].point.y -= extensionPath.segments[i].point.y * extensionFraction
+        extrusionPath.segments[i].point.y -= upperEmptySpace * extensionFraction
       }
     }
     const originalPath = this.cloneItem(this.name, this.parameters.numPoints)
     const intersections = originalPath.getCrossings(extrusionPath)
-    let protrusionPath
+    let extensionPath
     const upperLeftCorner = [originalPath.bounds.x, originalPath.bounds.y]
     const upperRightCorner = [originalPath.bounds.x + originalPath.bounds.width, originalPath.bounds.y]
     if (intersections.length > 0) {
@@ -441,7 +461,7 @@ class ShapeGlyph extends BaseGlyph {
           (loc1, loc2) => loc1.point.getDistance(upperRightCorner) - loc2.point.getDistance(upperRightCorner)
       )
       const rightUpperOffset = intersectionPoints[0].offset
-      const protrusionSegments = []
+      const extensionSegments = []
       // originalPath and extrusionPath have the same number of segments by construction
       for (let j = 0; j < originalPath.segments.length; j++) {
         let segmentOffset = originalPath.segments[j].location.offset
@@ -451,41 +471,41 @@ class ShapeGlyph extends BaseGlyph {
             if (extrusionPoint.getDistance(originalPath.getNearestPoint(extrusionPoint)) > 1 &&
                 !originalPath.contains(extrusionPoint)
             ) {
-              protrusionSegments.push(extrusionPath.segments[j].clone())
+              extensionSegments.push(extrusionPath.segments[j].clone())
             } else {
-              protrusionSegments.push(originalPath.getNearestLocation(extrusionPoint).segment.clone())
+              extensionSegments.push(originalPath.getNearestLocation(extrusionPoint).segment.clone())
             }
           } else {
-            protrusionSegments.push(originalPath.segments[j].clone())
+            extensionSegments.push(originalPath.segments[j].clone())
           }
         } else {
           if (segmentOffset > rightUpperOffset && segmentOffset < leftUpperOffset) {
-            protrusionSegments.push(originalPath.segments[j].clone())
+            extensionSegments.push(originalPath.segments[j].clone())
           } else {
             if (extrusionPoint.getDistance(originalPath.getNearestPoint(extrusionPoint)) > 1 &&
                 !originalPath.contains(extrusionPoint)
             ) {
-              protrusionSegments.push(extrusionPath.segments[j].clone())
+              extensionSegments.push(extrusionPath.segments[j].clone())
             } else {
-              protrusionSegments.push(originalPath.getNearestLocation(extrusionPoint).segment.clone())
+              extensionSegments.push(originalPath.getNearestLocation(extrusionPoint).segment.clone())
             }
           }
         }
       }
-      protrusionPath = new paper.Path(protrusionSegments)
+      extensionPath = new paper.Path(extensionSegments)
     } else {
-      protrusionPath = extrusionPath
+      extensionPath = extrusionPath
     }
-    Object.assign(protrusionPath, {
+    Object.assign(extensionPath, {
       strokeWidth: this.parameters.strokeWidth,
-      strokeColor: this.parameters.protrusionStrokeColor,
-      fillColor: this.parameters.protrusionBackgroundColor,
+      strokeColor: this.parameters.extensionStrokeColor,
+      fillColor: this.parameters.extensionBackgroundColor,
       visible: true,
       closed: true
     })
-    protrusionPath.sendToBack()  // not maintained when building group
-    this.zOrder['protrusion'] = -1
-    this.registerItem(protrusionPath, 'protrusion')
+    extensionPath.sendToBack()  // not maintained when building group
+    this.zOrder['extension'] = -1
+    this.registerItem(extensionPath, 'extension')
   }
 
   drawIslands (borderFraction, subElements) {// eslint-disable-line no-unused-vars
@@ -498,7 +518,10 @@ class ShapeGlyph extends BaseGlyph {
           island = new paper.Path.Circle(
               symbolPosition,
               0.8 * this.parameters.islandsSize/2
-          )
+          ).subtract(new paper.Path.Circle(
+                  symbolPosition,
+                  0.5  * this.parameters.islandsSize/2
+              ))
           break
         case 'star':
           island = new paper.Path.Star(
@@ -506,17 +529,26 @@ class ShapeGlyph extends BaseGlyph {
               5,
               0.5 * this.parameters.islandsSize/2,
               0.8 * this.parameters.islandsSize/2
-          )
+          ).subtract(new paper.Path.Star(
+                  symbolPosition,
+                  5,
+                  0.3 * this.parameters.islandsSize/2,
+                  0.5 * this.parameters.islandsSize/2
+              ))
           break
         case 'square':
           island = new paper.Path.Rectangle(
               symbolPosition,
               new paper.Size(0.8 * this.parameters.islandsSize/2,
                   0.8 * this.parameters.islandsSize/2)
-          )
+          ).subtract(new paper.Path.Rectangle(
+                  symbolPosition,
+                  new paper.Size(0.5 * this.parameters.islandsSize/2,
+                      0.5 * this.parameters.islandsSize/2)
+              ))
           break
       }
-      island.fillColor = this.parameters.islandsStrokeColor
+      island.fillColor = ''
       island.strokeColor = this.parameters.islandsStrokeColor
       islands.push(island)
     }

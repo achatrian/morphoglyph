@@ -6,7 +6,7 @@ class CellGlyph extends ShapeGlyph {
     layer,
     id,
     name = '',
-    options = CellGlyph.shapeOptions(),
+    options = CellGlyph.shapeParameters(),
     parent = null
   ) {
     super(layer, id, name, options, parent)
@@ -19,7 +19,7 @@ class CellGlyph extends ShapeGlyph {
       mesh: null
     }
     // make nucleus glyph
-    const nucleusOptions = CellGlyph.shapeOptions()
+    const nucleusOptions = CellGlyph.shapeParameters()
     Object.assign(nucleusOptions, {
       strokeColor: '#283593',
       primaryColor: '#AB47BC',
@@ -72,21 +72,29 @@ class CellGlyph extends ShapeGlyph {
     const nucleus = this.children[0]
     nucleus.draw(Object.assign(options, {shapeType: 'ellipse'}))
     // if no scale orders are given for the nucleus, it's scaled to fit inside the cell box
+    const cellWidthOrder = options.scaleOrders.find(scaleOrder => scaleOrder.element === 'Width' &&
+        scaleOrder.shape === 'Cell')
+    const cellHeightOrder = options.scaleOrders.find(scaleOrder => scaleOrder.element === 'Height' &&
+        scaleOrder.shape === 'Cell')
+    const values = []
+    if (cellWidthOrder) {
+      values.push(cellWidthOrder.value)
+    }
+    if (cellHeightOrder) {
+      values.push(cellHeightOrder.value)
+    }
+    const minValue = values.length ? Math.min(...values) : 0
     if (!options.scaleOrders.some(scaleOrder => scaleOrder.element === 'Width' && scaleOrder.shape === 'Nucleus')) {
-        const cellWidthOrder = options.scaleOrders.find(scaleOrder => scaleOrder.element === 'Width' &&
-            scaleOrder.shape === 'Cell')
-        if (cellWidthOrder) {
-          nucleus.box.resize(Math.max(cellWidthOrder.value - 0.1, 0.1),
+        if (minValue) {
+          nucleus.box.resize(Math.max(minValue - 0.1, 0.1),
               null, {drawing: true, center: true, children: true})
         } else {
           nucleus.box.resize(0.5, null, {drawing: true, center: true, children: true})
         }
     }
     if (!options.scaleOrders.some(scaleOrder => scaleOrder.element === 'Height' && scaleOrder.shape === 'Nucleus')) {
-        const cellHeightOrder = options.scaleOrders.find(scaleOrder => scaleOrder.element === 'Height' &&
-            scaleOrder.shape === 'Cell')
-        if (cellHeightOrder) {
-            nucleus.box.resize(null, Math.max(cellHeightOrder.value - 0.3, 0.1),
+        if (minValue) {
+            nucleus.box.resize(null, Math.max(minValue - 0.1, 0.1),
                 {drawing: true, center: true, children: true})
         } else {
             nucleus.box.resize(null, 0.5, {drawing: true, center: true, children: true})

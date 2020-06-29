@@ -16,12 +16,13 @@ const state = {
   },
   glyphBinder: false,
   shapeManager: false,
-  glyphAdder: false,
+  glyphAdder: false,  // TODO rename, since glyph adder exists already in studio
   canvas: true,
   shapeCanvas: false,
   welcomeCard: true,
   chartController: true,
   legendViewer: false,
+  templateManager: false,
   // view props
   maxDisplayedGlyphs: 20,
   numDisplayedGlyphs: 0,

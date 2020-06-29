@@ -16,7 +16,7 @@
     <v-toolbar-title router to='/'
                      class="deep-purple--text font-weight-black"
                      id="toolbar-title">
-      PheW
+      WPhenoPlot
     </v-toolbar-title>
     <app-load-data/>
     <div id="file-name">

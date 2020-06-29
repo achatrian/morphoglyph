@@ -26,17 +26,18 @@ export default {
 
   setStudioDrawerState: ({commit}, payload) => commit('setStudioDrawerState', payload),
 
-  removeWindows: ({commit}) => { // function to kill any open window in main view
+  removeWindows: ({commit}) => { // function to close any open window in main view
     commit('setGlyphBinderState', false)
     commit('setShapeManagerState', false)
     commit('setGlyphAdderState', false)
     commit('setWelcomeCardState', false)
     commit('setLegendViewerState', false)
-    commit('setShapeCanvasState')
+    commit('setShapeCanvasState', false)
+    commit('setTemplateManagerState', false)
+    // more window togglers go above
     commit('setChartState', false) // chart is drawn on main canvas, hence it occupies the same space as windows
-    // removes temp layers that's used by some windows
+    // removes temp layer that's used by some windows
     commit('glyph/removeTempLayer', null, {root: true})
-    // more window togglers go here
   },
 
   setGlyphBinderState: ({commit, dispatch}, payload) => {
@@ -97,6 +98,17 @@ export default {
       dispatch('glyph/removeTempLayer', null, {root: true}) // create a new temporary layer for ShapeManager
     }
     commit('setShapeCanvasState', payload)
+  },
+
+  setTemplateManagerState: ({commit, dispatch}, payload) => {
+    if (payload) {
+      dispatch('glyph/setGlyphVisibility', {value: false}, {root: true})
+      // action used to close all other windows, so that no two windows are open at the same time
+      dispatch('removeWindows')
+    } else {
+      setTimeout(dispatch, 200, 'glyph/setGlyphVisibility', {value: true}, {root: true})
+    }
+    commit('setTemplateManagerState', payload)
   },
 
   setWelcomeCardState: ({commit}, payload) => commit('setWelcomeCardState', payload),

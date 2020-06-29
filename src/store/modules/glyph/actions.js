@@ -42,6 +42,7 @@ export default {
     payload.boundingRects = rootState.app.boundingRects
     commit('makeEmptyGlyphs', payload)
     dispatch('updateGlyphNames')
+    dispatch('activateRedrawing')
   },
 
   shiftLayersAssignment: ({commit}, payload) => commit('shiftLayersAssignment', payload),
@@ -139,11 +140,11 @@ export default {
   },
 
   setGlyphParameters: ({commit, dispatch}, payload) => {
-    // payload = {parameters, shapeName}
+    // payload = {parameters, glyphName}
     commit('setGlyphParameters', payload)
-    if (payload.redraw) {
-      dispatch('activateRedrawing') // redraw glyphs after having changed the parameter value
-    }
+    // if (payload.redraw) {
+    //   dispatch('activateRedrawing') // redraw glyphs after having changed the parameter value
+    // }
   },
 
   setPathParameter: ({commit}, payload) => commit('setPathParameter', payload),

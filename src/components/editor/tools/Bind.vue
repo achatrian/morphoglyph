@@ -10,19 +10,26 @@
       slot="activator"
       flat
       block
-      @click="setGlyphBinderState(true)">
+      @click="setGlyphBinderState(!glyphBinder)"
+      :color="color"
+    >
       <v-icon light :color="color">view_column</v-icon>
     </v-btn>
-    <span> Open pane for feature binding</span>
+    <span> Open pane for feature binding </span>
   </v-tooltip>
 </v-list-tile>
 </template>
 
 <script>
-import {mapActions} from 'vuex'
+import {mapActions, mapState} from 'vuex'
 
 export default {
   name: 'Bind',
+  computed: {
+    ...mapState({
+      glyphBinder: state => state.app.glyphBinder
+    })
+  },
   methods: {
     ...mapActions({
       setGlyphBinderState: 'app/setGlyphBinderState'

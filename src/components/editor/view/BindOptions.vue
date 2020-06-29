@@ -83,7 +83,7 @@
                     </v-tabs>
                     <v-layout row wrap align-centre>
                         <v-flex xs6 md3 >
-                            <app-scroll-options title="Element selection" :items="elementItems"
+                            <app-scroll-options title="Element selection" :items="elementItems" @change="selectedField=''"
                                                 :select.sync="selectedGlyphEl" @buttonClick="unbindElement" class="list"/>
                         </v-flex>
                         <v-flex xs6 md3>
@@ -198,15 +198,6 @@
             fieldItems () { // item for list of features
                 let items = []
                 let i = 0
-                // const value = (field, fieldBinding) => {
-                //     if (fieldBinding) {
-                //         return field + ' ( bound to ' + fieldBinding.shape + '\'s ' + fieldBinding.element + ' )'
-                //     } else if (this.lastUnboundField === field) {
-                //         return field + ' ( unbound )' // flag that field was just unbound
-                //     } else {
-                //         return field
-                //     }
-                // }
                 for (let field of this.dataFields) {
                     if (this.fieldTypes[field] === Number) { // TODO update this to work for categorical variables
                         let fieldBinding = this.fieldBindings.find(binding => binding.field === field && binding.shape)
@@ -276,6 +267,8 @@
                     })
                     console.log(`${this.selectedGlyphEl} was bound to ${selectedField}`)
                 }
+                this.selectedGlyphEl = ''
+                this.selectedField = ''
             },
             unbindField (field) {
                 console.log(`Unbinding ${field}`)
@@ -299,13 +292,12 @@
                         glyphName: this.selectedGlyphName // TODO find good way of switching from list of existing glyphs to creation of new one
                     }) // uses store.glyph.glyphTypeName
                     this.chooseGlyphSetting(this.selectedGlyphSetting)
-                    this.setGlyphBinderState(false)
                     // when first called, num displayed glyph is 0
                     this.changeDisplayedGlyphNum(this.numDisplayedGlyphs || this.maxDisplayedGlyphs) // FIXME first outcome is redundant
                 } else {
-                    this.activateRedrawing()
+                    setTimeout(this.activateRedrawing, 100)
                 }
-
+                this.setGlyphBinderState(false)
             },
             selectField (item) {
                 this.selectedField = item.value
@@ -363,6 +355,11 @@
                     console.log("Bindings have changed in the state")
                     this.fieldBindings = [...this.bindings]
                 }
+            }
+        },
+        mounted () {
+            if (!this.selectedShape) {
+                this.selectedShape = this.shapeItems[this.selectedShapeIndex].value
             }
         }
     }

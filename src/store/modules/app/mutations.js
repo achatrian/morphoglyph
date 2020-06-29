@@ -76,6 +76,8 @@ export default {
 
   setLegendViewerState: (state, payload) => state.legendViewer = payload,
 
+  setTemplateManagerState: (state, payload) => state.templateManager = payload,
+
   setGlyphArrangement: (state, glyphArrangement) => state.glyphArrangement = glyphArrangement,
 
   updateGlyphArrangement (state) {
@@ -95,7 +97,7 @@ export default {
       } // get space for two more glyphs horizontally
       const xOffset = paper.view.viewSize.width / (numXGlyphs + 1.0) // offset should be more than half of desired glyph width
       const yOffset = paper.view.viewSize.height / (numYGlyphs + 1.0) // offset should be more than half of desired glyph height
-      const glyphSize = Math.min(xOffset, yOffset) * state.boundingRectSizeFactor - 0.5 // inscribe glyph in square in order to keep aspect ratio constant
+      const glyphSize = Math.min(xOffset, yOffset) * 0.85 * state.boundingRectSizeFactor - 0.5 // inscribe glyph in square in order to keep aspect ratio constant
       let numRects = 0
       const gridId = `x-offset: ${xOffset.toFixed(2)}; y-offset: ${yOffset.toFixed(2)}; width: ${glyphSize.toFixed(2)}; height: ${glyphSize.toFixed(2)}`
       const canvasRect = paper.view.element.getBoundingClientRect() // eslint-disable-line no-unused-vars

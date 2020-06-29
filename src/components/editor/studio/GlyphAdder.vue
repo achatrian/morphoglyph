@@ -40,7 +40,6 @@
                             label="Glyph shape"
                             placeholder="Select a shape for the new glyph"
                             v-model="selectedGlyphShape"
-                            @change="chooseGlyphSetting(selectedGlyphShape)"
                     />
                 </div>
             </v-toolbar>
@@ -74,6 +73,7 @@
         </v-card>
     </div>
 </template>
+
 
 <script>
 import {mapState, mapActions} from 'vuex'
@@ -151,7 +151,7 @@ export default {
             addDataBoundGlyphs: 'glyph/addDataBoundGlyphs',
             activateRedrawing: 'glyph/activateRedrawing',
             setNamingField: 'backend/setNamingField',
-            chooseGlyphSetting: 'glyph/chooseGlyphSetting',
+            setGlyphParameters: 'glyph/setGlyphParameters',
             changeDisplayedGlyphNum: 'app/changeDisplayedGlyphNum',
             makeEmptyGlyphs: 'glyph/makeEmptyGlyphs',
             removeShapeJSON: 'backend/removeShapeJSON',
@@ -173,6 +173,12 @@ export default {
                             glyphName: this_.writtenGlyphName,
                             glyphTypeName: this_.selectedGlyphType
                         })
+                        this_.setGlyphParameters({
+                            parameters: {
+                                shapeType: this_.selectedGlyphShape,
+                            },
+                            glyphName: this_.writtenGlyphName
+                        })
                         this_.changeDisplayedGlyphNum(this_.maxDisplayedGlyphs)
                         // this_.activateRedrawing()
                     } else {
@@ -180,6 +186,12 @@ export default {
                         this_.makeEmptyGlyphs({
                             glyphName: this_.writtenGlyphName,
                             glyphTypeName: this_.selectedGlyphType
+                        })
+                        this_.setGlyphParameters({
+                            parameters: {
+                                shapeType: this_.selectedGlyphShape,
+                            },
+                            glyphName: this_.writtenGlyphName
                         })
                     }
                     if (this_.selectedGlyphShape === 'custom') {

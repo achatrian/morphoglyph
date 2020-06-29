@@ -10,7 +10,9 @@
         slot="activator"
         flat
         block
-        @click="setGlyphAdderState(true)">
+        :color="color"
+        @click="setGlyphAdderState(!glyphAdder)"
+      >
         <v-icon light :color="color">add</v-icon>
       </v-btn>
       <span> Add glyph to existing drawing </span>
@@ -19,12 +21,17 @@
 </template>
 
 <script>
-import {mapActions} from 'vuex'
+import {mapState, mapActions} from 'vuex'
 
 export default {
   name: 'Child',
   props: {
     color: {type: String, default: 'white'}
+  },
+  computed: {
+    ...mapState({
+      glyphAdder: state => state.app.glyphAdder
+    })
   },
   methods: {
     ...mapActions({
