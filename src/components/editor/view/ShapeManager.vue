@@ -98,7 +98,7 @@
             shapeNames () { // names of glyph types for selection
                 const shapeNames = []
                 let i = 0
-                for (let name of this.shapeJSONStore.keys()) {
+                for (const name of this.shapeJSONStore.keys()) {
                     shapeNames.push({
                         id: i,
                         key: name,
@@ -113,7 +113,7 @@
             categoricals () {
                 const categoricals = []
                 const fieldNames = Object.keys(this.fieldTypes)
-                for (let fieldName of fieldNames) {
+                for (const fieldName of fieldNames) {
                     if (this.fieldTypes[fieldName] === String) {
                         categoricals.push(fieldName)
                     }
@@ -124,7 +124,7 @@
                 const categoricalValues = []
                 if (this.selectedCategorical) {
                     let i = 0
-                    for (let value of this.featuresRanges[this.selectedCategorical]) {
+                    for (const value of this.featuresRanges[this.selectedCategorical]) {
                         const valueAssignment = this.varShapeAssignment.find(
                             assignment => assignment.categoricalValue === value
                         )
@@ -194,9 +194,9 @@
                     if (this.path && this.drawingMode) {
                         // if path was drawn counter-clockwise, rebuild it in a clockwise manner and save it
                         let signedArea = 0
-                        for (let p = 0; p < this.path.segments.length - 2; p++) {
-                            let [x1, y1] = [this.path.segments[p].point.x, this.path.segments[p].point.y]
-                            let [x2, y2] = [this.path.segments[p+1].point.x, this.path.segments[p+1].point.y]
+                        for (const p = 0; p < this.path.segments.length - 2; p++) {
+                            const [x1, y1] = [this.path.segments[p].point.x, this.path.segments[p].point.y]
+                            const [x2, y2] = [this.path.segments[p+1].point.x, this.path.segments[p+1].point.y]
                             signedArea += (x2 - x1) * (y2 + y1)
                         }
                         let [x1, y1] = [this.path.segments[this.path.segments.length - 1].point.x,
@@ -289,7 +289,7 @@
             drawPath () {
                 if (this.path) {
                     this.removePath()
-                    for (let shapeName of this.shapeNames) {
+                    for (const shapeName of this.shapeNames) {
                         shapeName.selected = false
                     }
                 }

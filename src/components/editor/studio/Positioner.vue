@@ -1,17 +1,18 @@
 <template>
   <v-card id="positioner">
     <v-divider/>
-    <span class="app-title light--text subheading">Glyph position:</span>
     <div class="move-resize-commands">
       <v-slider label="Horizontal" min="1" max="3" step="1" v-model="leftShiftSliderValue" class="control-item position-slider"
                 @change="planLeftShift">
         <template v-slot:append>
           <v-text-field
                   v-model="leftShiftSliderValue"
-                  class="mt-0 pt-0 num-field"
+                  class="mt-0 pt-0 num-field side-text"
+                  height="18px"
                   hide-details
                   single-line
                   type="number"
+                  :rules="[acceptedValue]"
           ></v-text-field>
         </template>
       </v-slider>
@@ -21,9 +22,11 @@
           <v-text-field
                   v-model="topShiftSliderValue"
                   class="mt-0 pt-0 num-field"
+                  height="18px"
                   hide-details
                   single-line
                   type="number"
+                  :rules="[acceptedValue]"
           ></v-text-field>
         </template>
       </v-slider>
@@ -33,9 +36,11 @@
           <v-text-field
                   v-model="scaleSliderValue"
                   class="mt-0 pt-0 num-field"
+                  height="18px"
                   hide-details
                   single-line
                   type="number"
+                  :rules="[acceptedValue]"
           ></v-text-field>
         </template>
       </v-slider>
@@ -86,7 +91,7 @@ function initializePositionStore () {
     widthProportion: 1,
     heightProportion: 1,
     steps: new Deque(10),
-    changeChildren: false
+    changeChildren: false,
   }
 }
 
@@ -97,6 +102,7 @@ export default {
   },
   data () {
     return {
+      acceptedValue: number => 0 < number < 4,
       shapeName_: '_default',
       positionStore: {_default: initializePositionStore()},
       // getters and setters for position
@@ -134,10 +140,10 @@ export default {
               this.totalGlyphNum !== this.totalGlyphNumStore) && !this.positionStored
       ) {
         let originalShapePositions = []
-        for (let layerGlyph of this.glyphs) {
+        for (const layerGlyph of this.glyphs) {
           let layerPositions = {}
           if (layerGlyph.drawn && Boolean(layerGlyph.box)) {
-            for (let glyph of [...layerGlyph.iter()]) {
+            for (const glyph of [...layerGlyph.iter()]) {
               layerPositions[glyph.name] = {...glyph.box.shapePositions}
             }
           }
@@ -152,7 +158,8 @@ export default {
   methods: {
     ...mapActions({
       setShapePosition: 'glyph/setShapePosition',
-      changeGlyphPosition: 'glyph/changeGlyphPosition'
+      changeGlyphPosition: 'glyph/changeGlyphPosition',
+      setProgressCircleState: 'app/setProgressCircleState'
     }),
     planLeftShift: debounce.call(this, function () {
       this.leftShift = this.leftShiftSliderValue
@@ -165,57 +172,48 @@ export default {
           children: false,
           redraw: false}]
       })
-      setTimeout(this.applySteps, 300)
-    }, 400),
+      this.applySteps()
+    }, 200),
     planTopShift: debounce.call(this, function () {
       this.topShift = this.topShiftSliderValue
       this.steps.push({
         transform: 'relativeShift',
         parameters: [null, this.topShift, {
-          setValues: true,
-          drawing: false,
-          scale: false,
-          children: false,
-          redraw: false}]
+          setValues: true
+        }]
       })
-      setTimeout(this.applySteps, 300)
-    }, 400),
+      this.applySteps()
+    }, 200),
     planWidthResize: debounce.call(this, function () {
       this.widthProportion = this.scaleSliderValue/3
       this.steps.push({
         transform: 'resize',
         parameters: [this.widthProportion, null, {
           setValues: true,
-          drawing: false,
-          center: false,
-          children: false,
-          redraw: true}]
+          setScale: this.scaleSliderValue
+        }]
       })
-      setTimeout(this.applySteps, 300)
-    }, 400),
+      this.applySteps()
+    }, 200),
     planHeightResize: debounce.call(this, function () {
       this.heightProportion = this.scaleSliderValue/3
       this.steps.push({
         transform: 'resize',
         parameters: [null, this.heightProportion, {
           setValues: true,
-          drawing: false,
-          center: false,
-          children: false,
-          redraw: true}]
+          setScale: this.scaleSliderValue
+        }]
       })
-      setTimeout(this.applySteps, 300)
-    }, 400),
+      this.applySteps()
+    }, 200),
     planCentering () {
       this.steps.push({
         transform: 'toCenter',
         parameters: [true, true, {
-          setValues: true,
-          drawing: false,
-          center: false,
-          children: false}]
+          setValues: true
+        }]
       })
-      setTimeout(this.applySteps, 300)
+      setTimeout(this.applySteps, 100)
       this.leftShift = 2
       this.topShift = 2
       this.leftShiftSliderValue = 2
@@ -230,17 +228,20 @@ export default {
           {setValues: true, scale: false, children: false, redraw: false}
           ]
       })
-      setTimeout(this.applySteps, 300)
+      this.applySteps()
     },
     applySteps: debounce.call(this, function () { // once steps are sent to glyphs, they are cleared up
-      this.changeChildren = this.changeChildrenBoxValue
-      this.changeGlyphPosition({
-        steps: this.steps.toArray(),
-        shapeSelector: this.shapeName,
-        children: this.changeChildren
-      })
-      this.steps.clear()
-    }, 600)
+      this.setProgressCircleState(true)
+      setTimeout(function (this_) {
+        this_.changeChildren = this_.changeChildrenBoxValue
+        this_.changeGlyphPosition({
+          steps: this_.steps.toArray(),
+          shapeSelector: this_.shapeName,
+          children: this_.changeChildren
+        })
+        this_.steps.clear()
+      }, 20, this)
+    }, 300)
   },
   watch: {
     shapeName () {
@@ -280,11 +281,13 @@ export default {
   }
 
   .control-item{
+    max-height: 30px;
   }
 
   .num-field{
-    margin: 0 5px 10px 5px;
+    margin: -20px 5px 10px 5px;
     width: 40px;
+    max-height: 10px ;
     font-size: 12px
   }
 

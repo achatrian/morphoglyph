@@ -9,7 +9,7 @@
     <app-legend-viewer v-if="legendViewer"/>
     <app-shape-canvas v-if="shapeCanvas"/>
     <app-template-manager v-if="templateManager"/>
-    <div class="progress-wrap" v-show="drawing && !glyphBinder && !shapeManager && !glyphAdder && !legendViewer">
+    <div class="progress-wrap" v-show="drawing && !glyphBinder && !shapeManager && !glyphAdder && !legendViewer && !templateManager">
       <v-progress-circular class="progress" indeterminate size="100" color="primary"/>
     </div>
     <!--since canvas has z-index=1, it was on top of view card, which made clicking on buttons impossible-->
@@ -55,8 +55,9 @@ export default {
       canvas: state => state.app.canvas,
       legendViewer: state => state.app.legendViewer,
       shapeCanvas: state => state.app.shapeCanvas,
+      templateManager: state => state.app.templateManager,
       numDisplayedGlyphs: state => state.app.numDisplayedGlyphs,
-      templateManager: state => state.app.templateManager
+      progressCircle: state => state.app.progressCircle
     })
   },
   methods: {
@@ -66,6 +67,11 @@ export default {
     applyBinding () { // apply configuration in BindOptions, then load bindings onto store
       this.$refs.bonds.applyConfig()
       this.$refs.bonds.applyBinding()
+    }
+  },
+  watch: {
+    progressCircle () {
+      this.drawing = this.progressCircle
     }
   },
   mounted () {

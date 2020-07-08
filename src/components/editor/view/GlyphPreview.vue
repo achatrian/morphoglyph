@@ -103,7 +103,7 @@
                 setGlyphVisibility: 'glyph/setGlyphVisibility',
                 setStudioDrawerState: 'app/setStudioDrawerState',
                 setShapeCanvasState: 'app/setShapeCanvasState',
-                makeEmptyGlyphs: 'glyph/makeEmptyGlyphs'
+                addDataBoundGlyphs: 'glyph/addDataBoundGlyphs'
             }),
             updateBoxRects () {
                 if (this.selectedGlyphId) {
@@ -151,9 +151,9 @@
             },
             // method that triggers creation of a new glyph
             addNewGlyph () {
-                this.makeEmptyGlyphs({
-                    newGlyphName: this.newGlyphName
-                    // TODO make custom create options and feed them in here ?
+                this.addDataBoundGlyphs({
+                    newGlyphName: this.newGlyphName,
+                    glyphTypeName: this.selectedGlyphName // FIXME confusion between type and type name
                 })
                 console.log(`Adding new glyph: ${this.newGlyphName}`)
             },

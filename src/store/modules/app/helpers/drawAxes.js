@@ -46,7 +46,7 @@ export default function drawAxes(options = {
     let xSpanEnd, ySpanEnd // store final axis position (corresponds to 1.0)
     for (let ix = 0; ix<numXTicks; ix++) {
         // write tick label
-        let xPointText = new paper.PointText({
+        const xPointText = new paper.PointText({
             point: [origin[0] + ix*xTickSpacing, origin[1] + distFromXAxis],
             content: (xRange[1]/(numXTicks - 1) * ix + xRange[0]).toFixed(2), // converts into string
             fillColor: 'black',
@@ -55,7 +55,7 @@ export default function drawAxes(options = {
             fontSize: 15
         })
         // draw grid line
-        let verGridLine = new paper.Path.Line(
+        const verGridLine = new paper.Path.Line(
             new paper.Point(origin[0] + ix*xTickSpacing, origin[1]),
             new paper.Point(origin[0] + ix*xTickSpacing, yEndPoint[1])
         )
@@ -78,7 +78,7 @@ export default function drawAxes(options = {
             fontSize: 15
         })
         // draw grid line
-        let horGridLine = new paper.Path.Line(
+        const horGridLine = new paper.Path.Line(
             new paper.Point(origin[0], origin[1] - iy*yTickSpacing),
             new paper.Point(xEndPoint[0], origin[1] - iy*yTickSpacing)
         )

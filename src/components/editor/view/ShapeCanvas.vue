@@ -98,13 +98,13 @@
                         // if path was drawn counter-clockwise, rebuild it in a clockwise manner and save it
                         let signedArea = 0
                         for (let p = 0; p < this.path.segments.length - 2; p++) {
-                            let [x1, y1] = [this.path.segments[p].point.x, this.path.segments[p].point.y]
-                            let [x2, y2] = [this.path.segments[p+1].point.x, this.path.segments[p+1].point.y]
+                            const [x1, y1] = [this.path.segments[p].point.x, this.path.segments[p].point.y]
+                            const [x2, y2] = [this.path.segments[p+1].point.x, this.path.segments[p+1].point.y]
                             signedArea += (x2 - x1) * (y2 + y1)
                         }
-                        let [x1, y1] = [this.path.segments[this.path.segments.length - 1].point.x,
+                        const [x1, y1] = [this.path.segments[this.path.segments.length - 1].point.x,
                             this.path.segments[this.path.segments.length - 1].point.y]
-                        let [x2, y2] = [this.path.segments[0].point.x, this.path.segments[0].point.y]  // starting point
+                        const [x2, y2] = [this.path.segments[0].point.x, this.path.segments[0].point.y]  // starting point
                         signedArea += (x2 - x1) * (y2 + y1)
                         if (signedArea > 0) {
                             const clockwisePath = new paper.Path({
@@ -192,7 +192,7 @@
             drawPath () {
                 if (this.path) {
                     this.removePath()
-                    for (let shapeName of this.shapeNames) {
+                    for (const shapeName of this.shapeNames) {
                         shapeName.selected = false
                     }
                 }

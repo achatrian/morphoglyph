@@ -1,5 +1,6 @@
 import axios from 'axios'
 
+
 // Wrap Promise around FileReader
 const readUploadedFileAsText = (inputFile) => {
   const temporaryFileReader = new FileReader()
@@ -86,4 +87,6 @@ export default {
   removeShapeJSON: ({commit}, name) => commit('removeShapeJSON', name),
 
   setVarShapeAssignment: ({commit}, varShapeAssignment) => commit('setVarShapeAssignment', varShapeAssignment),
+
+  setParsedData: ({commit}, parsedData) => commit('setParsedData', parsedData)
 }

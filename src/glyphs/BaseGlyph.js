@@ -1,8 +1,6 @@
 /* author: Andrea Chatrian
 General Template class that can be used to create glyph instances.
-Glyph itself is made of items in paperjs or other framework.
-BaseGlyph and its subclasses are stateless, if not for the references to the paper.js items (interface model ?)
-and references to parent / children glyphs.
+Glyph provides interface to control drawing of items in paperjs or other framework.
 */
 
 import paper from 'paper'
@@ -27,7 +25,7 @@ class BaseGlyph {
 
   static get glyphScope () {
     for (let i = 0; i < 3; i++) {
-      let scope = paper.PaperScope.get(i)
+      const scope = paper.PaperScope.get(i)
       if (scope.view.element.id === 'glyph-canvas') {
         return scope
       }
@@ -35,7 +33,9 @@ class BaseGlyph {
     throw Error("No scope bound to element 'glyph-canvas'")
   }
 
-  parameters = {} // stores the drawing parameters for the glyph
+  parameters = {
+
+  } // stores the drawing parameters for the glyph
 
   constructor(
       layer, // paperjs layer where glyph path will be drawn
@@ -44,7 +44,7 @@ class BaseGlyph {
       parameters = BaseGlyph.baseParameters(),
       parent = null) {
     // add options as object
-    for (let option in parameters) {
+    for (const option in parameters) {
       this.parameters[option] = parameters[option]
     }
     this.layer = layer
@@ -85,7 +85,7 @@ class BaseGlyph {
   }
 
   static get shapes () {
-    return { main: 'main', children: [] }
+    return { main: 'main', children: [], all: ['main']}
   }
 
   static get elements () {
@@ -99,7 +99,7 @@ class BaseGlyph {
   // iterate over self and children
   * iter (recursive=false) {
     yield this
-    for (let child of this.children) {
+    for (const child of this.children) {
       if (recursive) {
         yield* child.iter(recursive) // yields from generator
       } else {
@@ -137,7 +137,7 @@ class BaseGlyph {
         visible: false
       })
       this.registerItem(drawingBox, 'drawingBox')
-      for (let childGlyph of this.children) {
+      for (const childGlyph of this.children) {
         childGlyph.registerItem(drawingBox, 'drawingBox')
         // drawing box is registered in every child
         // needed to move children relatively to it
@@ -175,14 +175,14 @@ class BaseGlyph {
     Object.values(namedItems).forEach(path => items.push(path))
     this.group = new paper.Group(items)
     // NB when building group, z order of paths is not necessarily maintained
-    for (let itemName in this.zOrder) {
+    for (const itemName in this.zOrder) {
       if (this.zOrder.hasOwnProperty(itemName)) {
         if (this.zOrder[itemName] === -1) {
           this.group.getItem(item => item.name === itemName).sendToBack() // TODO does this modify z position or project hierarchy only (or are they the same thing ?)
         }
       }
     }
-    for (let childGlyph of this.children) {
+    for (const childGlyph of this.children) {
       if (childGlyph.drawn) {
         childGlyph.buildGroups()
       }
@@ -195,9 +195,6 @@ class BaseGlyph {
     this.itemIds[itemName] = item.id
     this.drawnItems.add(itemName)
     item.name = itemName // assign name to item
-    if (this.parent) {
-      this.parent.itemIds[this.name + '-' + itemName] = item.id // makes paths accessible from parent
-    }
     // if (item instanceof paper.Path
     //     && item.name !== 'protrusion') {
     //   item.simplify() // reduces memory usage and speeds up drawing
@@ -262,7 +259,7 @@ class BaseGlyph {
     // does not return drawing box
     let items = {}
     items[this.name] = this.getItem(this.name)
-    for (let element of this.glyphElements) {
+    for (const element of this.glyphElements) {
       if (element.type === 'scale') {
         continue // no item to return for scale-type elements
       }
@@ -311,7 +308,7 @@ class BaseGlyph {
       throw Error(`Could not add glyph '${addedGroup.id}' to layer '${layerId}'`)
     }
     this.layer = targetLayer.index // index of layer in project array
-    for (let childGlyph of this.children) {
+    for (const childGlyph of this.children) {
       childGlyph.changeLayer(layerId) // apply to children as well
     }
   }
@@ -323,7 +320,7 @@ class BaseGlyph {
         history: this.box.history, // so that transformers can be re-applied
     })
     if (children) {
-      for (let childGlyph of this.children) {
+      for (const childGlyph of this.children) {
         if (!childGlyph.drawn) {
           continue  // sometimes automatic update happens before added glyphs can be drawn
         }
@@ -340,6 +337,9 @@ class BaseGlyph {
   checkBoxUpdate (threshold = 0.1) {
     // Check whether drawing bounds have change, in which case the change is applied with reference to the drawing box
     let updated = {box: false, main: false}
+    if (!this.drawn) { // TODO test
+      return updated
+    }
     let drawingBox
     let glyph = this
     while (!drawingBox) {
@@ -411,37 +411,44 @@ class BaseGlyph {
             this.box.bounds.width,
             this.box.bounds.height
         )
-      } else {
-        console.warn('fitToBox did not update any path')
       }
       if (selector === 'all') {
-        for (let glyph of this.children) {
+        for (const glyph of this.children) {
           glyph.fitToBox('glyph')
         }
       }
     }
   }
 
-  reset () { // reset box to null and delete all paperjs items associated with glyph
-    // NB reset does not reset the glyph parameters to defaults! If default parameters are needed a new glyph should be created
-    this.box = null
-    if (this.drawn) {
-      if (this.parent === null) { // if this is root glyph, clear layer
-        paper.project.layers[this.layer].removeChildren()
-        this.itemIds = {}
-        this.drawnItems = new Set()
-      } else {
-        for (let itemName in this.itemIds) {
-          if (this.itemIds.hasOwnProperty(itemName) && this.itemIds[itemName]) {
-            this.deleteItem(itemName) // this should loop over children items as well (??)
+  clear (layer = true) {
+    if (this.parent === null && layer) { // if this is root glyph, clear layer
+      paper.project.layers[this.layer].removeChildren()
+      this.itemIds = {}
+      this.drawnItems = new Set()
+    } else {
+      for (const itemName in this.itemIds) {
+        if (this.itemIds.hasOwnProperty(itemName) && this.itemIds[itemName]) {
+          if (itemName === 'drawingBox') {
+            continue // don't delete drawing box used by parent and other children
           }
+          this.deleteItem(itemName) // this should loop over children items as well (??)
         }
       }
+    }
+  }
+
+  reset ({box = true, layer = true}) { // reset box to null and delete all paperjs items associated with glyph
+    // NB reset does not reset the glyph parameters to defaults! If default parameters are needed a new glyph should be created
+    if (box) {
+      this.box = null
+    }
+    if (this.drawn) {
+      this.clear(layer)
       this.drawn = false
       this.activateLayer()
       this.group = new paper.Group([]) // reset to empty group (needed for path methods to work on new glyph)
       for (const childGlyph of this.children) {
-        childGlyph.reset()
+        childGlyph.reset({box, layer})
       }
     }
   }
@@ -456,7 +463,7 @@ class BaseGlyph {
     glyph.parent = this // storing reference
     this.children.push(glyph)
     // register drawing methods
-    for (let element of glyph.constructor.elements) {
+    for (const element of glyph.constructor.elements) {
       if (element.type !== 'scale') { // scale elements don't have draw function
         this[`draw${glyph.name}${element.name}`] = glyph[`draw${element.name}`].bind(glyph) // drawElement method of child
       }
@@ -464,8 +471,12 @@ class BaseGlyph {
   }
 
   getChild (childName, by='name') {
+    const selector = (glyph) => by === 'name' ? glyph.name : glyph.shape
+    if (selector(this) === childName) {
+      return this
+    }
     try {
-      return this.children.find(childGlyph => { return (by === 'name' ? childGlyph.name : childGlyph.shape) === childName })
+      return this.children.find(childGlyph => selector(childGlyph) === childName)
     } catch (e) {
       throw Error(`Glyph ${this.name} has no children named '${childName}'`)
     }
@@ -474,9 +485,16 @@ class BaseGlyph {
   deleteChild (childName) {
     let i
     for (i = 0; i < this.children.length; i++) {
-      if (this.children[i] === childName) { return i }
+      if (this.children[i].name === childName) {
+        const child = this.children.splice(i, 1)[0]
+        child.clear()
+        for (const grandchild of child.children) {
+          grandchild.clear()
+        }
+        child.children = []
+        return
+      }
     }
-    delete this.children[i]
     throw Error(`Glyph ${this.name} has no children named '${childName}'`)
   }
 
@@ -485,7 +503,7 @@ class BaseGlyph {
     const group = this.group
     const childrenGroups = this.children.map(glyph => glyph.group)
     group.scale(scaleFactor)
-    for (let childGroup of childrenGroups) {
+    for (const childGroup of childrenGroups) {
       childGroup.scale(scaleFactor)
     }
     // TODO can responsiveness be improved through hit-testing?
@@ -494,7 +512,7 @@ class BaseGlyph {
       mouseenter: debounce.call(this, function () {
         if (!this.data.shrunk) {
           this.scale(1/scaleFactor)
-          for (let group of childrenGroups) {
+          for (const group of childrenGroups) {
             group.scale(1/scaleFactor)
           }
           this.data.shrunk = true
@@ -504,7 +522,7 @@ class BaseGlyph {
         setTimeout(function(this_) {
           if (this_.data.shrunk) {
             this_.scale(scaleFactor)
-            for (let group of childrenGroups) {
+            for (const group of childrenGroups) {
               group.scale(scaleFactor)
             }
             this_.data.shrunk = false
@@ -522,7 +540,7 @@ class BaseGlyph {
     const group = this.group
     const childrenGroups = this.children.map(glyph => glyph.group)
     group.scale(1/this.shirnkRegrowScaleFactor)
-    for (let childGroup of childrenGroups) {
+    for (const childGroup of childrenGroups) {
       childGroup.scale(1/this.shirnkRegrowScaleFactor)
     }
     this.shirnkRegrowScaleFactor = null

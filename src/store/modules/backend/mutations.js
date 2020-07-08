@@ -21,6 +21,8 @@ export default {
     state.parsedData = parsedData
   },
 
+  setParsedData: (state, parsedData) => state.parsedData = parsedData,
+
   updateFileName: (state, name) => {
     state.fileName = name
   },
@@ -37,8 +39,8 @@ export default {
     }
     let coNormalizeGroups = []
     let scaleNormalizeGroup = []
-    for (let binding of bindings) {
-      let element = glyphElements.find(element => element.name === binding.element)
+    for (const binding of bindings) {
+      const element = glyphElements.find(element => element.name === binding.element)
       if (element.type === 'scale') {
         scaleNormalizeGroup.push(binding.field) // scale together all the features corresponding to scale-type elements
       }
@@ -50,10 +52,10 @@ export default {
     let fieldTypes = {}
     let numericData = []
     if (state.parsedData.length > 0) {
-      for (let dataPoint of state.parsedData) {
-        let numericPoint = {...dataPoint}
-        for (let field of state.dataFields) {
-          let value = dataPoint[field]
+      for (const dataPoint of state.parsedData) {
+        const numericPoint = {...dataPoint}
+        for (const field of state.dataFields) {
+          const value = dataPoint[field]
           if (typeof +value === 'number' && !isNaN(value)) {
             // numeric string test: String conversion to Number returns a NaN if string is not numeric
             numericPoint[field] = +value // if numeric string convert to number
@@ -66,12 +68,12 @@ export default {
         numericData.push(numericPoint)
       }
       state.fieldTypes = fieldTypes
-      let featuresRanges = {}
+      const featuresRanges = {}
       state.dataFields.forEach(name => {
         featuresRanges[name] = [1.0, 0.0]
       })
       for (let i = 0; i < numericData.length; i++) {
-        for (let field of state.dataFields) {
+        for (const field of state.dataFields) {
           if (numericData[i][field] < featuresRanges[field][0]) {
             featuresRanges[field][0] = numericData[i][field] // update with new minimum (for -ve numbers in range)
           }
@@ -81,10 +83,10 @@ export default {
         }
       }
       // if any features are to be conormalized, the union of their intervals is taken
-      for (let coNormalizeGroup of coNormalizeGroups) {
+      for (const coNormalizeGroup of coNormalizeGroups) {
         let groupMin = 1.0
         let groupMax = 0.0
-        for (let field of coNormalizeGroup) {
+        for (const field of coNormalizeGroup) {
           if (featuresRanges[field][0] < groupMin) {
             groupMin = featuresRanges[field][0]
           }
@@ -92,7 +94,7 @@ export default {
             groupMax = featuresRanges[field][1]
           }
         }
-        for (let field of coNormalizeGroup) {
+        for (const field of coNormalizeGroup) {
           featuresRanges[field] = [groupMin, groupMax]
         }
       }
@@ -100,10 +102,10 @@ export default {
       // normalize
       let normalizedData = []
       for (let i = 0; i < numericData.length; i++) {
-        let normalizedPoint = {}
-        for (let field of state.dataFields) {
-          let value = numericData[i][field]
-          let rangeLength = state.featuresRanges[field][1] - state.featuresRanges[field][0]
+        const normalizedPoint = {}
+        for (const field of state.dataFields) {
+          const value = numericData[i][field]
+          const rangeLength = state.featuresRanges[field][1] - state.featuresRanges[field][0]
           // numeric string test: String conversion to Number returns a NaN if string is not numeric
           if (typeof value === 'number') {
             normalizedPoint[field] = normIntervalLength*(numericData[i][field] - state.featuresRanges[field][0])/rangeLength + (1 - normIntervalLength)
@@ -119,8 +121,8 @@ export default {
     }
 
     // index categorical variables:
-    for (let field in state.fieldTypes) {
-      let values = new Set(state.normalizedData.map(dataPoint => dataPoint[field]))
+    for (const field in state.fieldTypes) {
+      const values = new Set(state.normalizedData.map(dataPoint => dataPoint[field]))
       state.featuresRanges[field] = Array.from(values)
     }
   },
@@ -128,24 +130,24 @@ export default {
   setNamingField: (state, namingField) => {
     if (namingField) {
       state.namingField = namingField // set field
-      state.dataDisplayOrder = state.normalizedData.map(dataPoint => dataPoint[namingField])
+      state.dataDisplayOrder = state.parsedData.map(dataPoint => dataPoint[namingField])
     } else {
       state.namingField = '_default'
-      state.dataDisplayOrder = state.normalizedData.map((dataPoint, index) => index)
+      state.dataDisplayOrder = state.parsedData.map((dataPoint, index) => index)
     }
   },
 
   orderDataByValue: (state, orderField) => {
     if (orderField === 'file entries') {
-      state.dataDisplayOrder = state.normalizedData.map(dataPoint => dataPoint[state.namingField])
+      state.dataDisplayOrder = state.parsedData.map(dataPoint => dataPoint[state.namingField])
     } else {
-      let indexedFieldValues = state.normalizedData.map((dataPoint, idx) => [dataPoint[orderField], idx])
+      let indexedFieldValues = state.parsedData.map((dataPoint, idx) => [dataPoint[orderField], idx])
       if (state.fieldTypes[orderField] === Number) {
         indexedFieldValues.sort((a, b) => a[0] - b[0]) // sort by numeric value
       } else {
         indexedFieldValues.sort() // sort by string order (alphabetical)
       }
-      const readInOrder = state.normalizedData.map(dataPoint => dataPoint[state.namingField])
+      const readInOrder = state.parsedData.map(dataPoint => dataPoint[state.namingField])
       state.dataDisplayOrder = indexedFieldValues.map(el => readInOrder[el[1]])
       state.orderField = orderField
     }

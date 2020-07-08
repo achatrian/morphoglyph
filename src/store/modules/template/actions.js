@@ -60,16 +60,7 @@ export default {
     },
 
     async applyTemplate({dispatch, state}) { // function that changes state according to information recorded in template
-        // DEVELOPMENT HACK: if template is empty and name is that of test template, load test template
-        if (Object.entries(state.currentTemplate).length === 0 // object is empty
-            && state.currentTemplate.constructor === Object // object is object
-            && state.templateName === '_test0'
-            && Object.entries(state.testTemplate)
-            && state.testTemplate.constructor === Object
-        ) {
-            dispatch('setCurrentTemplate', state.testTemplate)
-        }
-        dispatch('getTemplate', state.templateName).then(() => {
+        dispatch('getTemplate', state.templateName).then(async () => {
             // get template from database into state
             // change app settings
             dispatch('app/changeDisplayedGlyphNum', state.currentTemplate.numDisplayedGlyphs, {root: true})
@@ -77,7 +68,7 @@ export default {
             dispatch('app/changeCurrentPage', state.currentTemplate.currentPage, {root: true})
             dispatch('backend/setNamingField', state.currentTemplate.namingField, {root: true})
             dispatch('glyph/setBindings', state.currentTemplate.elementFeatureBindings, {root: true})
-            for (let [name, shape] of Object.entries(state.currentTemplate.shapes)) {
+            for (const [name, shape] of Object.entries(state.currentTemplate.shapes)) {
                 dispatch('backend/storeShapeJSON', {
                     name: name,
                     shapeJSON: shape.json,
@@ -85,19 +76,20 @@ export default {
                     glyph: shape.glyph,
                 }, {root: true})
             }
-            dispatch('glyph/addDataBoundGlyphs', {
+            await dispatch('glyph/addDataBoundGlyphs', {
                     glyphTypeName: state.currentTemplate.topGlyph.type,
                     glyphName: state.currentTemplate.topGlyph.name
             }, {root: true})
             for (const childGlyph of state.currentTemplate.topGlyph.children) {
-                dispatch('glyph/makeEmptyGlyphs', {
+                await dispatch('glyph/addDataBoundGlyphs', {
                     glyphName: childGlyph.name,
                     glyphTypeName: childGlyph.type
                 }, {root: true})
             }
-            dispatch('backend/normalizeFeatures', null, {root: true})
-            // apply glyph variables
-            for (let [glyphName, parameters] of Object.entries(state.currentTemplate.glyphParameters)) {
+            await dispatch('backend/normalizeFeatures', null, {root: true})
+            // apply glyph parameters
+            for (const [glyphName, parameters] of Object.entries(state.currentTemplate.glyphParameters)) {
+                // store in glyphs
                 dispatch('glyph/setGlyphParameters', {
                     glyphName: glyphName,
                     parameters: parameters
@@ -185,5 +177,37 @@ export default {
             function () { console.log(`Renamed template '${oldName}' to '${newName}'`)}
         )
         await dispatch('deleteTemplate', oldName)
+    },
+
+    // examples
+    async saveExample ({rootState, dispatch}) { // TODO test
+        dispatch('updateTemplateName', rootState.backend.fileName)
+        dispatch('saveCurrentTemplate')
+        try {
+            db.collection('examples').doc(rootState.backend.fileName).set({
+                parsedData: rootState.backend.parsedData,
+                templateName: rootState.backend.fileName,
+                timestamp: new Date().toLocaleDateString('en-GB', {
+                    day: 'numeric', month: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric'
+                })
+            }).then(
+                function () {console.log(`Saved example ${rootState.backend.fileName}`)}
+            )
+        } catch (err) {
+            console.error('Failed to save example')
+        }
+    },
+
+    async loadExample ({commit, dispatch}, exampleName) { // TODO test
+        try { // use firebase
+            const doc  = await db.collection('examples').doc(exampleName).get()
+            const example = doc.data()
+            commit('backend/setParsedData', example.parsedData, {root: true})
+            dispatch('updateTemplateName', example.templateName)
+            dispatch('applyTemplate')
+        } catch (err) {
+            console.error(err)
+            console.error('Could not load example')
+        }
     }
 }

@@ -23,12 +23,17 @@ export default {
             const topGlyph = {
                 name: glyph.name,
                 type: glyph.constructor.type,
+                shape: glyph.shape,
                 children: []
             }
-            for (let childGlyph of glyph.children) {
+            for (const childGlyph of glyph.children) {
+                if (glyph.constructor.shapes.children.includes(childGlyph.shape)) {
+                    continue // do not save glyphs that are part of topGlyph
+                }
                 topGlyph.children.push({
                     name: childGlyph.name,
                     type: childGlyph.constructor.type,
+                    shape: glyph.shape,
                     children: []
                 })
             }
@@ -38,16 +43,16 @@ export default {
             // store glyph parameters
             // TODO ensure that glyph parameters are updated in glyphs when modified in VizProps
             const glyphParameters = {}
-            for (let glyph_ of glyph.iter()) {
+            for (const glyph_ of glyph.iter()) {
                 glyphParameters[glyph_.name] = glyph_.parameters
             }
             newCurrentTemplate.glyphParameters = glyphParameters
 
             // UPDATE GLYPH POSITIONS
             const glyphsBoxes = []
-            for (let glyph_ of glyphs) {
-                let boxesPerGlyph = {_id: glyph_.id}  // save id so that glyph box can be matched with correct glyph
-                for (let childGlyph of glyph_.iter()) {
+            for (const glyph_ of glyphs) {
+                const boxesPerGlyph = {_id: glyph_.id}  // save id so that glyph box can be matched with correct glyph
+                for (const childGlyph of glyph_.iter()) {
                     boxesPerGlyph[childGlyph.name] = {
                         drawingBounds: glyph_.box.drawingBounds,
                         drawingCenter: glyph_.box.drawingCenter,
@@ -89,14 +94,13 @@ export default {
 
     updateDisplayOptions: (state, options) => {
         const {displayOrderField, numDisplayedGlyphs, boundingRectSizeFactor, currentPage} = options
-        const newCurrentTemplate = {
+        state.currentTemplate = {
             displayOrderField: displayOrderField,
             numDisplayedGlyphs: numDisplayedGlyphs,
             boundingRectSizeFactor: boundingRectSizeFactor,
             currentPage: currentPage,
             ...state.currentTemplate
         }
-        state.currentTemplate = newCurrentTemplate
     },
 
     setAvailableTemplates: (state, availableTemplates) => {

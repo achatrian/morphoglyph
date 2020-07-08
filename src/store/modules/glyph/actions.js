@@ -15,9 +15,12 @@ export default {
 
   setBindings: ({commit}, bindings) => commit('setBindings', bindings),
 
+  deleteBinding: ({commit}, binding) => commit('deleteBinding', binding),
+
   updateGlyphNames: ({commit}) => commit('updateGlyphNames'),
 
   addDataBoundGlyphs: ({rootState, commit, dispatch}, {glyphName, glyphTypeName}) => {
+    const needRedrawing = rootState.glyph.project.glyphs.length > 0
     dispatch('setGlyphType', {
       glyphTypeName: glyphTypeName,
     })
@@ -27,6 +30,9 @@ export default {
       namingField: rootState.backend.namingField
     })
     dispatch('updateGlyphNames')
+    if (needRedrawing) {
+      dispatch('activateRedrawing')
+    }
   },
 
   makeEmptyGlyphs: ({rootState, commit, dispatch}, payload) => {
@@ -51,6 +57,11 @@ export default {
 
   reassignGlyphLayer: ({commit}, payload) => commit('reassignGlyphLayer', payload),
 
+  renameGlyphs: ({commit, dispatch}, payload) => {
+    commit('renameGlyphs', payload)
+    dispatch('updateGlyphNames')
+  },
+
   drawGlyph: ({rootState, commit}, payload) => {
     const glyphId = rootState.backend.dataDisplayOrder[payload.glyphIndex]
     let dataPoint
@@ -59,7 +70,7 @@ export default {
     } else {
       dataPoint = rootState.backend.normalizedData.find(
           dataPoint_ => dataPoint_[rootState.backend.namingField] === glyphId
-      ) // data point corresponding to cluster in given dock,
+      ) // data point corresponding to cluster in given dock
     }
     Object.assign(payload, {
       glyphId: glyphId,
@@ -78,7 +89,10 @@ export default {
     commit('moveGlyph', payload)
   },
 
-  changeGlyphPosition: ({commit}, payload) => commit('changeGlyphPosition', payload),
+  deleteGlyph: ({commit, dispatch}, payload) => {
+    commit('deleteGlyph', payload)
+    dispatch('updateGlyphNames')
+  },
 
   activateRedrawing: ({commit}) => {
     // function used to signal to canvas that glyphs need redrawing
@@ -86,9 +100,44 @@ export default {
     setTimeout(function () { commit('setRedrawing', false) }, 300)
   },
 
-  deleteElement: ({commit}, binding) => commit('deleteElement', binding),
+  deleteElement: ({state, commit, dispatch}, binding) => {
+    const targetGlyph = [...state.project.glyphs[0].iter()].find(glyph => glyph.name === binding.name)
+    const element = targetGlyph.constructor.elements.find(el => el.name === binding.element)
+    commit('deleteElement', binding)
+    if (element.type === 'color') {
+      dispatch('setGlyphColor', {
+        glyphName: binding.name,
+        fillColor: targetGlyph.parameters.originalFillColor,
+        strokeColor: targetGlyph.parameters.originalStrokeColor
+      })
+    }
+  },
+
+  removeElements: ({state, dispatch}) => {
+    dispatch('app/setProgressCircleState', true, {root: true})
+    for (const binding of state.project.bindings) {
+      dispatch('deleteElement', binding)
+    }
+    setTimeout(dispatch, 100, 'app/setProgressCircleState', false, {root: true})
+  },
+
+  changeGlyphPosition: ({commit, dispatch, state}, payload) => {
+    dispatch('app/setProgressCircleState', true, {root: true})
+    const resizing = payload.steps.some(step => step.transform === 'resize')
+    if (resizing) {
+      dispatch('removeElements')
+    }
+    commit('changeGlyphPosition', payload)
+    if (resizing) {
+      for (const binding of state.project.bindings) {
+        dispatch('redrawElement', binding)
+      }
+    }
+    setTimeout(dispatch, 100, 'app/setProgressCircleState', false, {root: true})
+  },
 
   redrawElement: ({rootState, state, commit, dispatch}, newBinding) => {
+    dispatch('app/setProgressCircleState', true, {root: true})
     const bindings = state.project.bindings.filter(
         binding => !(binding.element === newBinding.element && binding.shape === newBinding.shape)
     )
@@ -113,7 +162,7 @@ export default {
       })
     }
     if (scaleBindings.length > 1 && scaleBindings.some(binding => Object.is(binding, newBinding))) {
-      for (let binding of scaleBindings) {
+      for (const binding of scaleBindings) {
         commit('redrawElement', {
           binding: binding,
           normalizedData: orderedData
@@ -125,12 +174,12 @@ export default {
         normalizedData: orderedData
       })
     }
-
+    setTimeout(dispatch, 100, 'app/setProgressCircleState', false, {root: true})
   },
 
   setGlyphVisibility: ({commit}, payload) => commit('setGlyphVisibility', payload),
 
-  resetGlyph: ({commit}, glyphIndex) => commit('resetGlyph', glyphIndex),
+  resetGlyph: ({commit}, payload) => commit('resetGlyph', payload),
 
   discardGlyphs: ({commit}) => commit('discardGlyphs'),
 
@@ -139,7 +188,7 @@ export default {
     commit('addCaption', payload)
   },
 
-  setGlyphParameters: ({commit, dispatch}, payload) => {
+  setGlyphParameters: ({commit}, payload) => {
     // payload = {parameters, glyphName}
     commit('setGlyphParameters', payload)
     // if (payload.redraw) {
@@ -150,6 +199,8 @@ export default {
   setPathParameter: ({commit}, payload) => commit('setPathParameter', payload),
 
   setShapePosition: ({commit}, payload) => commit('setShapePosition', payload),
+
+  setGlyphColor: ({commit}, payload) => commit('setGlyphColor', payload),
 
   setGlyphBox: ({commit, dispatch}, glyphBoxes) => {
     commit('setGlyphBox', glyphBoxes)

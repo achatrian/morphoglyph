@@ -21,15 +21,18 @@ class CellGlyph extends ShapeGlyph {
     // make nucleus glyph
     const nucleusOptions = CellGlyph.shapeParameters()
     Object.assign(nucleusOptions, {
+      originalStrokeColor: '#283593',
       strokeColor: '#283593',
       primaryColor: '#AB47BC',
       secondaryColor: '#D4E157',
       lightColor: '#1E88E5',
+      originalFillColor: '#1E88E5',
+      shapeColor: '#1E88E5',
       darkColor: '#B71C1C',
       membraneStrokeColor: '#AB47BC',
       spikesStrokeColor: '#D4E157',
       islandsSize: 5,
-      maxNumIslands: 20
+      maxNumIslands: 20,
     })
     const nucleus = new ShapeGlyph(this.layer, id, name + ' Nucleus', nucleusOptions, this)
     this.registerChild(nucleus)
@@ -49,18 +52,18 @@ class CellGlyph extends ShapeGlyph {
   }
 
   static get shapes () {
-    return {main: 'Cell', children: ['Nucleus']}
+    return {main: 'Cell', children: ['Nucleus'], all: ['Cell', 'Nucleus']}
   }
 
   static get elements () {
     // cell elements (same as shape glyph)
     let elements = []
-    for (let element of ShapeGlyph.elements) {
+    for (const element of ShapeGlyph.elements) {
       element.target = 'Cell'
       elements.push(element)
     }
     // nuclear elements
-    for (let element of ShapeGlyph.elements) {
+    for (const element of ShapeGlyph.elements) {
       element.target = 'Nucleus'
       elements.push(element)
     }

@@ -28,7 +28,7 @@ export default {
     }),
     glyphScope () {
       for (let i = 0; i < 3; i++) {
-        let scope = paper.PaperScope.get(i)
+        const scope = paper.PaperScope.get(i)
         if (scope.view.element.id === 'glyph-canvas') {
           return scope
         }
@@ -67,9 +67,9 @@ export default {
         const numDrawnGlyphs = this.glyphs.reduce((drawing, nextGlyph) => drawing + Number(nextGlyph.drawn), 0)
         if (numDrawnGlyphs < this.numDisplayedGlyphs) {
           // it either draws glyphs out ...
-          for (let [idx, boundingRect] of Object.entries(this.boundingRects)) {
-            idx = Number(idx)
-            let glyphIndex = (this.currentPage - 1) * this.numDisplayedGlyphs + idx // idx is relative to glyph position in page
+          for (const [idx, boundingRect] of Object.entries(this.boundingRects)) {
+            const idxNum = Number(idx)
+            const glyphIndex = (this.currentPage - 1) * this.numDisplayedGlyphs + idxNum // idx is relative to glyph position in page
             if (glyphIndex < this.glyphs.length && boundingRect.width > 0 && boundingRect.height > 0 &&
                     !(this.glyphs[glyphIndex].drawn)) {
               this.drawGlyph({
@@ -90,9 +90,9 @@ export default {
         } else {
           this.$emit('update:drawing', false)
           // ... or moves them the rectangles' position has changed
-          for (let [idx, boundingRect] of Object.entries(this.boundingRects)) {
-            idx = Number(idx)
-            let glyphIndex = (this.currentPage - 1) * this.numDisplayedGlyphs + idx // idx is relative to glyph position in page
+          for (const [idx, boundingRect] of Object.entries(this.boundingRects)) {
+            const idxNum = Number(idx)
+            const glyphIndex = (this.currentPage - 1) * this.numDisplayedGlyphs + idxNum // idx is relative to glyph position in page
             if (glyphIndex < this.glyphs.length
                     && boundingRect.width > 0
                     && boundingRect.height > 0
@@ -118,7 +118,10 @@ export default {
       this.boundingRects.forEach(({generator}) => rectGenIds.push(generator.id))
       const allEqual = arr => arr.every(v => v === arr[0])
       if (!allEqual(rectGenIds)) { throw new Error("Glyph come from mismatching generators") }
-      this.glyphs.forEach((glyph, glyphIndex) => this.resetGlyph(glyphIndex)) // reset all glyphs
+      this.glyphs.forEach((glyph, glyphIndex) => this.resetGlyph({
+        glyphIndex: glyphIndex,
+        box: false // use existing box to draw glyph
+      })) // reset all glyphs
       let numRedrawn = 0
       this.boundingRects.forEach((boundingRect, idx) => {
         let glyphIndex = (this.currentPage - 1) * this.numDisplayedGlyphs + idx // idx is relative to glyph position in page
@@ -138,7 +141,7 @@ export default {
       this.$emit('update:drawing', false)
     },
     toggleDrawingBoxes () {
-      for (let glyph of this.glyphs) {
+      for (const glyph of this.glyphs) {
         glyph.getItem('drawingBox').visible = true
       }
     },

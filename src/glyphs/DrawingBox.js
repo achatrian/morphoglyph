@@ -8,6 +8,11 @@ class DrawingBox {
     // transforms used during drawing of glyphs, must be reapplied when setting transforms are applied
     drawingTransforms = []
     bounds = {}
+    gridPosition = { // position in grid terms
+        horizontal: 2,
+        vertical: 2,
+        scale: 3
+    }
 
     constructor (glyph, {
                     boundingRect,
@@ -49,7 +54,7 @@ class DrawingBox {
 
     get childrenBoxes () { // returns boxes of children glyphs
         let boxes = []
-        for (let glyph of this.glyph.children) {
+        for (const glyph of this.glyph.children) {
             if (glyph.box) {
                 boxes.push(glyph.box)
             }
@@ -101,65 +106,73 @@ class DrawingBox {
     }
 
     applyTransforms(history) { // applies all transforms in a given history (own history is updated by transforms)
-        for (let step of history) {
+        for (const step of history) {
             this[step.transform](...step.parameters)
         }
     }
 
-    applyDrawingTransforms(selector = '') {
-        // adapts drawing transforms for re-application (e.g. by removing centering directives)
-        let adaptedTransforms = [...this.drawingTransforms]
-        switch (selector) {
-            case 'resize':
-                adaptedTransforms = adaptedTransforms.filter(step => step.transform === 'resize')
-                break
-            case 'resizeWidth':
-                adaptedTransforms = adaptedTransforms.filter(step => step.transform === 'resize' && step.parameters[1] == null)
-                break
-            case 'resizeHeight':
-                adaptedTransforms = adaptedTransforms.filter(step => step.transform  === 'resize' && step.parameters[0] == null)
-                break
-            case 'shift':
-                adaptedTransforms = adaptedTransforms.filter(step => step.transform === 'shift')
-                break
-            case 'shiftLeft':
-                adaptedTransforms = adaptedTransforms.filter(step => step.transform === 'shift' && step.parameters[1] == null)
-                break
-            case 'shiftTop':
-                adaptedTransforms = adaptedTransforms.filter(step => step.transform === 'shift' && step.parameters[0] == null)
-                break
-        }
-        for (let step of adaptedTransforms) {
-            if (step.transform === 'resize') {
-                step.parameters[2].center = false // prevent shifting in re-sizes when re-applying transforms
-            }
-            if (step.transform === 'shift') {
-                step.parameters[2].scale = false // prevent re-sizing in shifts when re-applying transforms
-            }
-            step.parameters[2].drawing = false // prevents storing duplicates in drawingTransforms
-        }
-        for (let step of adaptedTransforms) {
-            step.parameters[3] = false // do not register drawing transforms that have already been registered
-            this[step.transform](...step.parameters)
-        }
-    }
+    // applyDrawingTransforms(selector = '') {
+    //     // adapts drawing transforms for re-application (e.g. by removing centering directives)
+    //     let adaptedTransforms = [...this.drawingTransforms]
+    //     switch (selector) {
+    //         case 'resize':
+    //             adaptedTransforms = adaptedTransforms.filter(step => step.transform === 'resize')
+    //             break
+    //         case 'resizeWidth':
+    //             adaptedTransforms = adaptedTransforms.filter(step => step.transform === 'resize' && step.parameters[1] == null)
+    //             break
+    //         case 'resizeHeight':
+    //             adaptedTransforms = adaptedTransforms.filter(step => step.transform  === 'resize' && step.parameters[0] == null)
+    //             break
+    //         case 'shift':
+    //             adaptedTransforms = adaptedTransforms.filter(step => step.transform === 'shift')
+    //             break
+    //         case 'shiftLeft':
+    //             adaptedTransforms = adaptedTransforms.filter(step => step.transform === 'shift' && step.parameters[1] == null)
+    //             break
+    //         case 'shiftTop':
+    //             adaptedTransforms = adaptedTransforms.filter(step => step.transform === 'shift' && step.parameters[0] == null)
+    //             break
+    //     }
+    //     for (let step of adaptedTransforms) {
+    //         if (step.transform === 'resize') {
+    //             step.parameters[2].center = false // prevent shifting in re-sizes when re-applying transforms
+    //         }
+    //         if (step.transform === 'shift') {
+    //             step.parameters[2].scale = false // prevent re-sizing in shifts when re-applying transforms
+    //         }
+    //         step.parameters[2].drawing = false // prevents storing duplicates in drawingTransforms
+    //     }
+    //     for (let step of adaptedTransforms) {
+    //         step.parameters[3] = false // do not register drawing transforms that have already been registered
+    //         this[step.transform](...step.parameters)
+    //     }
+    // }
 
     resize (widthProportion = 1.0, heightProportion = 1.0,
-            options = {setValues: false, drawing: false, center: false, children: false, redraw: false},
+            options = {setValues: false, drawing: false, center: false, children: false, setScale: false},
             record=true) {
-        const {center, children, setValues, drawing, redraw} = options
+        const {center, children, setValues, drawing, setScale} = options
         let newWidthProportion, newHeightProportion
         if (widthProportion == null) {
             newWidthProportion = this.shapePositions.widthProportion // if null, keep old value
         } else if (setValues) {
-            newWidthProportion = widthProportion
+            if (setScale) {
+                newWidthProportion = widthProportion // setting scale
+            } else {
+                newWidthProportion = widthProportion * this.gridPosition.scale/3 // with respect to set scale
+            }
         } else {
             newWidthProportion = this.shapePositions.widthProportion * widthProportion
         }
         if (heightProportion == null) {
             newHeightProportion = this.shapePositions.heightProportion // if null, keep old value
         } else if (setValues) {
-            newHeightProportion = heightProportion
+            if (setScale) {
+                newHeightProportion = heightProportion // setting scale
+            } else {
+                newHeightProportion = heightProportion * this.gridPosition.scale/3 // with respect to set scale
+            }
         } else {
             newHeightProportion = this.shapePositions.heightProportion * heightProportion
         }
@@ -183,22 +196,24 @@ class DrawingBox {
             this.recordTransform('resize', [widthProportion, heightProportion, options], drawing)
         }
         // re-applies drawing transforms in case a modification occurred
-        if (redraw) {
-            let selector = ''
-            if (heightProportion == null) {
-                selector = 'resizeWidth'
-            } else if (widthProportion == null) {
-                selector = 'resizeHeight'
-            }
-            this.applyDrawingTransforms(selector)
-        }
+        // if (redraw) {
+        //     let selector = ''
+        //     if (heightProportion == null) {
+        //         selector = 'resizeWidth'
+        //     } else if (widthProportion == null) {
+        //         selector = 'resizeHeight'
+        //     }
+        //     this.applyDrawingTransforms(selector)
+        // }
         // apply to children
         if (children) { // TODO test
-            for (let childBox of this.childrenBoxes) {
+            for (const childBox of this.childrenBoxes) {
                 childBox.resize(widthProportion, heightProportion, options)
             }
         }
-
+        if (setScale) {
+            this.gridPosition.scale = setScale
+        }
     }
 
     shift (leftShift = 0.0, topShift = 0.0,
@@ -233,17 +248,17 @@ class DrawingBox {
             this.recordTransform('shift', [leftShift, topShift, options], drawing)
         }
         // re-applies drawing transforms in case a modification occurred
-        if (redraw) {
-            let selector = ''
-            if (topShift == null) {
-                selector = 'shiftLeft'
-            } else if (leftShift == null) {
-                selector = 'shiftTop'
-            }
-            this.applyDrawingTransforms(selector)
-        }
+        // if (redraw) {
+        //     let selector = ''
+        //     if (topShift == null) {
+        //         selector = 'shiftLeft'
+        //     } else if (leftShift == null) {
+        //         selector = 'shiftTop'
+        //     }
+        //     this.applyDrawingTransforms(selector)
+        // }
         if (children) { // TODO test
-            for (let childBox of this.childrenBoxes) {
+            for (const childBox of this.childrenBoxes) {
                 childBox.shift(leftShift, topShift, options)
             }
         }
@@ -258,7 +273,7 @@ class DrawingBox {
             heightProportion: this.shapePositions.heightProportion,
         }
         this.applyPositioning(positions)
-        this.applyDrawingTransforms('shift') // applies any required drawing shifts after centering
+        // this.applyDrawingTransforms('shift') // applies any required drawing shifts after centering
         if (record) {
             this.recordTransform('center', [left, top, options], drawing)
         }

@@ -23,6 +23,7 @@ const state = {
   chartController: true,
   legendViewer: false,
   templateManager: false,
+  progressCircle: false,
   // view props
   maxDisplayedGlyphs: 20,
   numDisplayedGlyphs: 0,

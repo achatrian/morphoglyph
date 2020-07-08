@@ -84,7 +84,7 @@
             }),
             numericFields () {
                 const numericFields = []
-                for (let [field, type] of Object.entries(this.fieldTypes)) {
+                for (const [field, type] of Object.entries(this.fieldTypes)) {
                     if (type === Number) {
                         numericFields.push(field)
                     }

@@ -2,32 +2,37 @@ import BaseGlyph from './BaseGlyph'
 import paper from 'paper'
 /* Subclasses should contain rules to draw specific glyphs, while basegraph handles logistic of drawing and tracking */
 
+
 /* Simple glyph implementing paper.Path closed paths as main path */
 class ShapeGlyph extends BaseGlyph {
 
   static shapeParameters () {
+    const {lightColor, darkColor, primaryColor, secondaryColor, strokeColor} = ShapeGlyph.baseParameters()
     return {
       ...ShapeGlyph.baseParameters(),
       shapeType: 'ellipse',
+      shapeColor: lightColor,
+      originalFillColor: lightColor,
+      originalStrokeColor: strokeColor,
       numSides: 6, // for RegularPolygon: defaults to hexagon
       numPoints: 150, // for drawing Border and Spikes
-      borderStrokeColor: ShapeGlyph.baseParameters().primaryColor,
+      borderStrokeColor: primaryColor,
       borderStrokeWidth: 5,
-      spikeHeight: 0.3,
+      spikeHeight: 0.12 ,
       spikesStrokeWidth: 0.4,
-      spikesStrokeColor: ShapeGlyph.baseParameters().secondaryColor,
+      spikesStrokeColor: secondaryColor,
       meshMode: 'grid',
-      meshStrokeColor: ShapeGlyph.baseParameters().darkColor,
+      meshStrokeColor: darkColor,
       meshStrokeWidth: 1,
       decorationSize: 5, // size of pattern elements in patterning
       decorationMode: 'circle',
-      decorationColor: ShapeGlyph.baseParameters().secondaryColor,
+      decorationFillColor: secondaryColor,
       extensionProportion: 0.15,
       extensionBackgroundColor: '#F5F5F5',
       extensionStrokeColor: '#212121',
       islandsMode: 'circle',
       islandsSize: 10,
-      islandsStrokeColor: ShapeGlyph.baseParameters().secondaryColor,
+      islandsStrokeColor: secondaryColor,
       maxNumIslands: 20
     }
   }
@@ -64,7 +69,7 @@ class ShapeGlyph extends BaseGlyph {
   }
 
   static get shapes () {
-    return {main: 'main', children: []}
+    return {main: 'main', children: [], all: ['main']}
   }
 
   static get elements () {
@@ -76,14 +81,14 @@ class ShapeGlyph extends BaseGlyph {
       {
         name: 'Height',
         type: 'scale',
-        properties: {},
+        properties: {direction: 'vertical'},
         target: 'main',
         subElements: []
       },
       {
         name: 'Width',
         type: 'scale',
-        properties: {},
+        properties: {direction: 'horizontal'},
         target: 'main',
         subElements: []
       },
@@ -145,13 +150,20 @@ class ShapeGlyph extends BaseGlyph {
         name: 'Islands', // previously BorderSymbol
         type: 'path',
         properties: {
-          color: {range: [], step: [], fillColor: true},
+          color: {range: [], step: [], fillColor: false},
           size: {range: [0.3, 2], step: 0.3},
           mode: ['circle', 'star', 'square']
         },
         target: 'main',
         subElements: []
       },
+      {
+        name: 'Shade',
+        type: 'color',  // no special provisions for the 'color' type of element have been taken so far
+        properties: {},
+        target: 'main',
+        subElements: []
+      }
     ]
   }
 
@@ -206,7 +218,7 @@ class ShapeGlyph extends BaseGlyph {
           center: [this.box.center.x, this.box.center.y],
           size: [this.box.bounds.width, this.box.bounds.height],
           strokeColor: this.parameters.strokeColor,
-          fillColor: this.parameters.lightColor,
+          fillColor: this.parameters.shapeColor,
           strokeWidth: this.parameters.strokeWidth
         })
         break
@@ -215,7 +227,7 @@ class ShapeGlyph extends BaseGlyph {
           center: [this.box.center.x, this.box.center.y],
           size: [this.box.bounds.width, this.box.bounds.height],
           strokeColor: this.parameters.strokeColor,
-          fillColor: this.parameters.lightColor,
+          fillColor: this.parameters.shapeColor,
           strokeWidth: this.parameters.strokeWidth
         })
         break
@@ -224,7 +236,7 @@ class ShapeGlyph extends BaseGlyph {
           center: [this.box.center.x, this.box.center.y],
           radius: Math.min(this.box.bounds.width, this.box.bounds.height),
           strokeColor: this.parameters.strokeColor,
-          fillColor: this.parameters.lightColor,
+          fillColor: this.parameters.shapeColor,
           strokeWidth: this.parameters.strokeWidth
         })
         break
@@ -234,7 +246,7 @@ class ShapeGlyph extends BaseGlyph {
           sides: this.numSides,
           radius: Math.min(this.box.bounds.width, this.box.bounds.height),
           strokeColor: this.parameters.strokeColor,
-          fillColor: this.parameters.lightColor,
+          fillColor: this.parameters.shapeColor,
           strokeWidth: this.parameters.strokeWidth
         })
         break
@@ -264,16 +276,16 @@ class ShapeGlyph extends BaseGlyph {
     this.fitToBox()
   }
 
-  drawBorder (borderFraction, subElements) { // eslint-disable-line no-unused-vars
+  drawBorder (borderProportion, subElements) { // eslint-disable-line no-unused-vars
     /* Draws a thicker border */
-    if (!(borderFraction >= 0.0 || borderFraction <= 1.0)) {
-      throw Error(`Invalid border fraction ${borderFraction}, it must be in [0, 1] (`)
+    if (!(borderProportion >= 0.0 || borderProportion <= 1.0)) {
+      throw Error(`Invalid border proportion ${borderProportion}, it must be in [0, 1] (`)
     }
     this.activateLayer()
     // create new open path
     let borderPath = new paper.Path()
     const outerPath = this.outerPath
-    for (let i = 0; i < Math.floor(this.parameters.numPoints * borderFraction); i++) {
+    for (let i = 0; i < Math.floor(this.parameters.numPoints * borderProportion); i++) {
       borderPath.add(outerPath.getLocationAt(outerPath.length * (1 - i / this.parameters.numPoints)))
     }
     borderPath.strokeColor = this.parameters.borderStrokeColor
@@ -282,25 +294,25 @@ class ShapeGlyph extends BaseGlyph {
     this.registerItem(borderPath, 'border')
   }
 
-  drawSpikes (spikeFraction, subElements = {}) {
+  drawSpikes (spikeProportion, subElements = {}) {
     let {spikeHeight, numPoints} = subElements // FIXME unused
     if (typeof spikeHeight === 'undefined') { spikeHeight = this.parameters.spikeHeight }
     if (typeof numPoints === 'undefined') { numPoints = this.parameters.numPoints }
     let pathClone = this.cloneItem('outer', numPoints)
     pathClone.visible = false
-    let n = Math.floor(pathClone.segments.length * spikeFraction)
+    let n = Math.floor(pathClone.segments.length * spikeProportion)
     let spikePath = new paper.Path()
     for (let i = 0; i < n; i++) {
       let offset = [0, 0]
-      let dirX = pathClone.segments[i].point.x - this.outerPath.position.x
-      let dirY = pathClone.segments[i].point.y - this.outerPath.position.y
+      const dirX = pathClone.segments[i].point.x - this.outerPath.position.x
+      const dirY = pathClone.segments[i].point.y - this.outerPath.position.y
       if (i % 2 === 1 && i !== (n - 1)) {
         offset[0] = dirX * spikeHeight
         offset[1] = dirY * spikeHeight
       } else if (i > 0 && i < numPoints - 1) {
         offset = [offset[0] * 0.35, offset[1] * 0.35]
       }
-      let newPoint = new paper.Point(pathClone.segments[i].point.x + offset[0],
+      const newPoint = new paper.Point(pathClone.segments[i].point.x + offset[0],
         pathClone.segments[i].point.y + offset[1])
       spikePath.add(newPoint)
     }
@@ -343,7 +355,7 @@ class ShapeGlyph extends BaseGlyph {
       }
     }
     let mesh = new paper.Group([])
-    for (let line of lines) {
+    for (const line of lines) {
       let intersections = line.getIntersections(this.outerPath)
       // debug - show intersections
       for (let i = 0; i + 1 < intersections.length; i = i + 2) {
@@ -356,16 +368,16 @@ class ShapeGlyph extends BaseGlyph {
     this.registerItem(mesh, 'mesh')
   }
 
-  drawDecoration (fillingFraction, subElements) { // eslint-disable-line no-unused-vars
+  drawDecoration (fillingProportion, subElements) { // eslint-disable-line no-unused-vars
     // generate points where to draw pattern elements - use contains() to test whether point is inside the shape or not
     let possiblePoints = []
     const outerPath = this.outerPath
     for (let x = this.box.drawingBounds.x; x < this.box.drawingBounds.x + this.box.drawingBounds.width; x += this.parameters.decorationSize) {
       for (let y = this.box.drawingBounds.y; y < this.box.drawingBounds.y + this.box.drawingBounds.height; y += this.parameters.decorationSize) {
-        let possiblePoint = new paper.Point(x, y)
-        let horVect = new paper.Point(this.parameters.decorationSize/2, 0)
-        let verVect = new paper.Point(0, this.parameters.decorationSize/2)
-        let containsExtremes = [ // + and - overloading for paper.Point is not working?
+        const possiblePoint = new paper.Point(x, y)
+        const horVect = new paper.Point(this.parameters.decorationSize/2, 0)
+        const verVect = new paper.Point(0, this.parameters.decorationSize/2)
+        const containsExtremes = [ // + and - overloading for paper.Point is not working?
             outerPath.contains(possiblePoint), // center
             outerPath.contains(possiblePoint.add(horVect)), // E
             !this.children.some(child => child.outerPath.contains(possiblePoint.add(horVect))), // E children
@@ -383,7 +395,7 @@ class ShapeGlyph extends BaseGlyph {
     }
     let decoration = []
     let decorationElement
-    for (let i = 0; i < Math.ceil(possiblePoints.length * fillingFraction); i++) {
+    for (let i = 0; i < Math.ceil(possiblePoints.length * fillingProportion); i++) {
       switch (this.parameters.decorationMode) {
         case 'circle':
            decorationElement = new paper.Path.Circle(
@@ -413,7 +425,7 @@ class ShapeGlyph extends BaseGlyph {
             from: possiblePoints[i].subtract(new paper.Point(this.parameters.decorationSize/4, 0)),
             to: possiblePoints[i].add(new paper.Point(this.parameters.decorationSize/4, 0)),
             strokeWidth: Math.max(this.parameters.decorationSize/8, 1),
-            strokeColor: this.parameters.decorationColor
+            strokeColor: this.parameters.decorationFillColor
           })
           break
         case 'line':
@@ -421,11 +433,11 @@ class ShapeGlyph extends BaseGlyph {
             from: possiblePoints[i].subtract(new paper.Point(0, this.parameters.decorationSize/4)),
             to: possiblePoints[i].add(new paper.Point(0, this.parameters.decorationSize/4)),
             strokeWidth: Math.max(this.parameters.decorationSize/8, 1),
-            strokeColor: this.parameters.decorationColor
+            strokeColor: this.parameters.decorationFillColor
           })
           break
       }
-      decorationElement.fillColor = this.parameters.decorationColor
+      decorationElement.fillColor = this.parameters.decorationFillColor
       decorationElement.visible = true
       decoration.push(decorationElement)
     }
@@ -434,7 +446,7 @@ class ShapeGlyph extends BaseGlyph {
     this.registerItem(decorationGroup, 'decoration')
   }
 
-  drawExtension (extensionFraction, subElements) { // eslint-disable-line no-unused-vars
+  drawExtension (extensionProportion, subElements) { // eslint-disable-line no-unused-vars
     let extrusionPath = this.cloneItem(this.name, this.parameters.numPoints)
     // compute min space available to draw extension. This corresponds to glyph with the same height as the box's height
     // this glyph will touch the lower boundary of the drawing box after being shifted and scaled.
@@ -442,8 +454,8 @@ class ShapeGlyph extends BaseGlyph {
     for (let i = 0; i < extrusionPath.segments.length; i++) {
       if (extrusionPath.segments[i].point.y < this.mainPath.position.y) {
         // shift up points in upper half of main path's clone - NB (y increases going down in screen)
-        //extensionPath.segments[i].point.y -= extensionPath.segments[i].point.y * extensionFraction
-        extrusionPath.segments[i].point.y -= upperEmptySpace * extensionFraction
+        //extensionPath.segments[i].point.y -= extensionPath.segments[i].point.y * extensionProportion
+        extrusionPath.segments[i].point.y -= upperEmptySpace * extensionProportion
       }
     }
     const originalPath = this.cloneItem(this.name, this.parameters.numPoints)
@@ -464,8 +476,8 @@ class ShapeGlyph extends BaseGlyph {
       const extensionSegments = []
       // originalPath and extrusionPath have the same number of segments by construction
       for (let j = 0; j < originalPath.segments.length; j++) {
-        let segmentOffset = originalPath.segments[j].location.offset
-        let extrusionPoint = extrusionPath.segments[j].point
+        const segmentOffset = originalPath.segments[j].location.offset
+        const extrusionPoint = extrusionPath.segments[j].point
         if (leftUpperOffset < rightUpperOffset) {
           if (segmentOffset > leftUpperOffset && segmentOffset < rightUpperOffset) {
             if (extrusionPoint.getDistance(originalPath.getNearestPoint(extrusionPoint)) > 1 &&
@@ -508,10 +520,10 @@ class ShapeGlyph extends BaseGlyph {
     this.registerItem(extensionPath, 'extension')
   }
 
-  drawIslands (borderFraction, subElements) {// eslint-disable-line no-unused-vars
+  drawIslands (borderProportion, subElements) {// eslint-disable-line no-unused-vars
     let islands = []
-    for (let i = 0; i < Math.ceil(this.parameters.maxNumIslands * borderFraction); i++) {
-      let symbolPosition = this.outerPath.getPointAt(this.outerPath.length * (1 - i / this.parameters.maxNumIslands))
+    for (let i = 0; i < Math.ceil(this.parameters.maxNumIslands * borderProportion); i++) {
+      const symbolPosition = this.outerPath.getPointAt(this.outerPath.length * (1 - i / this.parameters.maxNumIslands))
       let island
       switch (this.parameters.islandsMode) {
         case 'circle':
@@ -548,12 +560,19 @@ class ShapeGlyph extends BaseGlyph {
               ))
           break
       }
-      island.fillColor = ''
+      island.fillColor = ''  // islands are unfilled so underlying membrane can be seen 
       island.strokeColor = this.parameters.islandsStrokeColor
       islands.push(island)
     }
     const borderSymbolGroup = new paper.Group(islands)
     this.registerItem(borderSymbolGroup, 'islands')
+  }
+  
+  drawShade (shadingProportion, subElements) { // eslint-disable-line no-unused-vars
+    const hexColor = this.parameters.shapeColor.slice(0, -2)  // slice out old opacity hex code
+    const opacity = Math.round(shadingProportion * 255).toString(16)
+    this.parameters.shapeColor = hexColor + opacity
+    this.mainPath.fillColor = this.parameters.shapeColor
   }
 }
 

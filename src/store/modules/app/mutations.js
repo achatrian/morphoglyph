@@ -80,6 +80,8 @@ export default {
 
   setGlyphArrangement: (state, glyphArrangement) => state.glyphArrangement = glyphArrangement,
 
+  setProgressCircleState: (state, payload) => state.progressCircle = payload,
+
   updateGlyphArrangement (state) {
     /* arrange glyphs onto the canvas by defining bounding rectangles */
     // !!! IMPORTANT: must produce square drawing boxes
@@ -145,10 +147,10 @@ export default {
       boundingRects = []
       let minXDistances = []
       let minYDistances = []
-      for (let point0 of state.chartPoints) {
+      for (const point0 of state.chartPoints) {
         let minXDist = 100000.0
         let minYDist = 100000.0
-        for (let point1 of state.chartPoints) {
+        for (const point1 of state.chartPoints) {
           if (point0.x === point1.x && point0.y === point1.y) {
             continue
           }
@@ -170,7 +172,7 @@ export default {
           paper.view.viewSize.height / Math.ceil(Math.sqrt(state.numDisplayedGlyphs + 1.0))
       ) * state.boundingRectSizeFactor - 0.5 // inscribe glyph in square in order to keep aspect ratio constant
       const drawingDist = Math.max(Math.min(...minXDistances, ...minYDistances),  rectSize)
-      for (let point of state.chartPoints) {
+      for (const point of state.chartPoints) {
         let pointRect = {
           left: point.x - drawingDist / 2,
           top: point.y - drawingDist / 2,
@@ -282,7 +284,6 @@ export default {
       chartLayer.remove()
     }
   }
-
   // chart.js
   // drawChart: (state, {xField, yField, orderedData}) => {  // TODO (?) move this to own separate module
   //   const xData = orderedData.map(dataPoint => dataPoint[xField])

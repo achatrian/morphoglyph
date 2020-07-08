@@ -2,7 +2,7 @@
   <div>
     <v-card class="panel" flat>
       <v-divider/>
-      <!--Replace toolbar with flexbox ? -->
+<!--      GLYPH SELECTION AND PROPERTIES      -->
       <v-toolbar
         color="dark"
         flat
@@ -19,6 +19,58 @@
         </div>
       </v-toolbar>
       <v-toolbar
+              color="dark"
+              flat
+              dense
+              v-if="renamingGlyph"
+      >
+        <v-text-field v-model="newGlyphName" label="New glyph name"></v-text-field>
+      </v-toolbar>
+      <v-toolbar
+              color="dark"
+              flat
+              dense>
+        <v-btn v-if="!renamingGlyph" flat class="secondary primary--text" @click="renamingGlyph = true">
+          rename
+        </v-btn>
+        <v-btn v-else flat class="secondary primary--text" @click="renameGlyph">
+          OK
+        </v-btn>
+        <v-btn flat class="white dark--text" @click="deleteGlyph(selectedGlyphName)" :disabled="renamingGlyph">
+          delete
+        </v-btn>
+      </v-toolbar>
+      <v-toolbar flat dense color="dark">
+        <span class="text--white" style="font-size: 16px" v-show="selectedGlyphName">Glyph Color:</span>
+        <!--TODO change text color when disable as for slider-->
+        <v-spacer/>
+        <v-dialog
+                v-model="glyphColorDialog"
+                width="225px"
+                :disabled="!selectedGlyphName"
+                v-show="selectedGlyphName"
+        >
+          <a slot="activator">
+            <div
+                    :style="{ 'background-color': glyphColor.hex8}"
+                    class="color-tile"
+            />
+          </a>
+          <v-card>
+            <color-picker
+                    v-model="glyphColor"
+                    :disabled="!selectedGlyphName"
+            />
+          </v-card>
+        </v-dialog>
+      </v-toolbar>
+      <v-divider/>
+
+
+<!--      ELEMENT BINDING AND PROPERTIES      -->
+
+
+      <v-toolbar
       :color="elementSelectColor"
       flat
       dense
@@ -28,7 +80,7 @@
             :items="selectedGlyphElements.map(element => element.name)"
             dense
             label="Glyph Element"
-            placeholder="Select a glyph element to bind"
+            placeholder="Select a glyph element"
             v-model="selectedElementName"
             @change="onSelectElementName"
             :disabled="rebinding === 'element' || !selectedGlyphName"
@@ -46,82 +98,77 @@
                   :items="featuresItems"
                   dense
                   label="Data Feature"
-                  placeholder="Select a data feature to bind"
+                  placeholder="Select a data feature"
                   v-model="selectedFieldName"
                   @change="applyBindingChange"
-                  :disabled="!Boolean(selectedElement) || !selectedGlyphName"
-          />
-        </div>
-      </v-toolbar>
-
-      <v-list
-        id="list"
-      >
-        <v-list-tile>
-          <!--Rebinding controls-->
-          <!--v-if converts to boolean-->
-          <div class="re-bind" v-show="selectedElementName">
+                  :disabled="!selectedElementName || !selectedGlyphName"
+          >
             <v-tooltip
                     class="tooltip"
                     open-delay="700"
                     bottom
+                    slot="append"
+                    v-if="bindings.some(binding => binding.name === selectedGlyphName &&
+                                        binding.field === selectedFieldName)"
             >
-              <v-btn icon
-                     v-show="!rebinding"
-                     slot="activator"
-                     color="white"
-                     @click="applyUnbinding"
-                     class="bind-item"
+              <v-btn
+                      icon
+                      small
+                      slot="activator"
+                      class="light bind-item"
+                      color="dark"
+                      flat
+                      @click="applyUnbinding"
               >
-                <v-icon color="dark">remove</v-icon>
+                <v-icon>remove</v-icon>
               </v-btn>
-            <span>Remove selected element-feature binding</span>
+              <span>Remove selected element-feature binding</span>
             </v-tooltip>
-          </div>
-        </v-list-tile>
-        <v-list-tile>
-          <v-slider color="secondary"
-                    class="text--white"
-                    v-model="selectedWidth"
-                    v-show="hasProperties.size"
-                    :min="(hasProperties.size) ? selectedElement.properties.size.range[0] : 0"
-                    :max="(hasProperties.size) ? selectedElement.properties.size.range[1] : 100"
-                    :step="(hasProperties.size) ? selectedElement.properties.size.step: 1"
-                    :disabled="Boolean(rebinding) || selectedFieldName === 'unbound'"
-          >
-            <span class="text--white" style="display: inline-block; width: 100px; margin-top: 4px" slot="prepend">
+          </v-select>
+        </div>
+      </v-toolbar>
+      <v-toolbar flat dense color="dark">
+        <v-slider color="secondary"
+                  class="text--white"
+                  style=" margin-top: 15%"
+                  v-model="selectedWidth"
+                  v-show="hasProperties.size"
+                  :min="(hasProperties.size) ? selectedElement.properties.size.range[0] : 0"
+                  :max="(hasProperties.size) ? selectedElement.properties.size.range[1] : 100"
+                  :step="(hasProperties.size) ? selectedElement.properties.size.step: 1"
+                  :disabled="Boolean(rebinding) || selectedFieldName === 'unbound'"
+        >
+            <span class="text--white" style="display: inline-block; width: 100px" slot="prepend">
               <!--TODO in new vuetify there is a 'label' slot to change the label-->
               Stroke Size:
             </span>
-          </v-slider>
-        </v-list-tile>
-        <v-list-tile>
-          <span class="text--white" v-show="hasProperties.color">Element color:</span>
-          <!--TODO change text color when disable as for slider-->
-          <v-spacer/>
-          <v-dialog
-            v-model="dialog"
-            width="225px"
-            :disabled="Boolean(rebinding) || selectedFieldName === 'unbound'"
-          >
-            <a slot="activator" v-show="hasProperties.color">
-              <div
-                :style="{ 'background-color': colorPick.hex}"
-                style="position: relative; right:120px"
-                class="color-tile"
-              />
-            </a>
-            <v-card>
-              <color-picker
-                id="picker"
-                v-model="colorPick"
+        </v-slider>
+      </v-toolbar>
+      <v-toolbar flat dense color="dark">
+        <span class="text--white" style="font-size: 16px" v-show="hasProperties.color">Element Color:</span>
+        <!--TODO change text color when disable as for slider-->
+        <v-spacer/>
+        <v-dialog
+                id="dialog1"
+                v-model="dialog"
+                width="225px"
                 :disabled="Boolean(rebinding) || selectedFieldName === 'unbound'"
-              />
-            </v-card>
-          </v-dialog>
-        </v-list-tile>
-        <!--<v-divider/>-->
-        <v-list-tile>
+        >
+          <a slot="activator" v-show="hasProperties.color">
+            <div
+                    :style="{ 'background-color': colorPick.hex8}"
+                    class="color-tile"
+            />
+          </a>
+          <v-card>
+            <color-picker
+                    id="picker"
+                    v-model="colorPick"
+            />
+          </v-card>
+        </v-dialog>
+      </v-toolbar>
+      <v-toolbar flat dense color="dark">
           <v-spacer/>
           <v-select v-model="selectedMode"
                     :items="hasProperties.mode ? selectedElement.properties.mode : []"
@@ -136,12 +183,11 @@
               Options:
             </span>
           </v-select>
-        </v-list-tile>
-      </v-list>
-      <v-divider/>
+      </v-toolbar>
     </v-card>
   </div>
 </template>
+
 
 <script>
 import {mapState, mapActions} from 'vuex'
@@ -151,8 +197,7 @@ import { Chrome } from 'vue-color'
 export default {
   name: 'VizProps',
   components: {
-    'color-picker': Chrome,
-    // 'app-positioner': Positioner
+    'color-picker': Chrome
   },
   data () {
     return {
@@ -166,11 +211,15 @@ export default {
       selectedWidth: 1,
       selectedFieldName: '',
       currentGlyphId: 0,
-      colorPick: {hex: ''},
+      colorPick: {hex8: ''},
       dialog: false,
       selectedMode: '',
       elementSelectColor: 'dark',
-      featureSelectColor: 'dark'
+      featureSelectColor: 'dark',
+      renamingGlyph: false,
+      newGlyphName: '',
+      glyphColor: {hex8: ''},
+      glyphColorDialog: false
     }
   },
   computed: {
@@ -211,7 +260,7 @@ export default {
     featuresItems () {
       const maxFieldLen = 30
       const featureItems = []
-      for (let field of this.dataFields) {
+      for (const field of this.dataFields) {
         let fieldIsBound = this.bindings.some(binding => binding.field === field)
         let whiteSpace = []
         for (let i = field.length; i <= maxFieldLen - 3; i++) {
@@ -219,7 +268,8 @@ export default {
         }
         featureItems.push({
           text: field.slice(0, maxFieldLen) + whiteSpace.join('') + (fieldIsBound ? '(O)' : ''),
-          value: field
+          value: field,
+          isBound: fieldIsBound
         })
       }
       return featureItems
@@ -231,7 +281,11 @@ export default {
       setPathParameter: 'glyph/setPathParameter',
       redrawElement: 'glyph/redrawElement',
       deleteElement: 'glyph/deleteElement',
-      setGlyphParameters: 'glyph/setGlyphParameters'
+      deleteBinding: 'glyph/deleteBinding',
+      setGlyphParameters: 'glyph/setGlyphParameters',
+      renameGlyphs: 'glyph/renameGlyphs',
+      deleteGlyph: 'glyph/deleteGlyph',
+      setGlyphColor: 'glyph/setGlyphColor'
     }),
     reset (newData = {}) {
       this.rebinding = newData.rebinding || false
@@ -308,6 +362,7 @@ export default {
         )
       if (oldBinding) {
         this.deleteElement(oldBinding)
+        this.deleteBinding(oldBinding)
       }
       this.reset()
     },
@@ -322,6 +377,15 @@ export default {
               binding_ => binding_.name === this.selectedGlyphName && binding_.field === this.selectedFieldName
       )
       this.redrawElement(binding)
+    },
+    renameGlyph () {
+      this.renamingGlyph = false
+      const oldName = this.selectedGlyphName
+      this.selectedGlyphName = this.newGlyphName
+      this.renameGlyphs({
+        oldName: oldName,
+        newName: this.newGlyphName
+      })
     }
   },
   watch: {
@@ -348,19 +412,34 @@ export default {
       if (this.numDisplayedGlyphs && Boolean(this.selectedElementName) && this.selectedElement.type === 'path') {
         this.setPathParameter({
           parameter: 'strokeColor',
-          value: this.colorPick.hex,
+          value: this.colorPick.hex8,
           glyphName: this.selectedGlyphName,
           elementName: this.selectedElement.name
         })
         if (this.selectedElement.properties.color.fillColor) {
           this.setPathParameter({
             parameter: 'fillColor',
-            value: this.colorPick.hex,
+            value: this.colorPick.hex8,
             glyphName: this.selectedGlyphName,
             elementName: this.selectedElement.name
           })
         }
       }
+    },
+    glyphColor: {
+      handler () {
+        this.setGlyphColor({
+          glyphName: this.selectedGlyphName,
+          fillColor: this.glyphColor.hex8,
+        })
+        for (const binding of this.bindings) {
+          if (binding.element !== 'Shade') {
+            continue
+          }
+          this.redrawElement(binding)
+        }
+      },
+      deep: true
     }
   }
 }
@@ -377,22 +456,14 @@ export default {
   margin-top: 20px;
 }
 
-.re-bind{
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-}
-
 .bind-item{
   flex: 0 1 auto
 }
 
 .color-tile {
-  width: 20px;
+  width: 100px;
   height: 20px;
   margin: auto;
   border: 1px solid #616161;
 }
-
 </style>

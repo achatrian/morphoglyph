@@ -130,6 +130,8 @@ export default {
 
   setBoundingRectSizeFactor: ({commit}, sizeFactor) => commit('setBoundingRectSizeFactor', sizeFactor),
 
+  setProgressCircleState: ({commit}, payload) => commit('setProgressCircleState', payload),
+
   // drawChart: ({rootState, state: app, dispatch, commit}, payload) => {
   //   if (window.chart) {
   //     dispatch('destroyChart')

@@ -24,6 +24,7 @@
                             label="Glyph type"
                             placeholder="Select a type for the new glyph"
                             v-model="selectedGlyphType"
+                            ref="type"
                     />
                 </div>
 <!--                select glyph shape-->
@@ -40,6 +41,7 @@
                             label="Glyph shape"
                             placeholder="Select a shape for the new glyph"
                             v-model="selectedGlyphShape"
+                            ref="shape"
                     />
                 </div>
             </v-toolbar>
@@ -55,6 +57,7 @@
                             label="Ordering feature"
                             placeholder="Select a feature to order glyphs"
                             v-model="selectedOrderFeature"
+                            ref="feature"
                     />
                 </div>
             </v-toolbar>
@@ -62,12 +65,14 @@
                     color="dark"
                     flat
                     dense>
-                <v-btn flat class="primary white--text" @click="addGlyphs">
-                    add
-                </v-btn>
-                <v-btn v-if="globalShape" flat class="secondary primary--text" @click="redrawShape">
-                    redraw
-                </v-btn>
+                <div class="buttons">
+                    <v-btn flat class="primary white--text" @click="addGlyphs" :disabled="!writtenGlyphName">
+                        add
+                    </v-btn>
+                    <v-btn v-if="globalShape" flat class="secondary primary--text" @click="redrawShape">
+                        redraw
+                    </v-btn>
+                </div>
             </v-toolbar>
 <!--            scale height of new glyph w.r.to bounding box-->
         </v-card>
@@ -93,6 +98,7 @@ export default {
             parsedData: state => state.backend.parsedData,
             maxDisplayedGlyphs: state => state.app.maxDisplayedGlyphs,
             fieldTypes: state => state.backend.fieldTypes,
+            namingField: state => state.backend.namingField,
             dataFields: state => state.backend.dataFields,
             shapeJSONStore: state => state.backend.shapeJSONStore
         }),
@@ -119,7 +125,7 @@ export default {
                 return []
             } else {
                 const items = []
-                for (let item of selectedType.settings.options) {
+                for (const item of selectedType.settings.options) {
                     let shapeName = (item === 'custom' && Boolean(this.globalShape)) ? (' - ' + this.globalShape.name) : ''
                     items.push({
                         text: item + shapeName,
@@ -132,13 +138,19 @@ export default {
         stringFields () { // items for cluster name selector
             // string fields for select
             let fields = []
-            for (let field of this.dataFields) {
-                if (this.fieldTypes[field] === String) {
-                    fields.push(field)
+            if (this.glyphs.length > 0) {
+                // if top glyphs are already created,
+                // he naming field must be the same as for the top glyphs
+                fields.push(this.namingField)
+            } else {
+                for (const field of this.dataFields) {
+                    if (this.fieldTypes[field] === String) {
+                        fields.push(field)
+                    }
                 }
-            }
-            if (fields.length === 0) {
-                fields = this.dataFields // if no string fields are available, let user choose any field
+                if (fields.length === 0) {
+                    fields = this.dataFields // if no string fields are available, let user choose any field
+                }
             }
             return fields
         },
@@ -153,7 +165,6 @@ export default {
             setNamingField: 'backend/setNamingField',
             setGlyphParameters: 'glyph/setGlyphParameters',
             changeDisplayedGlyphNum: 'app/changeDisplayedGlyphNum',
-            makeEmptyGlyphs: 'glyph/makeEmptyGlyphs',
             removeShapeJSON: 'backend/removeShapeJSON',
             assignGlyphToShape: 'backend/assignGlyphToShape'
         }),
@@ -183,7 +194,7 @@ export default {
                         // this_.activateRedrawing()
                     } else {
                         this_.setNamingField(this_.selectedOrderFeature)
-                        this_.makeEmptyGlyphs({
+                        this_.addDataBoundGlyphs({
                             glyphName: this_.writtenGlyphName,
                             glyphTypeName: this_.selectedGlyphType
                         })
@@ -220,6 +231,12 @@ export default {
                 this.setShapeCanvasState(false)
             }
         }
+    },
+    mounted() {
+        this.writtenGlyphName = 'MyGlyph'
+        this.selectedGlyphType = this.glyphTypes[0].type
+        this.selectedGlyphShape = this.shapeItems[0].text
+        this.selectedOrderFeature = this.stringFields[0]
     }
 }
 </script>
@@ -228,6 +245,7 @@ export default {
     .panel {
         margin-top: 2px;
     }
+
     .select-title{
         position: relative;
         margin-top: 20px;

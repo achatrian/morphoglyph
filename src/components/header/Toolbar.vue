@@ -16,12 +16,15 @@
     <v-toolbar-title router to='/'
                      class="deep-purple--text font-weight-black"
                      id="toolbar-title">
-      WPhenoPlot
+      PhenoPlotWeb
     </v-toolbar-title>
     <app-load-data/>
     <div id="file-name">
       <span style="">{{fileName}}</span>
     </div>
+    <v-btn icon flat @click="saveExample">
+      <v-icon>save</v-icon>
+    </v-btn>
     <!--because of flex, elements must be at either end or beginning, or they will change position if something is inserted on the right (e.g. the file name)-->
     <v-spacer/>
     <div id="project-name">
@@ -60,6 +63,7 @@ import SaveTemplates from "./buttons/SaveTemplates"
 import ApplyTemplate from "./buttons/ApplyTemplate"
 import SaveAsSVG from "./buttons/SaveAsSVG";
 
+
 export default {
   name: 'Toolbar',
   components: {
@@ -90,7 +94,8 @@ export default {
     ...mapActions({
       toggleToolsDrawer: 'app/toggleToolsDrawer',
       toggleStudioDrawer: 'app/toggleStudioDrawer',
-      updateTemplateName: 'template/updateTemplateName'
+      updateTemplateName: 'template/updateTemplateName',
+      saveExample: 'template/saveExample'
       //loadFeaturesFile: 'backend/loadFeaturesFile',
     }),
     onToolsClick () {
