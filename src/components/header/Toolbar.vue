@@ -16,13 +16,10 @@
     <v-toolbar-title router to='/'
                      class="deep-purple--text font-weight-black"
                      id="toolbar-title">
-      PhenoPlotWeb
+      Phew
     </v-toolbar-title>
-    <app-load-data/>
-    <div id="file-name">
-      <span style="">{{fileName}}</span>
-    </div>
-    <v-btn icon flat @click="saveExample">
+    <app-load-data class="pond"/>
+    <v-btn icon flat @click="saveExample" v-if="example">
       <v-icon>save</v-icon>
     </v-btn>
     <!--because of flex, elements must be at either end or beginning, or they will change position if something is inserted on the right (e.g. the file name)-->
@@ -41,10 +38,6 @@
     <app-apply-template :templateName="this.currentTemplateName"/>
     <app-save-templates/>
     <app-save-as-svg/>
-    <app-box-toggler/>
-    <app-zoomer/>
-    <!--<v-divider vertical/>-->
-    <app-view-manager/>
     <v-toolbar-side-icon @click="onStudioClick">
       <v-icon color="deep-purple">menu</v-icon>
     </v-toolbar-side-icon>
@@ -53,31 +46,22 @@
 
 <script>
 import {mapState, mapActions} from 'vuex'
-
-//import Settings from './settings/Settings'
 import LoadData from './buttons/LoadData'
-import ViewManager from './buttons/ViewManager'
-import Zoomer from './buttons/Zoomer'
-import BoxToggler from './buttons/BoxToggler'
 import SaveTemplates from "./buttons/SaveTemplates"
 import ApplyTemplate from "./buttons/ApplyTemplate"
-import SaveAsSVG from "./buttons/SaveAsSVG";
+import SaveAsSVG from "./buttons/SaveAsSVG"
 
 
 export default {
   name: 'Toolbar',
   components: {
-    //'app-settings': Settings,
-    'app-load-data': LoadData, // TODO v-file-input not working in toolbar at time of writing? Wait until it is released in stable version?
-    'app-view-manager': ViewManager,
-    'app-zoomer': Zoomer,
-    'app-box-toggler': BoxToggler,
+    'app-load-data': LoadData,
     'app-save-templates': SaveTemplates,
     'app-apply-template': ApplyTemplate,
-    'app-save-as-svg': SaveAsSVG
+    'app-save-as-svg': SaveAsSVG,
   },
   data () {
-    return {currentTemplateName: ''}
+    return {currentTemplateName: '', example: false}
   },
   computed: {
     ...mapState({
@@ -95,7 +79,8 @@ export default {
       toggleToolsDrawer: 'app/toggleToolsDrawer',
       toggleStudioDrawer: 'app/toggleStudioDrawer',
       updateTemplateName: 'template/updateTemplateName',
-      saveExample: 'template/saveExample'
+      saveExample: 'template/saveExample',
+      uploadTemplate: 'template/uploadTemplate'
       //loadFeaturesFile: 'backend/loadFeaturesFile',
     }),
     onToolsClick () {
@@ -132,6 +117,12 @@ export default {
 </script>
 <!-- TODO use deep selector to change all icons to purple -->
 <style lang='css' scoped>
+  .pond{
+    margin: 0 0 0 10px;
+    min-width: 150px;
+    border: purple
+  }
+
   #toolbar-side-icon-spacer {
     height: 36px;
     width: 36px;
