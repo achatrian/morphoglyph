@@ -27,8 +27,8 @@
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex'
-//import Table from './Table'
+import {mapState, mapActions} from 'vuex'
+// import Table from './Table'
 import VizProps from './VizProps'
 // import Positioner from './Positioner'
 // import ShapeCanvas from './ShapeCanvas'
@@ -44,7 +44,7 @@ export default {
     }
   },
   components: {
-    //'app-table': Table,
+    // 'app-table': Table,
     'app-viz-props': VizProps,
     // 'app-positioner': Positioner,
     // 'app-shape-canvas': ShapeCanvas,
