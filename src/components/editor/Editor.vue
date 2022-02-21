@@ -5,7 +5,7 @@
     <app-tools/>
     <app-view/>
     <app-studio/>
-    <app-lower-toolbar v-if="this.footer"/>
+<!--    <app-lower-toolbar v-if="this.footer"/>-->
   </div>
 </template>
 
@@ -15,7 +15,7 @@ import Toolbar from '../header/Toolbar'
 import Tools from './tools/Tools'
 import View from './view/View'
 import Studio from './studio/Studio'
-import LowerToolbar from '../footer/LowerToolbar'
+// import LowerToolbar from '../footer/LowerToolbar'
 import Snackbar from '../notification/Snackbar.vue'
 
 export default {
@@ -25,7 +25,7 @@ export default {
     'app-tools': Tools,
     'app-view': View,
     'app-studio': Studio,
-    'app-lower-toolbar': LowerToolbar,
+    // 'app-lower-toolbar': LowerToolbar,
     'app-snackbar': Snackbar
   },
   computed: {

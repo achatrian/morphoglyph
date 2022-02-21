@@ -43,7 +43,7 @@ class ShapeGlyph extends BaseGlyph {
       name = '',
       parameters = ShapeGlyph.shapeParameters(),
       parent = null) {
-    // constructor for standard PhenoPlot glyph
+    // constructor for standard MorphoGlyph glyph
     super(layer, id, name, parameters, parent)
     this.glyphElements = ShapeGlyph.elements
     this.itemIds = {

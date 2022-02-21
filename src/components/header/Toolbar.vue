@@ -16,12 +16,14 @@
     <v-toolbar-title router to='/'
                      class="deep-purple--text font-weight-black"
                      id="toolbar-title">
-      Phew
+      MorphoGlyph
     </v-toolbar-title>
     <app-load-data class="pond"/>
+    <app-sheet/>
     <v-btn icon flat @click="saveExample" v-if="example">
       <v-icon>save</v-icon>
     </v-btn>
+
     <!--because of flex, elements must be at either end or beginning, or they will change position if something is inserted on the right (e.g. the file name)-->
     <v-spacer/>
     <div id="project-name">
@@ -38,6 +40,10 @@
     <app-apply-template :templateName="this.currentTemplateName"/>
     <app-save-templates/>
     <app-save-as-svg/>
+    <v-spacer/>
+
+    <app-zoomer/>
+    <app-box-toggler/>
     <v-toolbar-side-icon @click="onStudioClick">
       <v-icon color="deep-purple">menu</v-icon>
     </v-toolbar-side-icon>
@@ -50,6 +56,10 @@ import LoadData from './buttons/LoadData'
 import SaveTemplates from "./buttons/SaveTemplates"
 import ApplyTemplate from "./buttons/ApplyTemplate"
 import SaveAsSVG from "./buttons/SaveAsSVG"
+import Sheet from "@/components/footer/Sheet";
+import Zoomer from "@/components/footer/buttons/Zoomer";
+import ViewManager from "@/components/footer/buttons/ViewManager";
+import BoxToggler from "@/components/footer/buttons/BoxToggler";
 
 
 export default {
@@ -59,9 +69,13 @@ export default {
     'app-save-templates': SaveTemplates,
     'app-apply-template': ApplyTemplate,
     'app-save-as-svg': SaveAsSVG,
+    'app-sheet': Sheet,
+    'app-zoomer': Zoomer,
+    // 'app-view-manager': ViewManager,
+    'app-box-toggler': BoxToggler,
   },
   data () {
-    return {currentTemplateName: '', example: false}
+    return {currentTemplateName: '', example: false} // NB: change 'example' to true in order to save new data example
   },
   computed: {
     ...mapState({

@@ -16,9 +16,9 @@
   <div class="pointers-please studioPanel elevation-1">
     <!--studio applets go in here-->
     <!--turning off viz props when binder is showing (as multiple binding UIs would be confusing)-->
-    <app-glyph-adder/>
+    <app-glyph-adder v-show="glyphs.length === 0"/>
     <app-viz-props v-show="glyphs.length > 0" :shapeName.sync="shapeName"/>
-    <app-positioner v-show="glyphs.length > 0" :shape-name="shapeName"/>
+<!--    <app-positioner v-show="glyphs.length > 0" :shape-name="shapeName"/>-->
     <app-chart-controller v-show="glyphs.length > 0"/>
     <!--<app-shape-canvas/>-->
   </div>
@@ -30,7 +30,7 @@
 import { mapState, mapActions } from 'vuex'
 //import Table from './Table'
 import VizProps from './VizProps'
-import Positioner from './Positioner'
+// import Positioner from './Positioner'
 // import ShapeCanvas from './ShapeCanvas'
 import ChartController from './ChartController'
 import GlyphAdder from './GlyphAdder'
@@ -46,7 +46,7 @@ export default {
   components: {
     //'app-table': Table,
     'app-viz-props': VizProps,
-    'app-positioner': Positioner,
+    // 'app-positioner': Positioner,
     // 'app-shape-canvas': ShapeCanvas,
     'app-chart-controller': ChartController,
     'app-glyph-adder': GlyphAdder

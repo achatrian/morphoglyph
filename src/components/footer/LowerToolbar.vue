@@ -15,20 +15,20 @@
 <!--    </v-container>-->
     <app-box-toggler/>
     <app-zoomer/>
-    <app-view-manager/>
+<!--    <app-view-manager/>-->
     <v-spacer/>
-    <div id="order-text">Order:</div>
-    <div id="order-select">
-      <v-select
-        :disabled="!numDisplayedGlyphs"
-        :items="['file entries'].concat(dataFields)"
-        dense
-        v-model="selectedOrderField"
-      />
-    </div>
-    <v-btn flat icon :disabled="!numDisplayedGlyphs" @click="reorderGlyphs">
-      <v-icon color="primary">reorder</v-icon>
-    </v-btn>
+<!--    <div id="order-text">Order:</div>-->
+<!--    <div id="order-select">-->
+<!--      <v-select-->
+<!--        :disabled="!numDisplayedGlyphs"-->
+<!--        :items="['file entries'].concat(dataFields)"-->
+<!--        dense-->
+<!--        v-model="selectedOrderField"-->
+<!--      />-->
+<!--    </div>-->
+<!--    <v-btn flat icon :disabled="!numDisplayedGlyphs" @click="reorderGlyphs">-->
+<!--      <v-icon color="primary">reorder</v-icon>-->
+<!--    </v-btn>-->
   </v-footer>
 </template>
 

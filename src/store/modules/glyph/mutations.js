@@ -90,7 +90,7 @@ export default {
     resetProject: (state) => {
         glyphScope().project.clear()
         Vue.set(state, 'project', {
-            name: 'A Phew project',
+            name: 'A MorphoGlyph project',
             glyphs: [],
             bindings: [],
             glyphNames: [],

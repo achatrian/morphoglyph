@@ -12,7 +12,7 @@ const state = {
     glyphTypes: [CellGlyph, ShapeGlyph],
     glyphTypeName: '',
     project: {
-        name: 'A new phew project',
+        name: 'A new MorphoGlyph project',
         bindings: [], // stores features -> marker bindings
         glyphs: [], // stores the glyph objects,
         glyphNames: [],

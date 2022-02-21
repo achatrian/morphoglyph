@@ -1,9 +1,9 @@
 <template>
     <v-card class="light elevation-5 card" v-if="glyphs.length === 0">
         <div id="enclosure">
-            <div id="title">Welcome to PhenoPlotWeb!</div>
+            <div id="title">Welcome to MorphoGlyph!</div>
             <div id="description">
-                PhenoPlotWeb enables rapid construction of glyph data visualizations.
+                MorphoGlyph enables rapid construction of glyph data visualizations.
                 <ul>
                     <li>To start building your glyph, upload your data file</li>
                     <app-load-data class="button"/>
@@ -27,8 +27,8 @@
                 <v-flex>
                     <v-layout justify-center>
                         <v-btn color="blue" class="white--text" @click="loadExample('BCL_data.csv')">Cell data</v-btn>
-                        <v-btn color="green" class="white--text">Gland data</v-btn>
-                        <v-btn color="red" class="white--text">Mouse data</v-btn>
+<!--                        <v-btn color="green" class="white&#45;&#45;text">Gland data</v-btn>-->
+<!--                        <v-btn color="red" class="white&#45;&#45;text">Mouse data</v-btn>-->
                     </v-layout>
                 </v-flex>
             </div>
