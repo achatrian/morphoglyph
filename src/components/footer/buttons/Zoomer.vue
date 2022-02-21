@@ -75,11 +75,4 @@ export default {
 </script>
 
 <style scoped>
-#zoom-in{
-    margin-left: 20px;
-}
-#zoom-out{
-    margin-right: 20px;
-}
 </style>
-2

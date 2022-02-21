@@ -17,13 +17,13 @@ import 'vuetify/dist/vuetify.min.css'
 import 'material-design-icons-iconfont/dist/material-design-icons.css' // Ensure you are using css-loader
 
 Vue.use(Vuetify, {
-  theme: {
-    light: '#EEEEEE',
-    dark: '#424242',
-    primary: '#673AB7',
-    secondary: '#D1C4E9',
-    accent: '#651FFF'
-  }
+    theme: {
+        light: '#EEEEEE',
+        dark: '#424242',
+        primary: '#673AB7',
+        secondary: '#D1C4E9',
+        accent: '#651FFF'
+    }
 })
 Vue.use(VueVirtualScroller)
 Vue.config.productionTip = false // change when ready for production
@@ -32,12 +32,11 @@ Vue.config.productionTip = false // change when ready for production
 window.arrayIter = Array.prototype[Symbol.iterator]
 
 
-
 /* eslint-disable no-new */
 new Vue({
-  el: '#app',
-  router,
-  store,
-  components: { App },
-  template: '<App/>'
+    el: '#app',
+    router,
+    store,
+    components: {App},
+    template: '<App/>'
 })

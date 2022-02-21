@@ -409,14 +409,17 @@ export default {
       }
     },
     colorPick () {
-      if (this.numDisplayedGlyphs && Boolean(this.selectedElementName) && this.selectedElement.type === 'path') {
+      if (this.numDisplayedGlyphs && Boolean(this.selectedElementName)
+              && this.selectedElement.type === 'path'
+              && this.colorPick.hex8
+      ) {
         this.setPathParameter({
           parameter: 'strokeColor',
           value: this.colorPick.hex8,
           glyphName: this.selectedGlyphName,
           elementName: this.selectedElement.name
         })
-        if (this.selectedElement.properties.color.fillColor) {
+        if (this.selectedElement.properties.color.fillColor && this.colorPick.hex8) {
           this.setPathParameter({
             parameter: 'fillColor',
             value: this.colorPick.hex8,

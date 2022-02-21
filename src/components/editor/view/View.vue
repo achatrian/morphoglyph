@@ -21,9 +21,7 @@ import {mapState, mapActions} from 'vuex'
 import GlyphCanvas from './GlyphCanvas'
 import BindOptions from './BindOptions'
 import ShapeManager from './ShapeManager'
-import GlyphAdder from './GlyphPreview'
 import WelcomeCard from './WelcomeCard'
-import LegendViewer from "./LegendViewer"
 import ShapeCanvas from "./ShapeCanvas"
 import TemplateManager from "./TemplateManager"
 
@@ -40,8 +38,6 @@ export default {
     'app-glyph-canvas': GlyphCanvas,
     'app-bind-options': BindOptions,
     'app-shape-manager': ShapeManager,
-    'app-glyph-adder': GlyphAdder,
-    'app-legend-viewer': LegendViewer,
     'app-welcome-card': WelcomeCard,
     'app-shape-canvas': ShapeCanvas,
     'app-template-manager': TemplateManager

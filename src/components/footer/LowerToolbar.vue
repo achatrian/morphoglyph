@@ -1,41 +1,53 @@
 <template>
   <v-footer light class="deep-purple--text" app>
     <app-sheet/>
-    <v-container id="pagination-container" v-show="numDisplayedGlyphs">
-      <v-layout justify-center>
-        <v-flex xs8 >
-          <v-pagination
-            id="pagination"
-            v-model="page"
-            :length="numPages"
-            v-show="!(glyphBinder || shapeManager)"
-          ></v-pagination>
-        </v-flex>
-      </v-layout>
-    </v-container>
-    <div id="order-text" v-show="numDisplayedGlyphs">Order:</div>
+<!--    <v-container id="pagination-container" v-show="numDisplayedGlyphs">-->
+<!--      <v-layout justify-center>-->
+<!--        <v-flex xs8 >-->
+<!--          <v-pagination-->
+<!--            id="pagination"-->
+<!--            v-model="page"-->
+<!--            :length="numPages"-->
+<!--            v-show="!(glyphBinder || shapeManager)"-->
+<!--          ></v-pagination>-->
+<!--        </v-flex>-->
+<!--      </v-layout>-->
+<!--    </v-container>-->
+    <app-box-toggler/>
+    <app-zoomer/>
+    <app-view-manager/>
+    <v-spacer/>
+    <div id="order-text">Order:</div>
     <div id="order-select">
       <v-select
-        v-show="numDisplayedGlyphs"
+        :disabled="!numDisplayedGlyphs"
         :items="['file entries'].concat(dataFields)"
         dense
         v-model="selectedOrderField"
       />
     </div>
-    <v-btn flat icon v-show="numDisplayedGlyphs" @click="reorderGlyphs">
+    <v-btn flat icon :disabled="!numDisplayedGlyphs" @click="reorderGlyphs">
       <v-icon color="primary">reorder</v-icon>
     </v-btn>
   </v-footer>
 </template>
 
+
 <script>
 import {mapState, mapActions} from 'vuex'
 import Sheet from './Sheet'
+import Zoomer from './buttons/Zoomer'
+import ViewManager from "./buttons/ViewManager"
+import BoxToggler from "./buttons/BoxToggler"
+
 
 export default {
   name: 'LowerToolbar',
   components: {
-    'app-sheet': Sheet
+    'app-sheet': Sheet,
+    'app-zoomer': Zoomer,
+    'app-view-manager': ViewManager,
+    'app-box-toggler': BoxToggler
   },
   data () { return { page: 1, selectedOrderField: 'file entries' } },
   computed: {...mapState({
@@ -86,6 +98,8 @@ export default {
 }
 
 #order-text{
-  margin-left: -30px
+  display: block;
+  font-size:16px;
+  margin: auto
 }
 </style>

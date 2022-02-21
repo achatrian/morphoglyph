@@ -5,7 +5,7 @@
             <div id="description">
                 PhenoPlotWeb enables rapid construction of glyph data visualizations.
                 <ul>
-                    <li>To start building your glyph, upload your data file by clicking here</li>
+                    <li>To start building your glyph, upload your data file</li>
                     <app-load-data class="button"/>
                     <li>Now let's check whether your data has loaded</li>
                     <app-sheet class="button"/>

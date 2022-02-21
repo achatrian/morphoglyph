@@ -16,7 +16,6 @@
     <v-list>
       <app-bind :color="glyphBinder? 'primary' : 'white'"/>
       <app-shape :color="shapeManager? 'primary' : 'white'"/>
-      <app-child :color="glyphAdder? 'primary' : 'white'"/>
       <app-template :color="templateManager? 'primary' : 'white'"/>
       <app-remove/>
       <!--<app-chart/>-->
@@ -29,7 +28,6 @@
 import {mapState, mapActions} from 'vuex'
 import Bind from './Bind'
 import Shape from './Shape'
-import Child from './Child'
 import Remove from './Remove'
 import Template from './Template'
 // import Chart from './Chart'
@@ -40,7 +38,7 @@ export default {
   components: {
     'app-bind': Bind,
     'app-shape': Shape,
-    'app-child': Child,
+    //'app-child': Child,
     'app-remove': Remove,
     'app-template': Template
     // 'app-chart': Chart,

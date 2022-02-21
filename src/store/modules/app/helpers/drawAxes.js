@@ -14,7 +14,6 @@ export default function drawAxes(options = {
     minTickNumber: 6, // tick number more important than tick spacing
     tickSpacing: 100,
 }) {
-
     const chartLayer = new paper.Layer({name: 'chart'}) // TODO use this or temp layer ?
     chartLayer.activate()
     const {xRange, yRange, offsetFraction, endFraction, strokeWidth, strokeColor, tickSpacing, minTickNumber} = options
@@ -43,7 +42,7 @@ export default function drawAxes(options = {
     const distFromXAxis = 30 // number of pixels between axis and number
     let pointTextLength
     // write ticks on x and y axes
-    let xSpanEnd, ySpanEnd // store final axis position (corresponds to 1.0)
+    let xSpanEnd; let ySpanEnd // store final axis position (corresponds to 1.0)
     for (let ix = 0; ix<numXTicks; ix++) {
         // write tick label
         const xPointText = new paper.PointText({

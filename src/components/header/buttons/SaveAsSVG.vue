@@ -7,9 +7,9 @@
         <v-btn icon slot="activator"
                @click="saveAsSVG"
                :disabled="!drawn">
-            <v-icon color="primary">save</v-icon>
+            <v-icon color="primary">image</v-icon>
         </v-btn>
-        <span>Download SVG version of current glyph arrangment</span>
+        <span>Download SVG version of current glyph arrangement</span>
     </v-tooltip>
 </template>
 

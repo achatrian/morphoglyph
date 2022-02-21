@@ -1,6 +1,7 @@
 import axios from 'axios'
 import path from 'path'
 import db from './firebaseInit'
+import readUploadedFileAsText from "../readUploadedFileAsText"
 
 
 export default {
@@ -41,7 +42,9 @@ export default {
                     minute: 'numeric'
                 })
             }).then(
-                function () {console.log(`Saved template ${state.templateName}`)}
+                function () {
+                    console.log(`Saved template ${state.templateName}`)
+                }
             )
         } catch (err) {
             try {
@@ -77,8 +80,8 @@ export default {
                 }, {root: true})
             }
             await dispatch('glyph/addDataBoundGlyphs', {
-                    glyphTypeName: state.currentTemplate.topGlyph.type,
-                    glyphName: state.currentTemplate.topGlyph.name
+                glyphTypeName: state.currentTemplate.topGlyph.type,
+                glyphName: state.currentTemplate.topGlyph.name
             }, {root: true})
             for (const childGlyph of state.currentTemplate.topGlyph.children) {
                 await dispatch('glyph/addDataBoundGlyphs', {
@@ -98,22 +101,24 @@ export default {
         })
     },
 
-    async getArrayOfTemplates({commit}) {
+    setAvailableTemplates: ({commit}, availableTemplates) => commit('setAvailableTemplates', availableTemplates),
+
+    async getArrayOfTemplates ({dispatch}) {
         try {
             db.collection('templates').get().then(
-                snapShot => {
+                (snapShot) => {
                     console.log(snapShot)
-                    const availableTemplates = snapShot.docs.map(doc => {
+                    const availableTemplates = snapShot.docs.map((doc) => {
                         const data = doc.data()
                         return {
-                           name: data.name,
-                           id: doc.id,
-                           timestamp: data.timestamp || '00/00/00 00:00:00',
-                           glyphNames:  [data.topGlyph.name, ...data.topGlyph.children.map(child => child.name)]
+                            name: data.name,
+                            id: doc.id,
+                            timestamp: data.timestamp || '00/00/00 00:00:00',
+                            glyphNames: [data.topGlyph.name, ...data.topGlyph.children.map((child) => child.name)]
                         }
                     })
-                    console.log(`Available templates: ${availableTemplates.map(templateItem => templateItem.name)}`)
-                    commit('setAvailableTemplates', availableTemplates)
+                    console.log(`Available templates: ${availableTemplates.map((templateItem) => templateItem.name)}`)
+                    dispatch('setAvailableTemplates', availableTemplates)
                 }
             )
         } catch (err) {
@@ -121,7 +126,7 @@ export default {
                 await axios.post(location.origin + '/checkForTemplates')
                 const pathToTemplatesFile = location.origin + '/templates.json'
                 const templatesFile = await axios.get(pathToTemplatesFile)
-                commit('setAvailableTemplates', templatesFile.data)  // TODO check if request.data is what's expected
+                dispatch('setAvailableTemplates', templatesFile.data) // TODO check if request.data is what's expected
                 console.log(templatesFile.data)
             } catch (err1) {
                 console.log(err)
@@ -174,9 +179,27 @@ export default {
             }),
             name: state.templateName
         }).then(
-            function () { console.log(`Renamed template '${oldName}' to '${newName}'`)}
+            function () {
+                console.log(`Renamed template '${oldName}' to '${newName}'`)
+            }
         )
         await dispatch('deleteTemplate', oldName)
+    },
+
+    async uploadTemplate ({dispatch, commit, state}, template) { // TODO finish
+        try {
+            const data = await readUploadedFileAsText(template)
+            commit('updateData', data) // TODO rewrite from here
+            commit('updateFileName', template.name) // actions can commit multiple mutations
+            commit('/changeDisplayedGlyphMax', state.parsedData.length, {root: true}) // change glyph display max
+            // process new data
+        } catch (e) {
+            dispatch('app/activateSnackbar', {
+                text: 'Reading of template file failed (possible wrong format)',
+                color: 'error',
+                timeout: 3000
+            }, {root: true})
+        }
     },
 
     // examples
@@ -191,7 +214,9 @@ export default {
                     day: 'numeric', month: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric'
                 })
             }).then(
-                function () {console.log(`Saved example ${rootState.backend.fileName}`)}
+                function () {
+                    console.log(`Saved example ${rootState.backend.fileName}`)
+                }
             )
         } catch (err) {
             console.error('Failed to save example')
@@ -200,7 +225,7 @@ export default {
 
     async loadExample ({commit, dispatch}, exampleName) { // TODO test
         try { // use firebase
-            const doc  = await db.collection('examples').doc(exampleName).get()
+            const doc = await db.collection('examples').doc(exampleName).get()
             const example = doc.data()
             commit('backend/setParsedData', example.parsedData, {root: true})
             dispatch('updateTemplateName', example.templateName)

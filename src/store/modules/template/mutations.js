@@ -6,7 +6,7 @@ export default {
     },
 
     updateOriginalFileName: (state, originalFileName) => {
-        state.currentTemplate = {originalFileName: originalFileName, ...state.currentTemplate}  // update whole object for vuex reactions
+        state.currentTemplate = {originalFileName: originalFileName, ...state.currentTemplate} // update whole object for vuex reactions
     },
 
     updateNamingField: (state, namingField) => {
@@ -51,7 +51,7 @@ export default {
             // UPDATE GLYPH POSITIONS
             const glyphsBoxes = []
             for (const glyph_ of glyphs) {
-                const boxesPerGlyph = {_id: glyph_.id}  // save id so that glyph box can be matched with correct glyph
+                const boxesPerGlyph = {_id: glyph_.id} // save id so that glyph box can be matched with correct glyph
                 for (const childGlyph of glyph_.iter()) {
                     boxesPerGlyph[childGlyph.name] = {
                         drawingBounds: glyph_.box.drawingBounds,
@@ -66,7 +66,7 @@ export default {
                 }
                 glyphsBoxes.push(boxesPerGlyph)
             }
-            newCurrentTemplate.glyphBoxes = glyphsBoxes  // FIXME change attribute or name
+            newCurrentTemplate.glyphBoxes = glyphsBoxes // FIXME change attribute or name
             state.currentTemplate = newCurrentTemplate
         }
     },
@@ -81,7 +81,7 @@ export default {
         // UPDATE SHAPE DESCRIPTIONS
         const newCurrentTemplate = {...state.currentTemplate}
         newCurrentTemplate.shapes = Array.from(shapeJSONStore).reduce((obj, [key, value]) => (
-            Object.assign(obj, { [key]: value }) // Be careful! Maps can have non-String keys; object literals can't.
+            Object.assign(obj, {[key]: value}) // Be careful! Maps can have non-String keys; object literals can't.
         ), {});
         state.currentTemplate = newCurrentTemplate
     },

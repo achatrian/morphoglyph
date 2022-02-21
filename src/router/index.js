@@ -6,11 +6,11 @@ import Editor from '../components/editor/Editor'
 Vue.use(Router)
 
 export default new Router({
-  routes: [
-    {
-      path: '/',
-      name: 'Dashboard',
-      component: Editor
-    }
-  ]
+    routes: [
+        {
+            path: '/',
+            name: 'Dashboard',
+            component: Editor
+        }
+    ]
 })

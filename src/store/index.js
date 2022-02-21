@@ -13,11 +13,11 @@ Vue.use(Vuex)
 
 // Must add modules below
 export default new Vuex.Store({
-  strict: true, // cannot change state outside mutations
-  modules: {
-    app,
-    backend,
-    glyph,
-    template
-  }
+    strict: true, // cannot change state outside mutations
+    modules: {
+        app,
+        backend,
+        glyph,
+        template
+    }
 })
