@@ -194,7 +194,7 @@
                     if (this.path && this.drawingMode) {
                         // if path was drawn counter-clockwise, rebuild it in a clockwise manner and save it
                         let signedArea = 0
-                        for (const p = 0; p < this.path.segments.length - 2; p++) {
+                        for (let p = 0; p < this.path.segments.length - 2; p++) {
                             const [x1, y1] = [this.path.segments[p].point.x, this.path.segments[p].point.y]
                             const [x2, y2] = [this.path.segments[p+1].point.x, this.path.segments[p+1].point.y]
                             signedArea += (x2 - x1) * (y2 + y1)
